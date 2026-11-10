@@ -1,17 +1,127 @@
 {
-  "version": "1.0",
+  "version": "1.1",
   "data_mode": "synthetic",
-  "windows": [
-    "Dashboard",
-    "Citizen",
-    "Human+Case",
-    "Synthetic Bank",
-    "Signal/Risk",
-    "Cross-Bank Fraud",
-    "Audit/KPI",
-    "FINZANJIR AI",
-    "16 Layers"
+  "window_ids": [
+    "dashboard",
+    "citizen",
+    "human_case",
+    "synthetic_bank",
+    "signal_risk",
+    "cross_bank_fraud",
+    "audit_kpi",
+    "finzanjir_ai",
+    "layers_16"
   ],
+  "windows": [
+    [
+      "dashboard",
+      "Dashboard"
+    ],
+    [
+      "citizen",
+      "Citizen"
+    ],
+    [
+      "human_case",
+      "Human+Case"
+    ],
+    [
+      "synthetic_bank",
+      "Synthetic Bank"
+    ],
+    [
+      "signal_risk",
+      "Signal/Risk"
+    ],
+    [
+      "cross_bank_fraud",
+      "Cross-Bank Fraud"
+    ],
+    [
+      "audit_kpi",
+      "Audit/KPI"
+    ],
+    [
+      "finzanjir_ai",
+      "FINZANJIR AI"
+    ],
+    [
+      "layers_16",
+      "16 Layers"
+    ]
+  ],
+  "system_flow": {
+    "entry": "synthetic_bank",
+    "final": "layers_16",
+    "transitions": [
+      [
+        "synthetic_bank",
+        "signal_risk"
+      ],
+      [
+        "signal_risk",
+        "human_case"
+      ],
+      [
+        "human_case",
+        "cross_bank_fraud"
+      ],
+      [
+        "cross_bank_fraud",
+        "audit_kpi"
+      ],
+      [
+        "audit_kpi",
+        "finzanjir_ai"
+      ],
+      [
+        "finzanjir_ai",
+        "citizen"
+      ],
+      [
+        "citizen",
+        "layers_16"
+      ]
+    ]
+  },
+  "window_roles": {
+    "dashboard": {
+      "input": "Barcha oynalarning holati",
+      "output": "Birlashtirilgan tizim ko‘rinishi"
+    },
+    "synthetic_bank": {
+      "input": "Sintetik bank tranzaksiyasi",
+      "output": "Tekshirilgan tranzaksiya va kontekst"
+    },
+    "signal_risk": {
+      "input": "Tranzaksiya va kontekst",
+      "output": "Signal, dalil, risk va threshold"
+    },
+    "human_case": {
+      "input": "Escalation va Case",
+      "output": "Inson ko‘rigi va vakolatli qaror"
+    },
+    "cross_bank_fraud": {
+      "input": "Vakolatli cross-bank signal konteksti",
+      "output": "Alohida scope ichidagi bog‘lanishlar"
+    },
+    "audit_kpi": {
+      "input": "Qarorlar, hodisalar va natijalar",
+      "output": "Audit izi va sintetik KPI"
+    },
+    "finzanjir_ai": {
+      "input": "Knowledge + runtime context + provenance",
+      "output": "Grounded AI izohi va confidence/abstention"
+    },
+    "citizen": {
+      "input": "Vakolatli status va shaffoflik ma’lumotlari",
+      "output": "Fuqaro uchun tushunarli xavfsizlik holati"
+    },
+    "layers_16": {
+      "input": "Butun tizim izi",
+      "output": "16 qatlam bo‘yicha nazorat va ta’sir xaritasi"
+    }
+  },
   "layers": [
     [
       "layer_01",
