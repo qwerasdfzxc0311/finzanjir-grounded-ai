@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: finzanjir-grounded-ai
+    runtime: static
+    buildCommand: echo "FINZANJIR static prototype ready"
+    staticPublishPath: ./frontend
+    autoDeploy: true
