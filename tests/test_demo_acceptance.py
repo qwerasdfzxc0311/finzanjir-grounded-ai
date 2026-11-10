@@ -53,4 +53,4 @@ def test_demo_normal_path_does_not_open_case():
     )
     assert result["case"] is None
     assert result["decision"] is None
-    assert result["kpi"]["cases_opened"] if "cases_opened" in result["kpi"] else True
+    assert result["kpi"]["signal_to_case_rate"] == 0.0
