@@ -15,19 +15,24 @@ class CaseManager:
         signal_ids: list[str],
         risk_id: str,
         threshold_id: str,
+        transaction_id: str,
         escalation_met: bool,
     ) -> dict[str, Any]:
         if not escalation_met:
             raise ValueError("Case cannot open when escalation threshold is not met")
         if case_id in self._cases:
             raise ValueError(f"Case already exists: {case_id}")
+        if not signal_ids or any(not isinstance(value, str) or not value.strip() for value in signal_ids):
+            raise ValueError("Case requires at least one signal reference")
+        created_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         case = {
-            "id": case_id,
-            "signal_ids": list(signal_ids),
+            "case_id": case_id,
+            "source_signal_ids": list(signal_ids),
             "risk_id": risk_id,
             "threshold_id": threshold_id,
+            "transaction_id": transaction_id,
             "status": "OPEN",
-            "opened_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+            "created_at": created_at,
         }
         self._cases[case_id] = case
         return dict(case)
@@ -48,7 +53,7 @@ class CaseManager:
 
         decided_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         human_decision = {
-            "id": f"decision-{case_id}",
+            "decision_id": f"decision-{case_id}",
             "case_id": case_id,
             "actor_id": actor_id,
             "decision": decision,
@@ -58,28 +63,36 @@ class CaseManager:
         case["status"] = "ACTIONED" if decision == "APPROVE_ACTION" else "DISMISSED"
 
         bank_status = {
-            "id": f"bank-status-{case_id}",
-            "case_id": case_id,
+            "status_id": f"bank-status-{case_id}",
             "bank_id": "synthetic-demo",
+            "case_id": case_id,
+            "transaction_id": case["transaction_id"],
             "status": "REVIEW_REQUIRED" if decision == "APPROVE_ACTION" else "MONITORING",
             "updated_at": decided_at,
         }
         citizen_status = {
-            "id": f"citizen-status-{case_id}",
+            "status_id": f"citizen-status-{case_id}",
+            "actor_id": "authorized-subject",
             "case_id": case_id,
-            "citizen_id": "authorized-subject",
             "status": "UNDER_REVIEW" if decision == "APPROVE_ACTION" else "RESOLVED",
+            "message": (
+                "Tranzaksiyangiz bo‘yicha xavfsizlik tekshiruvi olib borilmoqda"
+                if decision == "APPROVE_ACTION"
+                else "Hodisa bo‘yicha tekshiruv yakunlandi"
+            ),
             "updated_at": decided_at,
         }
         audit_event = {
-            "id": f"audit-{case_id}",
-            "case_id": case_id,
+            "audit_id": f"audit-{case_id}",
             "event_type": "HumanDecisionApplied",
             "actor_id": actor_id,
             "occurred_at": decided_at,
             "object_type": "HumanDecision",
-            "object_id": human_decision["id"],
-            "details": {"decision": decision, "case_status": case["status"]},
+            "object_id": human_decision["decision_id"],
+            "change": {
+                "decision": decision,
+                "case_status": case["status"],
+            },
         }
         return {
             "case": dict(case),
