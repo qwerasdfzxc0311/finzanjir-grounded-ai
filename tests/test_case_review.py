@@ -8,6 +8,7 @@ def test_case_is_opened_and_human_decision_updates_statuses():
         signal_ids=["sig-1"],
         risk_id="risk-1",
         threshold_id="thr-1",
+        transaction_id="tx-1",
         escalation_met=True,
     )
     assert case["status"] == "OPEN"
@@ -32,6 +33,7 @@ def test_case_cannot_open_without_escalation_threshold():
             signal_ids=["sig-2"],
             risk_id="risk-2",
             threshold_id="thr-2",
+            transaction_id="tx-2",
             escalation_met=False,
         )
     except ValueError:
