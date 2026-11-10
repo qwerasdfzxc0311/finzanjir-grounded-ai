@@ -46,7 +46,7 @@ def _normalize_text(value: str) -> str:
 
 
 def _tokens(value: str) -> tuple[str, ...]:
-    return tuple(_normalize_text(token) for token in _TOKEN_RE.findall(value))
+    return tuple(token.casefold() for token in _TOKEN_RE.findall(value) if token.strip())
 
 
 def _as_aliases(value: Any) -> tuple[str, ...]:
