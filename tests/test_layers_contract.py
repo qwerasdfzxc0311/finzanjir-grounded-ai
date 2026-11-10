@@ -25,3 +25,11 @@ def test_layer_crosswalk_contains_all_sixteen_layers():
     assert set(contract["canonical_crosswalk"]) == {
         f"layer_{index:02d}" for index in range(1, 17)
     }
+
+
+def test_layer_labels_match_canonical_corpus():
+    contract = json.loads(Path("contracts/layers_v1.json").read_text(encoding="utf-8"))
+    corpus = json.loads(Path("data/canonical_knowledge_v0.6.json").read_text(encoding="utf-8"))
+    canonical = {node["id"]: node["label"] for node in corpus["knowledge_graph"]["nodes"]}
+    actual = {layer["id"]: layer["label"] for layer in contract["layers"]}
+    assert actual == canonical
