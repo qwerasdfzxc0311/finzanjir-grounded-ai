@@ -19,7 +19,7 @@ class CaseManager:
         signal_ids: list[str],
         risk_id: str,
         threshold_id: str,
-        transaction_id: str,
+        transaction_id: str = "derived-from-case",
         escalation_met: bool,
     ) -> dict[str, Any]:
         if not escalation_met:
