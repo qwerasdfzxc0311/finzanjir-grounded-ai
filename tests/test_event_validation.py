@@ -16,7 +16,7 @@ def test_valid_case_event_envelope_is_accepted():
         scope="bank_internal",
         object_type="Case",
         object_id="case-1",
-        payload={"status": "OPEN"},
+        payload={"id": "case-1", "signal_ids": ["sig-1"], "risk_id": "risk-1", "threshold_id": "thr-1", "status": "OPEN", "opened_at": "2026-11-11T00:00:00Z"},
     )
 
     assert validate_event_envelope(envelope) is None
@@ -30,7 +30,7 @@ def test_event_envelope_rejects_missing_scope():
         "actor_id": "system",
         "object_type": "Case",
         "object_id": "case-1",
-        "payload": {"status": "OPEN"},
+        "payload": {"id": "case-1", "signal_ids": ["sig-1"], "risk_id": "risk-1", "threshold_id": "thr-1", "status": "OPEN", "opened_at": "2026-11-11T00:00:00Z"},
     }
 
     with pytest.raises(ValueError, match="scope"):
