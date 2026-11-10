@@ -5,6 +5,8 @@ from datetime import datetime, timedelta, timezone
 import random
 from typing import Any
 
+from finzanjir_ai.contracts.event_validation import build_event_envelope
+
 
 @dataclass
 class SyntheticBank:
@@ -27,6 +29,7 @@ class SyntheticBank:
             amount = round(self._rng.uniform(5, 5000), 2)
             occurred_at = base_time + timedelta(seconds=self._counter)
             transactions.append({
+                "id": transaction_id,
                 "transaction_id": transaction_id,
                 "bank_id": self.bank_id,
                 "actor_id": actor_id,
@@ -38,6 +41,21 @@ class SyntheticBank:
                 "synthetic": True,
             })
         return transactions
+
+    def generate_transaction_events(self, count: int) -> list[dict[str, Any]]:
+        events: list[dict[str, Any]] = []
+        for transaction in self.generate_transactions(count):
+            events.append(build_event_envelope(
+                event_id=f"evt-{transaction['id']}",
+                event_type="TransactionObserved",
+                occurred_at=transaction["occurred_at"],
+                actor_id=transaction["actor_id"],
+                scope="bank_internal",
+                object_type="Transaction",
+                object_id=transaction["id"],
+                payload=transaction,
+            ))
+        return events
 
 
 def generate_synthetic_batch(*, seed: int = 0, count: int = 1, bank_id: str = "bank-demo") -> list[dict[str, Any]]:
