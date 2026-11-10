@@ -1,0 +1,6 @@
+{
+  "environment": "prototype",
+  "data_mode": "synthetic",
+  "canonical_knowledge_path": "data/canonical_knowledge_v0.6.json",
+  "cross_bank_access": "explicit_scope_only"
+}
