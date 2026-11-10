@@ -92,7 +92,7 @@ def build_knowledge_index(records: Iterable[Mapping[str, Any]]) -> KnowledgeInde
 
     for record in normalized:
         concept_ids.setdefault(record.concept_id, []).append(record.record_id)
-        for token in _tokens(record.searchable_text):
+        for token in set(_tokens(record.searchable_text)):
             if token:
                 term_ids.setdefault(token, []).append(record.record_id)
 
