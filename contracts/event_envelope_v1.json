@@ -1,0 +1,33 @@
+{
+  "version": "1.0",
+  "status": "prototype-contract",
+  "required": [
+    "event_id",
+    "event_type",
+    "occurred_at",
+    "actor_id",
+    "source",
+    "correlation_id",
+    "causation_id",
+    "payload"
+  ],
+  "fields": {
+    "event_id": "string",
+    "event_type": "string",
+    "occurred_at": "datetime",
+    "actor_id": "string",
+    "source": "string",
+    "correlation_id": "string",
+    "causation_id": "string|null",
+    "payload": "object"
+  },
+  "rules": [
+    "Every event has immutable event_id.",
+    "correlation_id groups one end-to-end flow.",
+    "causation_id links the immediate prior event when applicable.",
+    "payload is validated against the event type contract.",
+    "Synthetic events must carry synthetic=true in their relevant payload.",
+    "AuditEvent records authorized state changes.",
+    "AI runtime context is separate from authoritative knowledge memory."
+  ]
+}
