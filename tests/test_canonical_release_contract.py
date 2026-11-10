@@ -3,8 +3,8 @@ from pathlib import Path
 
 
 def test_canonical_v06_release_is_present_and_reconciled():
-    path = Path("canonical_knowledge_v0.6.json")
-    assert path.is_file(), "Canonical v0.6 release file is required at repository root"
+    path = Path("data/canonical_knowledge_v0.6.json")
+    assert path.is_file(), "Canonical v0.6 release file is required at runtime data path"
 
     document = json.loads(path.read_text(encoding="utf-8"))
     assert document["stats"]["records_after_semantic_reconciliation"] == 8804
