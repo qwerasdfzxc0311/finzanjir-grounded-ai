@@ -1,43 +1,39 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+
+from finzanjir_ai.retrieval.grounding import GroundedContext
 
 
 @dataclass(frozen=True)
-class GroundedAnswer:
+class AnswerResult:
     answer: str
     confidence: float
     abstained: bool
-    knowledge_refs: tuple[str, ...]
-    provenance: tuple[str, ...]
-    runtime_refs: tuple[str, ...]
+    citations: tuple[str, ...]
 
 
-def generate_grounded_answer(*, question: str, knowledge: list[dict[str, Any]], runtime: list[dict[str, Any]]) -> GroundedAnswer:
-    if not question.strip() or not knowledge:
-        return GroundedAnswer(
-            answer="Yetarli asos mavjud emas. FINZANJIR AI bu savolga ishonchli grounded javob bera olmaydi.",
-            confidence=0.0,
-            abstained=True,
-            knowledge_refs=(),
-            provenance=(),
-            runtime_refs=tuple(str(item.get("id")) for item in runtime if item.get("id")),
+class GroundedAnswerGenerator:
+    def generate(self, query: str, context: GroundedContext) -> AnswerResult:
+        if not context.items:
+            return AnswerResult(
+                answer="Yetarli asoslangan bilim topilmadi, shuning uchun ishonchli javob berishdan tiyilaman.",
+                confidence=0.0,
+                abstained=True,
+                citations=(),
+            )
+
+        items = context.items[:3]
+        statements = " ".join(item.statement for item in items)
+        top_score = max(0.0, min(1.0, items[0].score))
+        supported = sum(
+            1 for item in items
+            if isinstance(item.evidence, dict) and item.evidence.get("status") == "supported"
         )
-
-    knowledge_refs = tuple(str(item["record_id"]) for item in knowledge if item.get("record_id"))
-    provenance: list[str] = []
-    for item in knowledge:
-        for source in item.get("provenance", ()):
-            provenance.append(str(source))
-    runtime_refs = tuple(str(item["id"]) for item in runtime if item.get("id"))
-    confidence = min(0.95, 0.6 + 0.1 * min(len(knowledge), 3) + (0.1 if runtime else 0.0))
-    answer = knowledge[0].get("statement", "").strip()
-    return GroundedAnswer(
-        answer=answer,
-        confidence=confidence,
-        abstained=False,
-        knowledge_refs=knowledge_refs,
-        provenance=tuple(dict.fromkeys(provenance)),
-        runtime_refs=runtime_refs,
-    )
+        confidence = min(1.0, 0.7 * top_score + 0.3 * (supported / len(items)))
+        return AnswerResult(
+            answer=statements,
+            confidence=confidence,
+            abstained=False,
+            citations=tuple(item.record_id for item in items),
+        )
