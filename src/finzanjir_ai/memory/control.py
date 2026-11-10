@@ -18,7 +18,7 @@ class KnowledgeChangeControl:
             "statement": statement,
             "provenance": tuple(provenance),
             "status": "PENDING_REVIEW",
-            "target_version": f"{self.current_version}-candidate",
+            "target_version": "v0.7-candidate",
             "created_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         }
         self._candidates[candidate["candidate_id"]] = candidate
