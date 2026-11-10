@@ -1,0 +1,201 @@
+{
+  "version": "1.0",
+  "status": "prototype-window-contract",
+  "source_corpus": "v0.6",
+  "layers": [
+    {
+      "id": "layer_01",
+      "label": "Dalil va ma’lumot kelib chiqishini kuzatish",
+      "simple_explanation": "Ma’lumot qayerdan kelganini va uning izini ko‘rsatadi.",
+      "technical_role": "Provenance, source trace va evidence kelib chiqishini boshqaradi.",
+      "state": "current",
+      "implementation_status": "planned"
+    },
+    {
+      "id": "layer_02",
+      "label": "Ma’lumot sifati va ishonchliligi",
+      "simple_explanation": "Ma’lumot to‘g‘ri, to‘liq va ishonchli ekanini nazorat qiladi.",
+      "technical_role": "Validation, quality checks va reliability signals.",
+      "state": "current",
+      "implementation_status": "planned"
+    },
+    {
+      "id": "layer_03",
+      "label": "Xavf va noaniqlikni boshqarish",
+      "simple_explanation": "Xavf va noaniqlikni ochiq baholashga yordam beradi.",
+      "technical_role": "Risk scoring, uncertainty va thresholdlar bilan bog‘lanadi.",
+      "state": "current",
+      "implementation_status": "planned"
+    },
+    {
+      "id": "layer_04",
+      "label": "Inson nazorati va xatoni tuzatish",
+      "simple_explanation": "Muhim qarorlarda inson nazoratini va tuzatish yo‘lini saqlaydi.",
+      "technical_role": "Human review, override va correction controls.",
+      "state": "current",
+      "implementation_status": "planned"
+    },
+    {
+      "id": "layer_05",
+      "label": "Qoidalar va modellarni boshqarish",
+      "simple_explanation": "Qoidalar va modellar versiyasini boshqaradi.",
+      "technical_role": "Rule/model versioning, rollout va change control.",
+      "state": "current",
+      "implementation_status": "planned"
+    },
+    {
+      "id": "layer_06",
+      "label": "Ma’lumotni oshkor qilish va almashish nazorati",
+      "simple_explanation": "Kim qaysi ma’lumotni ko‘rishi yoki almashishini chegaralaydi.",
+      "technical_role": "Access control, data sharing scope va disclosure policy.",
+      "state": "current",
+      "implementation_status": "planned"
+    },
+    {
+      "id": "layer_07",
+      "label": "Avtomatik jarayonlar xavfsizligi",
+      "simple_explanation": "Avtomatik jarayonlar xavfsiz chegarada ishlashini ta’minlaydi.",
+      "technical_role": "Automation guardrails, validation va safe routing.",
+      "state": "current",
+      "implementation_status": "planned"
+    },
+    {
+      "id": "layer_08",
+      "label": "Tranzaksiya zanjiri va Case bog‘liqligi",
+      "simple_explanation": "Hodisa, signal va Case o‘rtasidagi zanjirni ko‘rsatadi.",
+      "technical_role": "Transaction → Signal → Evidence → Risk → Case traceability.",
+      "state": "current",
+      "implementation_status": "planned"
+    },
+    {
+      "id": "layer_09",
+      "label": "Fuqaro shaffofligi va e’tiroz",
+      "simple_explanation": "Fuqaro uchun tushunarli holat va e’tiroz yo‘lini belgilaydi.",
+      "technical_role": "Citizen status, explanation va appeal flow.",
+      "state": "current",
+      "implementation_status": "planned"
+    },
+    {
+      "id": "layer_10",
+      "label": "Maxfiylik va ma’lumotlar hayotiy sikli",
+      "simple_explanation": "Ma’lumotni saqlash, ishlatish va yo‘q qilish chegaralarini boshqaradi.",
+      "technical_role": "Privacy controls, retention va lifecycle.",
+      "state": "current",
+      "implementation_status": "planned"
+    },
+    {
+      "id": "layer_11",
+      "label": "Xavfsizlik hodisasiga javob",
+      "simple_explanation": "Xavfsizlik hodisasidan keyingi javob choralarini boshqaradi.",
+      "technical_role": "Incident response, containment va recovery linkage.",
+      "state": "current",
+      "implementation_status": "planned"
+    },
+    {
+      "id": "layer_12",
+      "label": "Bilimlar bazasi va AI ishonchliligi",
+      "simple_explanation": "AI javobi bilim va dalilga tayanganini nazorat qiladi.",
+      "technical_role": "Knowledge retrieval, provenance, grounding va abstention.",
+      "state": "current",
+      "implementation_status": "planned"
+    },
+    {
+      "id": "layer_13",
+      "label": "Sinov va mustaqil baholash",
+      "simple_explanation": "Tizimni muntazam test va mustaqil baholashdan o‘tkazadi.",
+      "technical_role": "Validation, adversarial testing va evaluation evidence.",
+      "state": "current",
+      "implementation_status": "planned"
+    },
+    {
+      "id": "layer_14",
+      "label": "Bank integratsiyasiga tayyorlik",
+      "simple_explanation": "Bank va PSP integratsiyasi uchun tayyorgarlikni belgilaydi.",
+      "technical_role": "API contracts, integration boundaries va onboarding readiness.",
+      "state": "current",
+      "implementation_status": "planned"
+    },
+    {
+      "id": "layer_15",
+      "label": "Samaradorlik va quvvat",
+      "simple_explanation": "Tizim samaradorligi va yuklama imkoniyatini kuzatadi.",
+      "technical_role": "Performance, capacity va operational KPIs.",
+      "state": "current",
+      "implementation_status": "planned"
+    },
+    {
+      "id": "layer_16",
+      "label": "Ta’sir va zarar kamayishini o‘lchash",
+      "simple_explanation": "FINZANJIRning amaliy ta’siri va zarar kamayishini o‘lchaydi.",
+      "technical_role": "Outcome metrics, recovery impact va long-term effectiveness.",
+      "state": "current",
+      "implementation_status": "planned"
+    }
+  ],
+  "canonical_crosswalk": {
+    "layer_01": [
+      "canonical_knowledge_v0.6",
+      "finzanjir_architecture_manifest"
+    ],
+    "layer_02": [
+      "canonical_knowledge_v0.6",
+      "finzanjir_architecture_manifest"
+    ],
+    "layer_03": [
+      "canonical_knowledge_v0.6",
+      "finzanjir_architecture_manifest"
+    ],
+    "layer_04": [
+      "canonical_knowledge_v0.6",
+      "finzanjir_architecture_manifest"
+    ],
+    "layer_05": [
+      "canonical_knowledge_v0.6",
+      "finzanjir_architecture_manifest"
+    ],
+    "layer_06": [
+      "canonical_knowledge_v0.6",
+      "finzanjir_architecture_manifest"
+    ],
+    "layer_07": [
+      "canonical_knowledge_v0.6",
+      "finzanjir_architecture_manifest"
+    ],
+    "layer_08": [
+      "canonical_knowledge_v0.6",
+      "finzanjir_architecture_manifest"
+    ],
+    "layer_09": [
+      "canonical_knowledge_v0.6",
+      "finzanjir_architecture_manifest"
+    ],
+    "layer_10": [
+      "canonical_knowledge_v0.6",
+      "finzanjir_architecture_manifest"
+    ],
+    "layer_11": [
+      "canonical_knowledge_v0.6",
+      "finzanjir_architecture_manifest"
+    ],
+    "layer_12": [
+      "canonical_knowledge_v0.6",
+      "finzanjir_architecture_manifest"
+    ],
+    "layer_13": [
+      "canonical_knowledge_v0.6",
+      "finzanjir_architecture_manifest"
+    ],
+    "layer_14": [
+      "canonical_knowledge_v0.6",
+      "finzanjir_architecture_manifest"
+    ],
+    "layer_15": [
+      "canonical_knowledge_v0.6",
+      "finzanjir_architecture_manifest"
+    ],
+    "layer_16": [
+      "canonical_knowledge_v0.6",
+      "finzanjir_architecture_manifest"
+    ]
+  }
+}
