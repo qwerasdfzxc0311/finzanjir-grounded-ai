@@ -12,6 +12,8 @@ def test_synthetic_scenario_is_deterministic_and_explicitly_synthetic():
     assert first["card"]["synthetic"] is True
     assert first["device"]["synthetic"] is True
     assert first["bank"]["synthetic"] is True
+    assert first["network"]["synthetic"] is True
+    assert first["transaction"]["network_id"] == first["network"]["id"]
 
 
 def test_synthetic_scenario_contains_a_valid_event_envelope():
