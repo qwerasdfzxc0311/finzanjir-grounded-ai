@@ -1,0 +1,8 @@
+[project]
+name = "finzanjir-grounded-ai"
+version = "0.1.0"
+description = "Grounded FINZANJIR Knowledge Engine"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
