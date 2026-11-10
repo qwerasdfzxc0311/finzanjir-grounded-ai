@@ -1,2 +1,45 @@
 <!doctype html>
-<html lang="uz"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FINZANJIR Prototype</title></head><body><main><h1>FINZANJIR</h1><p>Unified prototype · Synthetic data mode</p><section><h2>Work windows</h2><ul id="windows"></ul></section><section><h2>16 Layers</h2><ol id="layers"></ol></section></main><script>fetch('./prototype_manifest.json').then(r=>r.json()).then(m=>{document.querySelector('#windows').innerHTML=m.windows.map(x=>'<li>'+x+'</li>').join('');document.querySelector('#layers').innerHTML=m.layers.map(x=>'<li>'+x[1]+'</li>').join('')})</script></body></html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FINZANJIR · Unified Prototype</title>
+<style>
+:root{font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;color:#e8edf5;background:#0b1020}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#0b1020,#111827);min-height:100vh}
+header{padding:28px 6vw;border-bottom:1px solid #263047;position:sticky;top:0;background:#0b1020ee;backdrop-filter:blur(12px);z-index:2}
+.brand{display:flex;justify-content:space-between;gap:20px;align-items:center}.brand h1{margin:0;font-size:28px}.badge{padding:7px 11px;border:1px solid #3b475f;border-radius:999px;font-size:12px}
+main{max-width:1200px;margin:auto;padding:32px 6vw 70px}.hero{padding:24px 0 12px}.hero h2{font-size:34px;margin:0 0 10px}.muted{color:#9aa7bd}
+.flow{margin:22px 0;padding:18px;border:1px solid #263047;border-radius:16px;background:#111827}.flow code{color:#c7d2fe}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+.card{border:1px solid #263047;border-radius:16px;padding:18px;background:#121a2b;min-height:120px}.card h3{margin:0 0 8px;font-size:16px}.card p{margin:0;color:#9aa7bd;font-size:13px;line-height:1.5}
+.layers{columns:2;column-gap:16px}.layer{break-inside:avoid;border:1px solid #263047;border-radius:12px;padding:12px;margin:0 0 10px;background:#0f1727}.layer small{color:#72819a}
+@media(max-width:700px){.layers{columns:1}.hero h2{font-size:28px}}
+</style>
+</head>
+<body>
+<header><div class="brand"><h1>FINZANJIR</h1><span class="badge">SYNTHETIC DATA MODE</span></div></header>
+<main>
+<section class="hero"><h2>Unified financial-risk prototype</h2><p class="muted">Bitta event/data oqimi, alohida ish oynalari va grounded AI. Bu demo real bank qarori yoki real bank integratsiyasi emas.</p></section>
+<section class="flow"><strong>Master flow</strong><p><code>Transaction → Signal → Evidence → Risk → Threshold → Case → HumanDecision → Audit/KPI → AI</code></p></section>
+<section><h2>Work windows</h2><div id="windows" class="grid"></div></section>
+<section style="margin-top:34px"><h2>16 architecture layers</h2><div id="layers" class="layers"></div></section>
+</main>
+<script>
+const descriptions={
+"Dashboard":"Tizim holati, faol signal, Case va KPI overview.",
+"Citizen":"Fuqaro xavfsizlik holati, ogohlantirish va tushunarli next step.",
+"Human+Case":"Vakolatli inson Case, evidence, risk va qarorni ko‘radi.",
+"Synthetic Bank":"Faqat synthetic tranzaksiya, actor, card, device va network demo manbasi.",
+"Signal/Risk":"Signal, evidence, risk score va threshold oqimi.",
+"Cross-Bank Fraud":"Alohida access boundary bilan banklararo correlation va Fraud Graph.",
+"Audit/KPI":"Audit izi va synthetic KPI.",
+"FINZANJIR AI":"Knowledge + runtime context asosida grounded explanation.",
+"16 Layers":"FINZANJIRning 16 nazorat va boshqaruv qatlamlari."
+};
+fetch("./prototype_manifest.json").then(r=>r.json()).then(m=>{
+document.querySelector("#windows").innerHTML=m.windows.map(x=>'<article class="card"><h3>'+x+'</h3><p>'+descriptions[x]+'</p></article>').join("");
+document.querySelector("#layers").innerHTML=m.layers.map(x=>'<div class="layer"><small>'+x[0]+'</small><div>'+x[1]+'</div></div>').join("");
+});
+</script>
+</body></html>
