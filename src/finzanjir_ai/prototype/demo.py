@@ -50,7 +50,7 @@ def run_full_demo(transaction: dict[str, Any], *, knowledge_index: KnowledgeInde
     )
 
     ai = FINZANJIRAI(knowledge_index).answer(
-        "Why was this transaction escalated?",
+        "Why does case escalation require evidence?",
         runtime_refs=(transaction["transaction_id"],),
         working_memory_scope=case["case_id"] if case else transaction["transaction_id"],
     )
