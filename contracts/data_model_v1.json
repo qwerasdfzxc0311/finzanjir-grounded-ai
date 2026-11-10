@@ -1,0 +1,206 @@
+{
+  "version": "1.0",
+  "status": "prototype-contract",
+  "objects": {
+    "Transaction": {
+      "required": [
+        "transaction_id",
+        "bank_id",
+        "actor_id",
+        "amount",
+        "currency",
+        "occurred_at",
+        "channel",
+        "status",
+        "synthetic"
+      ],
+      "fields": {
+        "transaction_id": "string",
+        "bank_id": "string",
+        "actor_id": "string",
+        "amount": "number",
+        "currency": "string",
+        "occurred_at": "datetime",
+        "channel": "string",
+        "status": "string",
+        "synthetic": "boolean"
+      }
+    },
+    "Signal": {
+      "required": [
+        "signal_id",
+        "transaction_id",
+        "signal_type",
+        "source",
+        "occurred_at",
+        "status",
+        "synthetic"
+      ],
+      "fields": {
+        "signal_id": "string",
+        "transaction_id": "string",
+        "signal_type": "string",
+        "source": "string",
+        "occurred_at": "datetime",
+        "status": "string",
+        "synthetic": "boolean"
+      }
+    },
+    "Evidence": {
+      "required": [
+        "evidence_id",
+        "signal_id",
+        "type",
+        "status",
+        "provenance"
+      ],
+      "fields": {
+        "evidence_id": "string",
+        "signal_id": "string",
+        "type": "string",
+        "status": "string",
+        "provenance": "object"
+      }
+    },
+    "Risk": {
+      "required": [
+        "risk_id",
+        "signal_id",
+        "score",
+        "level",
+        "calculated_at",
+        "rule_version"
+      ],
+      "fields": {
+        "risk_id": "string",
+        "signal_id": "string",
+        "score": "number",
+        "level": "string",
+        "calculated_at": "datetime",
+        "rule_version": "string"
+      }
+    },
+    "Threshold": {
+      "required": [
+        "threshold_id",
+        "threshold_type",
+        "value",
+        "version",
+        "effective_at",
+        "changed_by"
+      ],
+      "fields": {
+        "threshold_id": "string",
+        "threshold_type": "string",
+        "value": "number",
+        "version": "string",
+        "effective_at": "datetime",
+        "changed_by": "string"
+      }
+    },
+    "Case": {
+      "required": [
+        "case_id",
+        "source_signal_ids",
+        "risk_id",
+        "threshold_id",
+        "status",
+        "created_at"
+      ],
+      "fields": {
+        "case_id": "string",
+        "source_signal_ids": "string[]",
+        "risk_id": "string",
+        "threshold_id": "string",
+        "status": "string",
+        "created_at": "datetime"
+      }
+    },
+    "HumanDecision": {
+      "required": [
+        "decision_id",
+        "case_id",
+        "actor_id",
+        "decision",
+        "decided_at",
+        "reason"
+      ],
+      "fields": {
+        "decision_id": "string",
+        "case_id": "string",
+        "actor_id": "string",
+        "decision": "string",
+        "decided_at": "datetime",
+        "reason": "string"
+      }
+    },
+    "BankStatus": {
+      "required": [
+        "status_id",
+        "bank_id",
+        "case_id",
+        "transaction_id",
+        "status",
+        "updated_at"
+      ],
+      "fields": {
+        "status_id": "string",
+        "bank_id": "string",
+        "case_id": "string",
+        "transaction_id": "string",
+        "status": "string",
+        "updated_at": "datetime"
+      }
+    },
+    "CitizenStatus": {
+      "required": [
+        "status_id",
+        "actor_id",
+        "case_id",
+        "status",
+        "message",
+        "updated_at"
+      ],
+      "fields": {
+        "status_id": "string",
+        "actor_id": "string",
+        "case_id": "string",
+        "status": "string",
+        "message": "string",
+        "updated_at": "datetime"
+      }
+    },
+    "AuditEvent": {
+      "required": [
+        "audit_id",
+        "event_type",
+        "actor_id",
+        "occurred_at",
+        "object_type",
+        "object_id",
+        "change"
+      ],
+      "fields": {
+        "audit_id": "string",
+        "event_type": "string",
+        "actor_id": "string",
+        "occurred_at": "datetime",
+        "object_type": "string",
+        "object_id": "string",
+        "change": "object"
+      }
+    },
+    "AIContext": {
+      "required": [
+        "knowledge_refs",
+        "runtime_refs",
+        "working_memory_scope"
+      ],
+      "fields": {
+        "knowledge_refs": "string[]",
+        "runtime_refs": "string[]",
+        "working_memory_scope": "string"
+      }
+    }
+  }
+}
