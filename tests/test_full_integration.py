@@ -19,10 +19,11 @@ def test_full_demo_chain_connects_transaction_to_case_audit_cross_bank_and_ai():
     audit.append(actor_id="reviewer-1", event_type="HumanDecisionApplied", object_type="HumanDecision", object_id=decision["human_decision"]["decision_id"], details={"decision": "APPROVE_ACTION"})
 
     cross = CrossBankMatcher().match([
-        {"id": "sig-a", "bank_id": "bank-a", "correlation_key": "device-1"},
-        {"id": "sig-b", "bank_id": "bank-b", "correlation_key": "device-1"},
-    ], authorized=True)
-    assert cross.matches == (("sig-a", "sig-b"),)
+        {"transaction_id": "tx-a", "bank_id": "bank-a", "device_id": "device-1"},
+        {"transaction_id": "tx-b", "bank_id": "bank-b", "device_id": "device-1"},
+    ], scope="cross_bank", authorized_exchange=True)
+    assert len(cross.matches) == 1
+    assert cross.matches[0]["scope"] == "cross_bank"
 
     index = build_knowledge_index([{"id": "ck-full", "concept_id": "c-full", "canonical_concept_id": "c-full", "statement": "A case requires supporting evidence and an escalation threshold.", "aliases": ["case escalation"], "evidence": {"status": "supported"}, "provenance": [{"source": "canonical-v0.6"}], "reconciliation": {}}])
     ai = FINZANJIRAI(index).answer("Why was this case opened?", runtime_refs=(tx["transaction_id"], pipeline.case["id"]), working_memory_scope=pipeline.case["id"])
