@@ -42,10 +42,11 @@ def run_full_demo(transaction: dict[str, Any], *, knowledge_index: KnowledgeInde
 
     cross_bank = CrossBankMatcher().match(
         [
-            {"id": f"{transaction['transaction_id']}-sig-a", "bank_id": transaction["bank_id"], "correlation_key": "demo-device-1"},
-            {"id": f"{transaction['transaction_id']}-sig-b", "bank_id": "bank-b", "correlation_key": "demo-device-1"},
+            {"transaction_id": f"{transaction['transaction_id']}-a", "bank_id": transaction["bank_id"], "device_id": "demo-device-1"},
+            {"transaction_id": f"{transaction['transaction_id']}-b", "bank_id": "bank-b", "device_id": "demo-device-1"},
         ],
-        authorized=True,
+        scope="cross_bank",
+        authorized_exchange=True,
     )
 
     ai = FINZANJIRAI(knowledge_index).answer(
