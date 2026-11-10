@@ -12,9 +12,11 @@ class CrossBankMatchResult:
 
 
 class CrossBankMatcher:
-    def match(self, signals: list[dict[str, Any]], *, authorized: bool) -> CrossBankMatchResult:
+    def match(self, signals: list[dict[str, Any]], *, authorized: bool, explicit_scope: bool = True) -> CrossBankMatchResult:
         if not authorized:
             raise ValueError("cross-bank matching requires authorized exchange")
+        if not explicit_scope:
+            raise ValueError("cross-bank matching requires explicit scope")
 
         grouped: dict[str, list[dict[str, Any]]] = {}
         for signal in signals:
