@@ -37,3 +37,38 @@ class GroundedAnswerGenerator:
             abstained=False,
             citations=tuple(item.record_id for item in items),
         )
+
+
+@dataclass(frozen=True)
+class FunctionAnswerResult:
+    answer: str
+    confidence: float
+    abstained: bool
+    knowledge_refs: tuple[str, ...]
+    provenance: tuple[str, ...]
+
+
+def generate_grounded_answer(*, question: str, knowledge: list[dict], runtime: list[dict]) -> FunctionAnswerResult:
+    if not knowledge:
+        return FunctionAnswerResult(
+            answer="Yetarli asoslangan bilim topilmadi, shuning uchun ishonchli javob berishdan tiyilaman.",
+            confidence=0.0,
+            abstained=True,
+            knowledge_refs=(),
+            provenance=(),
+        )
+    statements = " ".join(str(item.get("statement", "")) for item in knowledge if item.get("statement"))
+    refs = tuple(str(item.get("record_id")) for item in knowledge if item.get("record_id"))
+    provenance = tuple(
+        str(source)
+        for item in knowledge
+        for source in item.get("provenance", [])
+    )
+    confidence = 1.0 if statements else 0.0
+    return FunctionAnswerResult(
+        answer=statements,
+        confidence=confidence,
+        abstained=not bool(statements),
+        knowledge_refs=refs,
+        provenance=provenance,
+    )
