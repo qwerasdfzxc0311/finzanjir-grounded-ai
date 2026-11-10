@@ -41,6 +41,22 @@ def validate_object(object_type: str, payload: dict[str, Any]) -> None:
 
     _require_nonempty_string(payload["id"], "id")
 
+    reference_fields = {
+        "Case": ("signal_ids", "risk_id", "threshold_id"),
+        "HumanDecision": ("case_id", "actor_id"),
+        "BankStatus": ("case_id", "bank_id"),
+        "CitizenStatus": ("case_id", "citizen_id"),
+        "AuditEvent": ("case_id", "actor_id"),
+        "Signal": ("transaction_id",),
+        "Evidence": ("signal_id",),
+        "Risk": ("signal_id",),
+    }.get(object_type, ())
+    for field in reference_fields:
+        value = payload[field]
+        values = value if field.endswith("_ids") else [value]
+        if not isinstance(values, list) or not values or any(not isinstance(item, str) or not item.strip() for item in values):
+            raise ValueError(f"{field} must contain non-empty string references")
+
     lifecycle = contract.get("lifecycle", {}).get(object_type)
     if lifecycle and "status" in payload and payload["status"] not in lifecycle:
         raise ValueError(f"Invalid status for {object_type}: {payload['status']}")
@@ -65,6 +81,8 @@ def validate_event_envelope(envelope: dict[str, Any]) -> None:
         raise ValueError("payload must be an object")
 
     validate_object(envelope["object_type"], envelope["payload"])
+    if envelope["object_id"] != envelope["payload"]["id"]:
+        raise ValueError("object_id must match payload id")
 
     if envelope["scope"] == "cross_bank":
         if not contract["event_envelope"]["cross_bank_requires_explicit_scope"]:
