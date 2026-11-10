@@ -2,6 +2,9 @@ import json
 from pathlib import Path
 
 
+# Regression gate: this contract must stay green with the full repository suite.
+
+
 def test_frontend_manifest_declares_one_connected_flow():
     manifest = json.loads(Path("frontend/prototype_manifest.json").read_text(encoding="utf-8"))
     assert manifest["data_mode"] == "synthetic"
