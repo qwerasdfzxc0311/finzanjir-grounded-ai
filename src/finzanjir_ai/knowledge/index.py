@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import re
 from typing import Any, Iterable, Mapping
 
-_TOKEN_RE = re.compile(r"[^\\W_]+", re.UNICODE)
+_TOKEN_RE = re.compile(r"[^\W_]+", re.UNICODE)
 
 
 @dataclass(frozen=True)
