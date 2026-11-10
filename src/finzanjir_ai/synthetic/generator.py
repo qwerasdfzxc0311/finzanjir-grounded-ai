@@ -39,6 +39,12 @@ def generate_demo_scenario(*, seed: int, scenario: str) -> dict[str, Any]:
         "channel": "mobile",
         "synthetic": True,
     }
+    network = {
+        "id": f"network-syn-{suffix}",
+        "ip_address": f"198.51.100.{rng.randint(10, 240)}",
+        "device_id": device["id"],
+        "synthetic": True,
+    }
 
     amount = (
         rng.randint(100_001, 250_000)
@@ -56,6 +62,8 @@ def generate_demo_scenario(*, seed: int, scenario: str) -> dict[str, Any]:
         "actor_id": actor["id"],
         "card_id": card["id"],
         "device_id": device["id"],
+        "network_id": network["id"],
+        "ip_address": network["ip_address"],
         "occurred_at": occurred_at,
         "amount": amount,
         "currency": "UZS",
@@ -82,6 +90,7 @@ def generate_demo_scenario(*, seed: int, scenario: str) -> dict[str, Any]:
         "actor": actor,
         "card": card,
         "device": device,
+        "network": network,
         "transaction": transaction,
         "event": event,
     }
