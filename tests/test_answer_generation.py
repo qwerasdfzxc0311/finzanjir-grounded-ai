@@ -1,19 +1,23 @@
-from finzanjir_ai.answer.generator import generate_grounded_answer
+from finzanjir_ai.answer.generator import GroundedAnswerGenerator
+from finzanjir_ai.retrieval.grounding import GroundedContext, GroundedContextItem
 
 
-def test_grounded_answer_uses_evidence_and_provenance():
-    result = generate_grounded_answer(
-        question="Why is this signal important?",
-        knowledge=[{"record_id": "ck-1", "statement": "Evidence supports risk assessment.", "provenance": ["source-a"]}],
-        runtime=[{"type": "Signal", "id": "sig-1", "status": "ACTIVE"}],
-    )
+def test_grounded_answer_uses_evidence_and_citations():
+    context = GroundedContext(items=(GroundedContextItem(
+        record_id="ck-1",
+        concept_id="c1",
+        statement="Evidence supports risk assessment.",
+        score=0.9,
+        provenance=("source-a",),
+        evidence={"status": "supported"},
+    ),))
+    result = GroundedAnswerGenerator().generate("Why?", context)
     assert result.abstained is False
     assert result.confidence > 0
-    assert "ck-1" in result.knowledge_refs
-    assert "source-a" in result.provenance
+    assert result.citations == ("ck-1",)
 
 
 def test_answer_abstains_without_grounding_context():
-    result = generate_grounded_answer(question="Unknown?", knowledge=[], runtime=[])
+    result = GroundedAnswerGenerator().generate("Unknown?", GroundedContext(items=()))
     assert result.abstained is True
     assert result.confidence == 0.0
