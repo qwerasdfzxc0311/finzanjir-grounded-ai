@@ -1,4 +1,5 @@
-from finzanjir_ai.knowledge.index import build_knowledge_index, normalize_record
+from finzanjir_ai.knowledge.index import build_index_from_document, build_knowledge_index, normalize_record
+from finzanjir_ai.knowledge.loader import load_canonical_knowledge
 
 
 def test_normalize_record_preserves_identity_concept_statement_and_provenance():
@@ -41,3 +42,12 @@ def test_index_supports_exact_term_and_concept_lookup():
     assert index.record_ids_for_term("evidence") == ("ck_1", "ck_2")
     assert index.record_ids_for_concept("c1") == ("ck_1",)
     assert index.record_ids_for_term("suspicious") == ("ck_1",)
+
+
+def test_actual_canonical_corpus_builds_normalized_index():
+    document = load_canonical_knowledge()
+    index = build_index_from_document(document)
+
+    assert len(index.records) == 8804
+    assert len(index._concept_to_record_ids) == 2060
+    assert index.record_ids_for_term("fraud")
