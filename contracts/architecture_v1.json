@@ -1,0 +1,120 @@
+{
+  "version": "1.0",
+  "status": "frozen-candidate",
+  "system": "FINZANJIR",
+  "windows": [
+    "Dashboard",
+    "Citizen",
+    "Human+Case",
+    "Synthetic Bank",
+    "Signal/Risk",
+    "Cross-Bank Fraud",
+    "Audit/KPI",
+    "FINZANJIR AI",
+    "16 Layers"
+  ],
+  "shared_services": [
+    "Identity/Access Control",
+    "API Gateway",
+    "Validation",
+    "Normalization",
+    "Event/Signal Ingestion",
+    "Risk Engine",
+    "Rules/Threshold Management",
+    "Evidence Store",
+    "Cross-Match",
+    "Fraud Graph",
+    "Case Management",
+    "Explainability",
+    "Audit Log",
+    "KPI/Analytics",
+    "Knowledge/Retrieval",
+    "AI Orchestration",
+    "Synthetic Data Generator",
+    "Notification/Alerting",
+    "Configuration/Versioning"
+  ],
+  "data_objects": [
+    "Transaction",
+    "Signal",
+    "Evidence",
+    "Risk",
+    "Threshold",
+    "Case",
+    "HumanDecision",
+    "BankStatus",
+    "CitizenStatus",
+    "AuditEvent",
+    "Actor",
+    "Bank",
+    "PSP",
+    "Device",
+    "Network",
+    "KPI"
+  ],
+  "flow": [
+    "Transaction",
+    "Signal",
+    "Evidence",
+    "Risk",
+    "Threshold",
+    "Case",
+    "HumanDecision",
+    "BankStatus",
+    "CitizenStatus",
+    "AuditEvent"
+  ],
+  "cross_bank": {
+    "scope": "separate_analysis_scope",
+    "access_boundary": "separate_explicit_scope",
+    "allowed_into_core_flow": "lawful_authorized_results_only"
+  },
+  "access_boundaries": {
+    "bank_internal": {
+      "scope": "single_bank",
+      "cross_bank_data": false
+    },
+    "cross_bank": {
+      "scope": "multiple_bank_or_psp",
+      "requires_explicit_scope": true,
+      "requires_authorized_exchange": true
+    },
+    "citizen": {
+      "scope": "own_authorized_objects_and_statuses"
+    },
+    "human_case": {
+      "scope": "role_authorized_cases_only"
+    }
+  },
+  "synthetic_data": {
+    "is_real_bank_data": false,
+    "must_be_explicitly_labeled": true
+  },
+  "state_separation": [
+    "current",
+    "prototype_demo",
+    "proposal",
+    "future"
+  ],
+  "case_policy": {
+    "case_is_final_guilt_judgment": false,
+    "case_requires_escalation_threshold": true
+  },
+  "ai_context": {
+    "knowledge_memory": "authoritative_versioned_corpus",
+    "runtime_context": [
+      "Transaction",
+      "Signal",
+      "Evidence",
+      "Risk",
+      "Threshold",
+      "Case",
+      "HumanDecision",
+      "BankStatus",
+      "CitizenStatus",
+      "AuditEvent"
+    ],
+    "working_memory": "temporary",
+    "direct_authoritative_write": false
+  }
+}
