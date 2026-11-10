@@ -36,5 +36,5 @@ def calculate_kpis(*, signals_detected: int, cases_opened: int, cases_actioned: 
         "data_mode": data_mode,
         "signal_to_case_rate": cases_opened / signals_detected if signals_detected else 0.0,
         "case_action_rate": cases_actioned / cases_opened if cases_opened else 0.0,
-        "average_review_seconds": review_seconds_total / cases_opened if cases_opened else 0.0,
+        "average_review_seconds": review_seconds_total / cases_actioned if cases_actioned else 0.0,
     }
