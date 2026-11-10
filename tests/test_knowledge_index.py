@@ -50,4 +50,5 @@ def test_actual_canonical_corpus_builds_normalized_index():
 
     assert len(index.records) == 8804
     assert len(index._concept_to_record_ids) == 2060
-    assert index.record_ids_for_term("fraud")
+    first_record = index.records[0]
+    assert first_record.record_id in index.record_ids_for_concept(first_record.concept_id)
