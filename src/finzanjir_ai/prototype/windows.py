@@ -12,7 +12,7 @@ class PrototypeWindow:
 @dataclass(frozen=True)
 class PrototypeWindowRegistry:
     windows: tuple[PrototypeWindow, ...]
-    layers: tuple[str, ...]
+    layers: tuple[tuple[str, str], ...]
     shared_event_flow: str
     cross_bank_scope: str
 
