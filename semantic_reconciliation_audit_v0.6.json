@@ -1,0 +1,55 @@
+{
+  "input": "canonical_knowledge_v0.5.json",
+  "output": "canonical_knowledge_v0.6.json",
+  "record_count_before": 8804,
+  "record_count_after": 8804,
+  "canonical_concepts_before": 2060,
+  "canonical_concepts_after": 2060,
+  "chapter_count": 15,
+  "layer_count": 16,
+  "signal_counts": {
+    "general_registry": 3,
+    "small_signals": 21,
+    "advanced_signals": 10
+  },
+  "founder_identity_records": [
+    "ck_000751",
+    "ck_003233",
+    "ck_003234",
+    "ck_003235",
+    "ck_003236"
+  ],
+  "mission_records": [
+    "ck_000752",
+    "ck_000753",
+    "ck_003237",
+    "ck_003238",
+    "ck_003239",
+    "ck_003240",
+    "ck_003241",
+    "ck_003242",
+    "ck_003243",
+    "ck_003244",
+    "ck_003245",
+    "ck_003246"
+  ],
+  "ongoing_research_records": [
+    "ck_000751",
+    "ck_003236"
+  ],
+  "changes": [
+    "Added FINZANJIR chapter inventory 1-15 with semantic crosswalk to 16 layers.",
+    "Added explicit founder identity, mission, and ongoing research/development status anchors.",
+    "Added signal architecture inventory covering general registry, small signals, and advanced signals.",
+    "Preserved current/future distinction for advanced signals and bank integration.",
+    "No existing canonical records were deleted or rewritten."
+  ],
+  "validation": {
+    "record_ids_unique": true,
+    "record_count_unchanged": true,
+    "concept_count_unchanged": true,
+    "sixteen_layers_present": true,
+    "all_signal_categories_present": true,
+    "founder_continuation_present": true
+  }
+}
