@@ -158,5 +158,59 @@
     "case_is_not_final_guilt_judgment": true,
     "cross_bank_scope_is_separate": true,
     "runtime_context_is_not_authoritative_knowledge": true
+  },
+  "lifecycle": {
+    "Signal": [
+      "OBSERVED",
+      "ACTIVE",
+      "RESOLVED",
+      "DISMISSED"
+    ],
+    "Risk": [
+      "CALCULATED",
+      "ESCALATED",
+      "CLEARED"
+    ],
+    "Case": [
+      "OPEN",
+      "IN_REVIEW",
+      "ACTIONED",
+      "CLOSED",
+      "DISMISSED"
+    ],
+    "HumanDecision": [
+      "APPROVE_ACTION",
+      "REQUEST_MORE_EVIDENCE",
+      "DISMISS",
+      "ESCALATE"
+    ],
+    "BankStatus": [
+      "MONITORING",
+      "REVIEW_REQUIRED",
+      "RESTRICTED",
+      "RESTORED"
+    ],
+    "CitizenStatus": [
+      "INFORMED",
+      "UNDER_REVIEW",
+      "RESOLVED"
+    ]
+  },
+  "event_envelope": {
+    "required": [
+      "event_id",
+      "event_type",
+      "occurred_at",
+      "actor_id",
+      "scope",
+      "object_type",
+      "object_id",
+      "payload"
+    ],
+    "scopes": [
+      "bank_internal",
+      "cross_bank"
+    ],
+    "cross_bank_requires_explicit_scope": true
   }
 }
