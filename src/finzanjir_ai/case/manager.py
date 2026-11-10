@@ -7,6 +7,10 @@ from typing import Any
 class CaseManager:
     def __init__(self) -> None:
         self._cases: dict[str, dict[str, Any]] = {}
+        self._human_decisions: dict[str, dict[str, Any]] = {}
+        self._bank_statuses: dict[str, dict[str, Any]] = {}
+        self._citizen_statuses: dict[str, dict[str, Any]] = {}
+        self._audit_events: dict[str, dict[str, Any]] = {}
 
     def open_case(
         self,
@@ -36,6 +40,36 @@ class CaseManager:
         }
         self._cases[case_id] = case
         return dict(case)
+
+    def get_case(self, case_id: str) -> dict[str, Any]:
+        case = self._cases.get(case_id)
+        if case is None:
+            raise ValueError(f"Unknown case: {case_id}")
+        return dict(case)
+
+    def get_human_decision(self, decision_id: str) -> dict[str, Any]:
+        decision = self._human_decisions.get(decision_id)
+        if decision is None:
+            raise ValueError(f"Unknown human decision: {decision_id}")
+        return dict(decision)
+
+    def get_bank_status(self, case_id: str) -> dict[str, Any]:
+        status = self._bank_statuses.get(case_id)
+        if status is None:
+            raise ValueError(f"Unknown bank status for case: {case_id}")
+        return dict(status)
+
+    def get_citizen_status(self, case_id: str) -> dict[str, Any]:
+        status = self._citizen_statuses.get(case_id)
+        if status is None:
+            raise ValueError(f"Unknown citizen status for case: {case_id}")
+        return dict(status)
+
+    def get_audit_event(self, audit_id: str) -> dict[str, Any]:
+        event = self._audit_events.get(audit_id)
+        if event is None:
+            raise ValueError(f"Unknown audit event: {audit_id}")
+        return dict(event)
 
     def apply_human_decision(
         self,
@@ -94,10 +128,14 @@ class CaseManager:
                 "case_status": case["status"],
             },
         }
+        self._human_decisions[human_decision["decision_id"]] = dict(human_decision)
+        self._bank_statuses[case_id] = dict(bank_status)
+        self._citizen_statuses[case_id] = dict(citizen_status)
+        self._audit_events[audit_event["audit_id"]] = dict(audit_event)
         return {
             "case": dict(case),
-            "human_decision": human_decision,
-            "bank_status": bank_status,
-            "citizen_status": citizen_status,
-            "audit_event": audit_event,
+            "human_decision": dict(human_decision),
+            "bank_status": dict(bank_status),
+            "citizen_status": dict(citizen_status),
+            "audit_event": dict(audit_event),
         }
