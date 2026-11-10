@@ -29,7 +29,7 @@ def validate_release() -> dict:
     if canonical.get("finzanjir_architecture_manifest", {}).get("layer_count") != 16:
         failures.append("canonical_manifest_layers")
 
-    if architecture.get("ai_context_separation", {}).get("ai_can_write_authoritative_knowledge") is not False:
+    if architecture.get("ai_context", {}).get("direct_authoritative_write") is not False:
         failures.append("ai_authoritative_write")
     if architecture.get("access_boundaries", {}).get("bank_internal", {}).get("cross_bank_data") is not False:
         failures.append("bank_internal_boundary")
