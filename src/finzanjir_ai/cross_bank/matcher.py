@@ -1,43 +1,66 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import hashlib
+from itertools import combinations
 from typing import Any
 
 
 @dataclass(frozen=True)
 class CrossBankMatchResult:
-    matches: tuple[tuple[str, str], ...]
-    graph_edges: tuple[tuple[str, str], ...]
-    scope: str = "cross_bank"
+    matches: list[dict[str, Any]]
+    graph_edges: list[dict[str, Any]]
 
 
 class CrossBankMatcher:
-    def match(self, signals: list[dict[str, Any]], *, authorized: bool, explicit_scope: bool = True) -> CrossBankMatchResult:
-        if not authorized:
-            raise ValueError("cross-bank matching requires authorized exchange")
-        if not explicit_scope:
-            raise ValueError("cross-bank matching requires explicit scope")
+    SHARED_KEYS = ("network_id", "device_id")
 
-        grouped: dict[str, list[dict[str, Any]]] = {}
-        for signal in signals:
-            key = signal.get("correlation_key")
-            bank_id = signal.get("bank_id")
-            if not key or not bank_id:
-                continue
-            grouped.setdefault(str(key), []).append(signal)
+    def match(
+        self,
+        records: list[dict[str, Any]],
+        *,
+        scope: str,
+        authorized_exchange: bool,
+    ) -> CrossBankMatchResult:
+        if scope != "cross_bank":
+            raise ValueError("cross_bank scope is required")
+        if not authorized_exchange:
+            raise ValueError("authorized cross-bank exchange is required")
 
-        matches: list[tuple[str, str]] = []
-        edges: list[tuple[str, str]] = []
-        for group in grouped.values():
-            for index, left in enumerate(group):
-                for right in group[index + 1 :]:
-                    if left["bank_id"] == right["bank_id"]:
+        matches: list[dict[str, Any]] = []
+        graph_edges: list[dict[str, Any]] = []
+
+        for key_type in self.SHARED_KEYS:
+            grouped: dict[str, list[dict[str, Any]]] = {}
+            for record in records:
+                value = record.get(key_type)
+                if isinstance(value, str) and value.strip():
+                    grouped.setdefault(value, []).append(record)
+
+            for raw_value, group in grouped.items():
+                banks = {record.get("bank_id") for record in group}
+                if len(banks) < 2:
+                    continue
+
+                correlation_hash = hashlib.sha256(raw_value.encode("utf-8")).hexdigest()
+                for left, right in combinations(group, 2):
+                    if left.get("bank_id") == right.get("bank_id"):
                         continue
-                    pair = tuple(sorted((str(left["id"]), str(right["id"]))))
-                    matches.append(pair)
-                    edges.append((f"{left['bank_id']}:{left['id']}", f"{right['bank_id']}:{right['id']}"))
+                    matches.append({
+                        "bank_id_a": left["bank_id"],
+                        "transaction_id_a": left["transaction_id"],
+                        "bank_id_b": right["bank_id"],
+                        "transaction_id_b": right["transaction_id"],
+                        "shared_key_type": key_type,
+                        "correlation_key_hash": correlation_hash,
+                        "scope": "cross_bank",
+                    })
+                    graph_edges.append({
+                        "edge_type": "SHARED_NETWORK" if key_type == "network_id" else "SHARED_DEVICE",
+                        "from": f"{left['bank_id']}:{left['transaction_id']}",
+                        "to": f"{right['bank_id']}:{right['transaction_id']}",
+                        "correlation_key_hash": correlation_hash,
+                        "scope": "cross_bank",
+                    })
 
-        return CrossBankMatchResult(
-            matches=tuple(sorted(set(matches))),
-            graph_edges=tuple(sorted(set(edges))),
-        )
+        return CrossBankMatchResult(matches=matches, graph_edges=graph_edges)
