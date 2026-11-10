@@ -1,0 +1,162 @@
+{
+  "version": "1.0",
+  "status": "prototype",
+  "objects": [
+    "Transaction",
+    "Signal",
+    "Evidence",
+    "Risk",
+    "Threshold",
+    "Case",
+    "HumanDecision",
+    "BankStatus",
+    "CitizenStatus",
+    "AuditEvent"
+  ],
+  "relationships": [
+    [
+      "Transaction",
+      "Signal"
+    ],
+    [
+      "Signal",
+      "Evidence"
+    ],
+    [
+      "Signal",
+      "Risk"
+    ],
+    [
+      "Risk",
+      "Threshold"
+    ],
+    [
+      "Threshold",
+      "Case"
+    ],
+    [
+      "Case",
+      "HumanDecision"
+    ],
+    [
+      "HumanDecision",
+      "BankStatus"
+    ],
+    [
+      "HumanDecision",
+      "CitizenStatus"
+    ],
+    [
+      "Case",
+      "AuditEvent"
+    ]
+  ],
+  "schemas": {
+    "Transaction": {
+      "required": [
+        "id",
+        "bank_id",
+        "occurred_at",
+        "amount",
+        "currency",
+        "channel",
+        "synthetic"
+      ]
+    },
+    "Signal": {
+      "required": [
+        "id",
+        "transaction_id",
+        "type",
+        "source",
+        "occurred_at",
+        "status"
+      ]
+    },
+    "Evidence": {
+      "required": [
+        "id",
+        "signal_id",
+        "type",
+        "status",
+        "observed_at",
+        "provenance"
+      ]
+    },
+    "Risk": {
+      "required": [
+        "id",
+        "signal_id",
+        "score",
+        "level",
+        "calculated_at",
+        "engine_version"
+      ]
+    },
+    "Threshold": {
+      "required": [
+        "id",
+        "type",
+        "value",
+        "version",
+        "effective_at",
+        "changed_by"
+      ]
+    },
+    "Case": {
+      "required": [
+        "id",
+        "signal_ids",
+        "risk_id",
+        "threshold_id",
+        "status",
+        "opened_at"
+      ]
+    },
+    "HumanDecision": {
+      "required": [
+        "id",
+        "case_id",
+        "actor_id",
+        "decision",
+        "decided_at",
+        "reason"
+      ]
+    },
+    "BankStatus": {
+      "required": [
+        "id",
+        "case_id",
+        "bank_id",
+        "status",
+        "updated_at"
+      ]
+    },
+    "CitizenStatus": {
+      "required": [
+        "id",
+        "case_id",
+        "citizen_id",
+        "status",
+        "updated_at"
+      ]
+    },
+    "AuditEvent": {
+      "required": [
+        "id",
+        "case_id",
+        "event_type",
+        "actor_id",
+        "occurred_at",
+        "details"
+      ]
+    }
+  },
+  "constraints": {
+    "synthetic_transaction_must_be_explicit": true,
+    "case_requires_escalation_threshold": true,
+    "case_is_not_final_guilt_judgment": true,
+    "cross_bank_scope_is_separate": true,
+    "runtime_context_is_not_authoritative_knowledge": true
+  }
+}
