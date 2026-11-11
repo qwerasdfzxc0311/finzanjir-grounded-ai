@@ -21,8 +21,12 @@ class SystemFlow:
     architecture_layers: int = 16
 
     def execute(self, transaction: dict[str, Any], *, knowledge_index: KnowledgeIndex) -> dict[str, Any]:
+        if not isinstance(transaction, dict):
+            raise ValueError("transaction must be an object")
         if transaction.get("synthetic") is not True:
             raise ValueError("Unified prototype flow accepts only explicitly synthetic transactions")
+        if "cross_bank_authorized" in transaction and not isinstance(transaction["cross_bank_authorized"], bool):
+            raise ValueError("cross_bank_authorized must be boolean")
 
         pipeline = process_transaction(
             transaction,
@@ -30,7 +34,7 @@ class SystemFlow:
             escalation_threshold=0.75,
         )
 
-        cross_bank_authorized = bool(transaction.get("cross_bank_authorized", False))
+        cross_bank_authorized = transaction.get("cross_bank_authorized", False)
         has_cross_bank_keys = any(
             isinstance(transaction.get(key), str) and transaction.get(key, "").strip()
             for key in ("device_id", "network_id")
