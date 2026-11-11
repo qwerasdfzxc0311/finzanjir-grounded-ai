@@ -51,6 +51,9 @@ def process_transaction(
         "level": evaluation.risk_level,
         "calculated_at": transaction["occurred_at"],
         "engine_version": "risk-v1",
+        "threshold_met": evaluation.threshold_met,
+        "evidence_count": evaluation.evidence_count,
+        "escalation_threshold": escalation_threshold,
     }
 
     case = None
