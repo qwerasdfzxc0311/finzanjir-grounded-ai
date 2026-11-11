@@ -87,7 +87,7 @@ class SystemFlow:
                 },
             ],
             scope="cross_bank",
-            authorized_exchange=cross_bank_authorized,
+            authorized_exchange=cross_bank_authorized or not has_cross_bank_keys,
         )
 
         manager = CaseManager()
