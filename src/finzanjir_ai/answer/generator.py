@@ -33,10 +33,10 @@ class GroundedAnswerGenerator:
             if isinstance(item.evidence, dict) and item.evidence.get("status") == "supported"
         )
         confidence = min(1.0, 0.7 * top_score + 0.3 * (supported / len(items)))
-        if confidence < self.ABSTENTION_THRESHOLD:
+        if supported == 0 or confidence < self.ABSTENTION_THRESHOLD:
             return AnswerResult(
                 answer="Authoritative evidence ishonchlilik chegarasidan past; javob berishdan bosh tortildi.",
-                confidence=confidence,
+                confidence=0.0 if supported == 0 else confidence,
                 abstained=True,
                 citations=tuple(item.record_id for item in items),
             )
