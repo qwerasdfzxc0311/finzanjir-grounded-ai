@@ -65,3 +65,42 @@ def test_grounding_accepts_canonical_source_derived_evidence():
     grounded = GroundedContextAssembler(index).assemble(results)
 
     assert tuple(item.record_id for item in grounded.items) == ("ck-source-derived",)
+
+
+def test_grounding_rejects_source_derived_record_with_unconfirmed_status_marker():
+    index = build_knowledge_index([
+        {
+            "id": "ck-unconfirmed",
+            "concept_id": "c1",
+            "canonical_concept_id": "c1",
+            "statement": "Ushbu qatlamning amaldagi mavjudligi tasdiqlanmagan.",
+            "aliases": ["case evidence"],
+            "evidence": {
+                "status": "source_derived",
+                "sources": [{"source_id": "doc-1"}],
+            },
+            "provenance": [{"source": "doc-1"}],
+            "reconciliation": {},
+        },
+        {
+            "id": "ck-confirmed",
+            "concept_id": "c2",
+            "canonical_concept_id": "c2",
+            "statement": "Case escalation supporting evidence bilan asoslanadi.",
+            "aliases": ["case evidence escalation"],
+            "evidence": {
+                "status": "source_derived",
+                "sources": [{"source_id": "doc-2"}],
+            },
+            "provenance": [{"source": "doc-2"}],
+            "reconciliation": {},
+        },
+    ])
+
+    results = (
+        RetrievalResult("ck-unconfirmed", 0.95, 1.0, 0.8),
+        RetrievalResult("ck-confirmed", 0.8, 1.0, 0.7),
+    )
+    grounded = GroundedContextAssembler(index).assemble(results)
+
+    assert tuple(item.record_id for item in grounded.items) == ("ck-confirmed",)
