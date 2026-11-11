@@ -21,3 +21,10 @@ def test_frontend_manifest_explains_each_window_role():
     assert set(roles) == set(manifest["window_ids"])
     assert all(roles[window]["input"] for window in roles)
     assert all(roles[window]["output"] for window in roles)
+
+
+def test_frontend_bootstraps_from_real_runtime_demo_endpoint():
+    script = Path("frontend/app.js").read_text(encoding="utf-8")
+    assert "/api/prototype/demo" in script
+    assert "prototypeResult" in script
+    assert "transaction_id" in script
