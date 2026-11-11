@@ -120,26 +120,30 @@ class CaseManager:
         if is_authoritative:
             case["status"] = "ACTIONED" if decision == "APPROVE_ACTION" else "DISMISSED"
 
-        bank_status = {
-            "status_id": f"bank-status-{case_id}",
-            "bank_id": "synthetic-demo",
-            "case_id": case_id,
-            "transaction_id": case["transaction_id"],
-            "status": "REVIEW_REQUIRED" if decision == "APPROVE_ACTION" else "MONITORING",
-            "updated_at": decided_at,
-        }
-        citizen_status = {
-            "status_id": f"citizen-status-{case_id}",
-            "actor_id": "authorized-subject",
-            "case_id": case_id,
-            "status": "UNDER_REVIEW" if decision == "APPROVE_ACTION" else "RESOLVED",
-            "message": (
-                "Tranzaksiyangiz bo‘yicha xavfsizlik tekshiruvi olib borilmoqda"
-                if decision == "APPROVE_ACTION"
-                else "Hodisa bo‘yicha tekshiruv yakunlandi"
-            ),
-            "updated_at": decided_at,
-        }
+        bank_status = None
+        citizen_status = None
+        if is_authoritative:
+            bank_status = {
+                "status_id": f"bank-status-{case_id}",
+                "bank_id": "synthetic-demo",
+                "case_id": case_id,
+                "transaction_id": case["transaction_id"],
+                "status": "REVIEW_REQUIRED" if decision == "APPROVE_ACTION" else "MONITORING",
+                "updated_at": decided_at,
+            }
+            citizen_status = {
+                "status_id": f"citizen-status-{case_id}",
+                "actor_id": "authorized-subject",
+                "case_id": case_id,
+                "status": "UNDER_REVIEW" if decision == "APPROVE_ACTION" else "RESOLVED",
+                "message": (
+                    "Tranzaksiyangiz bo‘yicha xavfsizlik tekshiruvi olib borilmoqda"
+                    if decision == "APPROVE_ACTION"
+                    else "Hodisa bo‘yicha tekshiruv yakunlandi"
+                ),
+                "updated_at": decided_at,
+            }
+
         audit_event = {
             "audit_id": f"audit-{case_id}",
             "event_type": "HumanDecisionApplied",
@@ -156,8 +160,9 @@ class CaseManager:
             },
         }
         self._human_decisions[human_decision["decision_id"]] = dict(human_decision)
-        self._bank_statuses[case_id] = dict(bank_status)
-        self._citizen_statuses[case_id] = dict(citizen_status)
+        if bank_status is not None and citizen_status is not None:
+            self._bank_statuses[case_id] = dict(bank_status)
+            self._citizen_statuses[case_id] = dict(citizen_status)
         self._audit_events[audit_event["audit_id"]] = dict(audit_event)
         return {
             "case": dict(case),
