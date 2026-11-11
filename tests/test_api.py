@@ -65,3 +65,20 @@ def test_prototype_demo_endpoint_returns_a_human_readable_system_explanation():
     assert body["explanation"]["case_is_not_guilt"] is True
     assert body["explanation"]["risk_is_not_guilt"] is True
     assert body["explanation"]["ai_is_not_final_decision_maker"] is True
+
+
+def test_prototype_endpoint_rejects_coerced_cross_bank_authorization():
+    response = client.post(
+        "/api/prototype/run",
+        json={
+            "transaction_id": "TX-API-AUTH-TYPE-001",
+            "bank_id": "bank-a",
+            "amount": 2500,
+            "occurred_at": "2026-11-11T00:00:00Z",
+            "synthetic": True,
+            "device_id": "device-1",
+            "network_id": "network-1",
+            "cross_bank_authorized": 1,
+        },
+    )
+    assert response.status_code == 422
