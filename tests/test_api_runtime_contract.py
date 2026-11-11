@@ -84,11 +84,11 @@ def test_prototype_run_requires_explicit_cross_bank_authorization():
     assert "authorized cross-bank exchange" in response.json()["detail"]
 
 
-def test_prototype_run_allows_cross_bank_matching_only_when_authorized():
+def test_prototype_run_does_not_trust_client_cross_bank_authorization():
     response = client.post(
         "/api/prototype/run",
         json={
-            "transaction_id": "TX-CROSSBANK-AUTH-001",
+            "transaction_id": "TX-CROSSBANK-CLIENT-CLAIM-001",
             "bank_id": "bank-a",
             "amount": 2500,
             "occurred_at": "2026-11-11T00:00:00Z",
@@ -99,8 +99,8 @@ def test_prototype_run_allows_cross_bank_matching_only_when_authorized():
         },
     )
 
-    assert response.status_code == 200
-    assert response.json()["cross_bank"]["matches"]
+    assert response.status_code == 403
+    assert "authorized cross-bank exchange" in response.json()["detail"]
 
 
 def test_prototype_run_rejects_requests_that_omit_the_synthetic_boundary_flag():
