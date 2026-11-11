@@ -1,3 +1,5 @@
+import pytest
+
 from finzanjir_ai.prototype.flow import build_system_flow
 
 
@@ -56,3 +58,27 @@ def test_system_flow_keeps_cross_bank_authorization_explicit():
     }
     result = flow.execute(transaction, knowledge_index=flow.demo_knowledge_index())
     assert all(match["scope"] == "cross_bank" for match in result["cross_bank"].matches)
+
+
+
+def test_system_flow_rejects_non_boolean_cross_bank_authorization():
+    flow = build_system_flow()
+    transaction = {
+        "transaction_id": "TX-FLOW-003",
+        "bank_id": "bank-a",
+        "amount": 2500,
+        "occurred_at": "2026-11-11T00:00:00Z",
+        "synthetic": True,
+        "device_id": "device-3",
+        "cross_bank_authorized": "true",
+    }
+
+    with pytest.raises(ValueError, match="boolean"):
+        flow.execute(transaction, knowledge_index=flow.demo_knowledge_index())
+
+
+def test_system_flow_rejects_non_object_transactions_before_field_access():
+    flow = build_system_flow()
+
+    with pytest.raises(ValueError, match="transaction"):
+        flow.execute([], knowledge_index=flow.demo_knowledge_index())
