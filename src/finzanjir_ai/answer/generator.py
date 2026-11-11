@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from finzanjir_ai.retrieval.grounding import GroundedContext
+from finzanjir_ai.retrieval.grounding import GroundedContext, is_grounded_evidence
 
 
 @dataclass(frozen=True)
@@ -28,17 +28,14 @@ class GroundedAnswerGenerator:
         items = context.items[:3]
         statements = " ".join(item.statement for item in items)
         top_score = max(0.0, min(1.0, items[0].score))
-        supported = sum(
-            1 for item in items
-            if isinstance(item.evidence, dict) and item.evidence.get("status") == "supported"
-        )
-        confidence = min(1.0, 0.7 * top_score + 0.3 * (supported / len(items)))
-        if supported == 0 or confidence < self.ABSTENTION_THRESHOLD:
+        grounded = sum(1 for item in items if is_grounded_evidence(item.evidence))
+        confidence = min(1.0, 0.7 * top_score + 0.3 * (grounded / len(items)))
+        if grounded == 0 or confidence < self.ABSTENTION_THRESHOLD:
             return AnswerResult(
                 answer="Authoritative evidence ishonchlilik chegarasidan past; javob berishdan bosh tortildi.",
-                confidence=0.0 if supported == 0 else confidence,
+                confidence=0.0 if grounded == 0 else confidence,
                 abstained=True,
-                citations=tuple(item.record_id for item in items),
+                citations=(),
             )
         return AnswerResult(
             answer=statements,
