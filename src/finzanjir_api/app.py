@@ -26,7 +26,7 @@ class PrototypeTransaction(BaseModel):
     bank_id: str = Field(min_length=1, max_length=128)
     amount: float = Field(ge=0)
     occurred_at: str = Field(min_length=1, max_length=64)
-    synthetic: bool = True
+    synthetic: bool = False
     device_id: str = Field(default="", max_length=128)
     network_id: str = Field(default="", max_length=128)
 
