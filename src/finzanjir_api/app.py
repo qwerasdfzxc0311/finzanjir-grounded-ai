@@ -106,14 +106,14 @@ def prototype_demo() -> dict[str, Any]:
         "amount": 2500,
         "occurred_at": "2026-11-11T00:00:00Z",
         "synthetic": True,
-        "device_id": "device-demo",
-        "network_id": "network-demo",
-        "cross_bank_authorized": True,
+        # Public presentation demo is fail-closed: it contains no cross-bank
+        # identifiers and carries no client/server authorization claim.
+        "cross_bank_authorized": False,
     }
     flow = build_system_flow()
     result = flow.execute(transaction, knowledge_index=knowledge_index())
     explanation = flow.explain_result(result)
-    return {
+    response = {
         "data_mode": "synthetic",
         "transaction": transaction,
         "flow": {
@@ -124,6 +124,8 @@ def prototype_demo() -> dict[str, Any]:
         "runtime": explanation["runtime"],
         "explanation": explanation["explanation"],
     }
+    response["runtime"]["cross_bank_authorized"] = transaction["cross_bank_authorized"]
+    return response
 
 
 @app.post("/api/prototype/run")
