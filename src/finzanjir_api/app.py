@@ -7,7 +7,7 @@ from typing import Any
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.encoders import jsonable_encoder
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, StrictBool
 from starlette.staticfiles import StaticFiles
 
 from finzanjir_ai.knowledge.index import KnowledgeIndex
@@ -26,10 +26,10 @@ class PrototypeTransaction(BaseModel):
     bank_id: str = Field(min_length=1, max_length=128)
     amount: float = Field(ge=0)
     occurred_at: str = Field(min_length=1, max_length=64)
-    synthetic: bool = False
+    synthetic: StrictBool = False
     device_id: str = Field(default="", max_length=128)
     network_id: str = Field(default="", max_length=128)
-    cross_bank_authorized: bool = False
+    cross_bank_authorized: StrictBool = False
 
 
 app = FastAPI(
