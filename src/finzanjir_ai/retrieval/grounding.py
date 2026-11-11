@@ -38,10 +38,14 @@ UNVERIFIED_STATUS_MARKERS = (
 
 
 def is_grounded_evidence(evidence: Any) -> bool:
-    return (
-        isinstance(evidence, dict)
-        and evidence.get("status") in GROUNDED_EVIDENCE_STATUSES
-    )
+    if not isinstance(evidence, dict) or evidence.get("status") not in GROUNDED_EVIDENCE_STATUSES:
+        return False
+    verification = evidence.get("verification")
+    if isinstance(verification, str) and verification.casefold() in {"unconfirmed", "unverified", "rejected"}:
+        return False
+    if verification is False:
+        return False
+    return True
 
 
 def is_grounded_record(evidence: Any, statement: str) -> bool:
