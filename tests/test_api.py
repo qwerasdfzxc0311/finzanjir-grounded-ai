@@ -48,3 +48,19 @@ def test_prototype_endpoint_executes_synthetic_flow():
     assert body["cross_bank"]["matches"]
     assert body["decision"]["case"]["case_id"] == body["case"]["case_id"]
     assert len(body["layers_16"]) == 16
+
+
+def test_prototype_demo_endpoint_returns_a_human_readable_system_explanation():
+    response = client.get("/api/prototype/demo")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["data_mode"] == "synthetic"
+    assert body["transaction"]["transaction_id"]
+    assert body["flow"]["entry"] == "synthetic_bank"
+    assert body["flow"]["final"] == "layers_16"
+    assert body["flow"]["stages"]
+    assert body["flow"]["stages"][0]["id"] == "synthetic_bank"
+    assert body["flow"]["stages"][-1]["id"] == "layers_16"
+    assert body["explanation"]["case_is_not_guilt"] is True
+    assert body["explanation"]["risk_is_not_guilt"] is True
+    assert body["explanation"]["ai_is_not_final_decision_maker"] is True

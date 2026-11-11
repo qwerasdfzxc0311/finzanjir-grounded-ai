@@ -137,6 +137,41 @@ class SystemFlow:
             "layers_16": self._layer_trace(transaction_id=transaction["transaction_id"]),
         }
 
+    def explain_result(self, result: dict[str, Any]) -> dict[str, Any]:
+        """Return a concise, presentation-safe explanation of the executed flow."""
+        pipeline = result["pipeline"]
+        return {
+            "data_mode": "synthetic",
+            "stages": [
+                {"id": "synthetic_bank", "title": "Synthetic Bank", "purpose": "Sintetik tranzaksiyani qabul qilish va tekshirish."},
+                {"id": "signal_risk", "title": "Signal/Risk", "purpose": "Signal, evidence, risk score va thresholdni hisoblash."},
+                {"id": "cross_bank_fraud", "title": "Cross-Bank Fraud", "purpose": "Faqat vakolatli scope ichida banklararo bog‘lanishni tekshirish."},
+                {"id": "human_case", "title": "Human+Case", "purpose": "Escalation asosida Case ochish va inson ko‘rigini qayd etish."},
+                {"id": "audit_kpi", "title": "Audit/KPI", "purpose": "Qaror va tizim izini auditga, natijalarni KPIga uzatish."},
+                {"id": "finzanjir_ai", "title": "FINZANJIR AI", "purpose": "Canonical knowledge va runtime refs asosida tushuntirish berish."},
+                {"id": "citizen", "title": "Citizen", "purpose": "Vakolatli natijani fuqaro uchun tushunarli statusga aylantirish."},
+                {"id": "layers_16", "title": "16 Layers", "purpose": "Butun oqimni 16 qatlam bo‘yicha kuzatish."},
+            ],
+            "runtime": {
+                "transaction_id": result["transaction_id"],
+                "signal_id": pipeline.signal["id"] if pipeline.signal else None,
+                "evidence_id": pipeline.evidence["id"] if pipeline.evidence else None,
+                "risk_id": pipeline.risk["id"] if pipeline.risk else None,
+                "case_id": result["case"]["case_id"] if result["case"] else None,
+                "risk_level": pipeline.risk["level"] if pipeline.risk else None,
+                "case_opened": result["case"] is not None,
+                "cross_bank_matches": len(result["cross_bank"].matches),
+                "layers_covered": len(result["layers_16"]),
+            },
+            "explanation": {
+                "signal_is_not_fraud_proof": True,
+                "risk_is_not_guilt": True,
+                "case_is_not_guilt": True,
+                "ai_is_not_final_decision_maker": True,
+                "synthetic_data_only": True,
+            },
+        }
+
     def trace(self, transaction_id: str) -> list[dict[str, Any]]:
         return [
             {
