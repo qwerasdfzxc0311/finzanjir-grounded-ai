@@ -15,7 +15,7 @@ def _knowledge():
     }])
 
 
-def test_demo_suspicious_path_opens_case_and_explains_it():
+def test_demo_suspicious_path_opens_case_and_keeps_synthetic_decision_non_authoritative():
     result = run_full_demo(
         {
             "transaction_id": "syn-demo-suspicious",
@@ -31,7 +31,9 @@ def test_demo_suspicious_path_opens_case_and_explains_it():
         knowledge_index=_knowledge(),
     )
     assert result["case"] is not None
-    assert result["decision"]["case"]["status"] == "ACTIONED"
+    assert result["decision"]["case"]["status"] == "OPEN"
+    assert result["decision"]["human_decision"]["is_authoritative"] is False
+    assert result["decision"]["human_decision"]["decision_origin"] == "synthetic_demo"
     assert result["ai"].answer.abstained is False
     assert result["kpi"]["data_mode"] == "synthetic"
 
