@@ -96,6 +96,34 @@ def answer(request: AIAnswerRequest) -> dict[str, Any]:
     }
 
 
+@app.get("/api/prototype/demo")
+def prototype_demo() -> dict[str, Any]:
+    """Execute a deterministic synthetic scenario for the prototype presentation."""
+    transaction = {
+        "transaction_id": "TX-DEMO-2500",
+        "bank_id": "bank-a",
+        "amount": 2500,
+        "occurred_at": "2026-11-11T00:00:00Z",
+        "synthetic": True,
+        "device_id": "device-demo",
+        "network_id": "network-demo",
+    }
+    flow = build_system_flow()
+    result = flow.execute(transaction, knowledge_index=knowledge_index())
+    explanation = flow.explain_result(result)
+    return {
+        "data_mode": "synthetic",
+        "transaction": transaction,
+        "flow": {
+            "entry": flow.window_ids[0],
+            "final": flow.window_ids[-1],
+            "stages": explanation["stages"],
+        },
+        "runtime": explanation["runtime"],
+        "explanation": explanation["explanation"],
+    }
+
+
 @app.post("/api/prototype/run")
 def run_prototype(transaction: PrototypeTransaction) -> dict[str, Any]:
     if transaction.synthetic is not True:
