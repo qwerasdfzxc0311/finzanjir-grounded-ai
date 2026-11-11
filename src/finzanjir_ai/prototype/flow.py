@@ -108,6 +108,21 @@ class SystemFlow:
             reason="Synthetic demo evidence supports continued review.",
         )
 
+        decision["human_decision"].update(
+            {
+                "decision_origin": "synthetic_demo",
+                "actor_type": "synthetic_demo",
+                "is_authoritative": False,
+            }
+        )
+        decision["audit_event"]["change"].update(
+            {
+                "decision_origin": "synthetic_demo",
+                "actor_type": "synthetic_demo",
+                "is_authoritative": False,
+            }
+        )
+
         runtime_refs = tuple(
             value
             for value in (
