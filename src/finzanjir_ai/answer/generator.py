@@ -14,6 +14,8 @@ class AnswerResult:
 
 
 class GroundedAnswerGenerator:
+    ABSTENTION_THRESHOLD = 0.35
+
     def generate(self, query: str, context: GroundedContext) -> AnswerResult:
         if not context.items:
             return AnswerResult(
@@ -31,6 +33,13 @@ class GroundedAnswerGenerator:
             if isinstance(item.evidence, dict) and item.evidence.get("status") == "supported"
         )
         confidence = min(1.0, 0.7 * top_score + 0.3 * (supported / len(items)))
+        if confidence < self.ABSTENTION_THRESHOLD:
+            return AnswerResult(
+                answer="Authoritative evidence ishonchlilik chegarasidan past; javob berishdan bosh tortildi.",
+                confidence=confidence,
+                abstained=True,
+                citations=tuple(item.record_id for item in items),
+            )
         return AnswerResult(
             answer=statements,
             confidence=confidence,
