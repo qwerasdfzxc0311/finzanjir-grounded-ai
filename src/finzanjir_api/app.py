@@ -136,8 +136,12 @@ def run_prototype(transaction: PrototypeTransaction) -> dict[str, Any]:
 
     flow = build_system_flow()
     try:
+        payload = transaction.model_dump()
+        # Authorization is a trusted server-side decision, never a client claim.
+        # The public prototype endpoint therefore fails closed for cross-bank access.
+        payload["cross_bank_authorized"] = False
         result = flow.execute(
-            transaction.model_dump(),
+            payload,
             knowledge_index=knowledge_index(),
         )
     except ValueError as exc:
