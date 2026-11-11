@@ -29,6 +29,7 @@ class PrototypeTransaction(BaseModel):
     synthetic: bool = False
     device_id: str = Field(default="", max_length=128)
     network_id: str = Field(default="", max_length=128)
+    cross_bank_authorized: bool = False
 
 
 app = FastAPI(
@@ -133,10 +134,15 @@ def run_prototype(transaction: PrototypeTransaction) -> dict[str, Any]:
         )
 
     flow = build_system_flow()
-    result = flow.execute(
-        transaction.model_dump(),
-        knowledge_index=knowledge_index(),
-    )
+    try:
+        result = flow.execute(
+            transaction.model_dump(),
+            knowledge_index=knowledge_index(),
+        )
+    except ValueError as exc:
+        if "authorized cross-bank exchange" in str(exc):
+            raise HTTPException(status_code=403, detail=str(exc)) from exc
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     return jsonable_encoder(result)
 
 
