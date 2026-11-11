@@ -1,0 +1,66 @@
+from fastapi.testclient import TestClient
+
+from finzanjir_api.app import app
+
+
+client = TestClient(app)
+
+
+def test_health_contract_is_live_and_presentation_safe():
+    response = client.get("/api/health")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "status": "ok",
+        "service": "finzanjir-grounded-ai",
+    }
+
+
+def test_prototype_demo_executes_connected_runtime_flow():
+    response = client.get("/api/prototype/demo")
+
+    assert response.status_code == 200
+    body = response.json()
+
+    assert body["data_mode"] == "synthetic"
+    assert body["runtime"]["transaction_id"] == "TX-DEMO-2500"
+    assert body["runtime"]["case_opened"] is True
+    assert body["runtime"]["cross_bank_matches"] >= 1
+    assert body["runtime"]["layers_covered"] == 16
+    assert body["explanation"]["synthetic_data_only"] is True
+
+
+def test_prototype_run_rejects_non_synthetic_data_at_api_boundary():
+    response = client.post(
+        "/api/prototype/run",
+        json={
+            "transaction_id": "TX-REAL-001",
+            "bank_id": "bank-a",
+            "amount": 2500,
+            "occurred_at": "2026-11-11T00:00:00Z",
+            "synthetic": False,
+        },
+    )
+
+    assert response.status_code == 400
+    assert "only explicitly synthetic" in response.json()["detail"]
+
+
+def test_prototype_run_accepts_only_explicitly_synthetic_transaction():
+    response = client.post(
+        "/api/prototype/run",
+        json={
+            "transaction_id": "TX-SYNTH-001",
+            "bank_id": "bank-a",
+            "amount": 2500,
+            "occurred_at": "2026-11-11T00:00:00Z",
+            "synthetic": True,
+            "device_id": "device-1",
+            "network_id": "network-1",
+        },
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["transaction_id"] == "TX-SYNTH-001"
+    assert body["pipeline"]["transaction"]["synthetic"] is True
