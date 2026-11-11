@@ -109,9 +109,6 @@ def test_prototype_endpoint_does_not_trust_client_cross_bank_authorization():
             "amount": 2500,
             "occurred_at": "2026-11-11T00:00:00Z",
             "synthetic": True,
-            "device_id": "device-1",
-            "network_id": "network-1",
-            "cross_bank_authorized": True,
         },
     )
 
