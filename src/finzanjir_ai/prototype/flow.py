@@ -143,8 +143,8 @@ class SystemFlow:
             "kpi": calculate_kpis(
                 signals_detected=1,
                 cases_opened=1,
-                cases_actioned=1,
-                review_seconds_total=120,
+                cases_actioned=0,
+                review_seconds_total=0,
                 data_mode="synthetic",
             ),
             "layers_16": self._layer_trace(transaction_id=transaction["transaction_id"]),
