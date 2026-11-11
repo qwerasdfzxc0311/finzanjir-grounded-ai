@@ -23,12 +23,16 @@ class GroundedContext:
 
 
 class GroundedContextAssembler:
+    MIN_LEXICAL_RELEVANCE = 0.25
+
     def __init__(self, index: KnowledgeIndex) -> None:
         self.index = index
 
     def assemble(self, results: tuple[RetrievalResult, ...], *, max_items: int = 8) -> GroundedContext:
         items = []
         for result in results:
+            if result.lexical_score < self.MIN_LEXICAL_RELEVANCE:
+                continue
             record = self.index.get_record(result.record_id)
             if record is None:
                 continue
