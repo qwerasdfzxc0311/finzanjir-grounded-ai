@@ -7,6 +7,25 @@ from finzanjir_ai.knowledge.index import KnowledgeIndex
 from .hybrid import RetrievalResult
 
 
+# Canonical v0.6 uses several evidence states. Only states that are already
+# grounded in an identified source/project authority may support an answer.
+# Review, proposal, unverified, or source-dependent records must not be
+# presented as confirmed facts by the answer layer.
+GROUNDED_EVIDENCE_STATUSES = frozenset({
+    "established",
+    "project_source",
+    "source_derived",
+    "supported",
+})
+
+
+def is_grounded_evidence(evidence: Any) -> bool:
+    return (
+        isinstance(evidence, dict)
+        and evidence.get("status") in GROUNDED_EVIDENCE_STATUSES
+    )
+
+
 @dataclass(frozen=True)
 class GroundedContextItem:
     record_id: str
@@ -36,10 +55,7 @@ class GroundedContextAssembler:
             record = self.index.get_record(result.record_id)
             if record is None:
                 continue
-            evidence_status = None
-            if isinstance(record.evidence, dict):
-                evidence_status = record.evidence.get("status")
-            if evidence_status in {"rejected", "invalid"}:
+            if not is_grounded_evidence(record.evidence):
                 continue
             items.append(GroundedContextItem(
                 record_id=record.record_id,
