@@ -80,6 +80,9 @@ class GroundedContext:
 
 class GroundedContextAssembler:
     MIN_LEXICAL_RELEVANCE = 0.35
+    # Keep generic lexical matches below the answer boundary. Strong, directly
+    # relevant evidence in the canonical corpus remains above this floor.
+    MIN_RETRIEVAL_SCORE = 0.38
     MIN_QUERY_RELEVANCE = 0.60
 
     def __init__(self, index: KnowledgeIndex) -> None:
@@ -101,7 +104,7 @@ class GroundedContextAssembler:
             ):
                 continue
             record = self.index.get_record(result.record_id)
-            if record is None or not is_grounded_evidence(record.evidence):
+            if record is None or not is_grounded_record(record.evidence, record.statement):
                 continue
 
             if query_tokens:
