@@ -1,5 +1,8 @@
+from finzanjir_ai.knowledge.index import build_knowledge_index
 from finzanjir_ai.orchestration.engine import FINZANJIRAI
 from finzanjir_ai.prototype.flow import build_system_flow
+from finzanjir_ai.retrieval.grounding import GroundedContextAssembler
+from finzanjir_ai.retrieval.hybrid import RetrievalResult
 
 
 def test_orchestrator_abstains_when_retrieval_is_only_weakly_relevant():
@@ -28,3 +31,37 @@ def test_orchestrator_keeps_strongly_relevant_grounding():
     assert result.answer.abstained is False
     assert result.answer.confidence >= 0.35
     assert result.answer.citations
+
+
+
+def test_grounding_accepts_canonical_source_derived_evidence():
+    index = build_knowledge_index([
+        {
+            "id": "ck-source-derived",
+            "concept_id": "c1",
+            "canonical_concept_id": "c1",
+            "statement": "FINZANJIR uses evidence before escalation.",
+            "aliases": ["evidence escalation"],
+            "evidence": {"status": "source_derived", "sources": [{"source_id": "doc-1"}]},
+            "provenance": [{"source": "doc-1"}],
+            "reconciliation": {},
+        },
+        {
+            "id": "ck-observed",
+            "concept_id": "c2",
+            "canonical_concept_id": "c2",
+            "statement": "Observed but not authoritative.",
+            "aliases": ["observed"],
+            "evidence": {"status": "observed"},
+            "provenance": [{"source": "test"}],
+            "reconciliation": {},
+        },
+    ])
+
+    results = (
+        RetrievalResult("ck-source-derived", 0.9, 1.0, 0.8),
+        RetrievalResult("ck-observed", 0.95, 1.0, 0.9),
+    )
+    grounded = GroundedContextAssembler(index).assemble(results)
+
+    assert tuple(item.record_id for item in grounded.items) == ("ck-source-derived",)
