@@ -80,6 +80,9 @@ class CaseManager:
         actor_id: str,
         decision: str,
         reason: str,
+        decision_origin: str = "human_review",
+        actor_type: str = "authorized_human",
+        is_authoritative: bool = True,
     ) -> dict[str, Any]:
         case = self._cases.get(case_id)
         if case is None:
@@ -90,6 +93,17 @@ class CaseManager:
             raise ValueError(f"Unsupported human decision: {decision}")
         if not isinstance(actor_id, str) or not actor_id.strip() or not isinstance(reason, str) or not reason.strip():
             raise ValueError("Human decision requires non-empty actor_id and reason")
+        if not isinstance(decision_origin, str) or not decision_origin.strip():
+            raise ValueError("decision_origin must be non-empty")
+        if not isinstance(actor_type, str) or not actor_type.strip():
+            raise ValueError("actor_type must be non-empty")
+        if not isinstance(is_authoritative, bool):
+            raise ValueError("is_authoritative must be boolean")
+        if decision_origin == "synthetic_demo" or actor_type == "synthetic_demo":
+            if decision_origin != "synthetic_demo" or actor_type != "synthetic_demo" or is_authoritative:
+                raise ValueError("synthetic_demo decision must be non-authoritative")
+        elif not is_authoritative and decision_origin == "human_review":
+            raise ValueError("human_review decision cannot be non-authoritative")
 
         decided_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         human_decision = {
@@ -99,6 +113,9 @@ class CaseManager:
             "decision": decision,
             "decided_at": decided_at,
             "reason": reason.strip(),
+            "decision_origin": decision_origin.strip(),
+            "actor_type": actor_type.strip(),
+            "is_authoritative": is_authoritative,
         }
         case["status"] = "ACTIONED" if decision == "APPROVE_ACTION" else "DISMISSED"
 
@@ -132,6 +149,9 @@ class CaseManager:
             "change": {
                 "decision": decision,
                 "case_status": case["status"],
+                "decision_origin": decision_origin.strip(),
+                "actor_type": actor_type.strip(),
+                "is_authoritative": is_authoritative,
             },
         }
         self._human_decisions[human_decision["decision_id"]] = dict(human_decision)
