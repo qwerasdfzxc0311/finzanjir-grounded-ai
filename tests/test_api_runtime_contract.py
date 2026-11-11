@@ -1,6 +1,8 @@
 from fastapi.testclient import TestClient
 
+import finzanjir_api.app as api_module
 from finzanjir_api.app import app
+from finzanjir_ai.knowledge.index import build_knowledge_index
 
 
 client = TestClient(app)
@@ -114,3 +116,17 @@ def test_prototype_run_rejects_requests_that_omit_the_synthetic_boundary_flag():
 
     assert response.status_code == 400
     assert "only explicitly synthetic" in response.json()["detail"]
+
+
+def test_ai_api_abstains_when_runtime_knowledge_is_empty(monkeypatch):
+    monkeypatch.setattr(api_module, "knowledge_index", lambda: build_knowledge_index([]))
+
+    response = client.post(
+        "/api/ai/answer",
+        json={"question": "Unsupported fact with no grounded evidence"},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["abstained"] is True
+    assert body["confidence"] < 0.35
