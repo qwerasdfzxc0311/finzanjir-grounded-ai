@@ -28,11 +28,27 @@ _QUERY_STOPWORDS = frozenset({
 })
 
 
+UNVERIFIED_STATUS_MARKERS = (
+    "tasdiqlanmagan",
+    "unverified",
+    "proposal",
+    "taklif",
+    "ochiq masala",
+)
+
+
 def is_grounded_evidence(evidence: Any) -> bool:
     return (
         isinstance(evidence, dict)
         and evidence.get("status") in GROUNDED_EVIDENCE_STATUSES
     )
+
+
+def is_grounded_record(evidence: Any, statement: str) -> bool:
+    if not is_grounded_evidence(evidence):
+        return False
+    normalized = str(statement).casefold()
+    return not any(marker in normalized for marker in UNVERIFIED_STATUS_MARKERS)
 
 
 def _query_tokens(value: str) -> set[str]:
@@ -75,7 +91,10 @@ class GroundedContextAssembler:
         items = []
         query_tokens = _query_tokens(query) if query else set()
         for result in results:
-            if result.lexical_score < self.MIN_LEXICAL_RELEVANCE:
+            if (
+                result.lexical_score < self.MIN_LEXICAL_RELEVANCE
+                or result.score < self.MIN_RETRIEVAL_SCORE
+            ):
                 continue
             record = self.index.get_record(result.record_id)
             if record is None or not is_grounded_evidence(record.evidence):
