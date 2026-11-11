@@ -30,7 +30,9 @@ class SystemFlow:
             escalation_threshold=0.75,
         )
 
-        cross_bank_authorized = transaction.get("cross_bank_authorized", False)\n        if not isinstance(cross_bank_authorized, bool):\n            raise ValueError("cross_bank_authorized must be boolean")
+        cross_bank_authorized = transaction.get("cross_bank_authorized", False)
+        if not isinstance(cross_bank_authorized, bool):
+            raise ValueError("cross_bank_authorized must be boolean")
         has_cross_bank_keys = any(
             isinstance(transaction.get(key), str) and transaction.get(key, "").strip()
             for key in ("device_id", "network_id")
