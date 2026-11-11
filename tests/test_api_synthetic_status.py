@@ -26,5 +26,6 @@ def test_api_synthetic_decision_does_not_action_case():
     assert body["decision"]["case"]["status"] == "OPEN"
     assert body["decision"]["audit_event"]["change"]["case_status"] == "OPEN"
     assert body["kpi"]["data_mode"] == "synthetic"
-    assert body["kpi"]["cases_opened"] == 1
-    assert body["kpi"]["cases_actioned"] == 0
+    assert body["kpi"]["signal_to_case_rate"] == 1.0
+    assert body["kpi"]["case_action_rate"] == 0.0
+    assert body["kpi"]["average_review_seconds"] == 0.0
