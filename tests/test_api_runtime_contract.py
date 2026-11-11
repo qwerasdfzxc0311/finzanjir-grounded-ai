@@ -65,3 +65,18 @@ def test_prototype_run_accepts_only_explicitly_synthetic_transaction():
     assert body["transaction_id"] == "TX-SYNTH-001"
     assert body["pipeline"]["signal"]["transaction_id"] == "TX-SYNTH-001"
     assert body["pipeline"]["evidence"]["provenance"]["source"] == "synthetic-bank"
+
+
+def test_prototype_run_rejects_requests_that_omit_the_synthetic_boundary_flag():
+    response = client.post(
+        "/api/prototype/run",
+        json={
+            "transaction_id": "TX-AMBIGUOUS-001",
+            "bank_id": "bank-a",
+            "amount": 2500,
+            "occurred_at": "2026-11-11T00:00:00Z",
+        },
+    )
+
+    assert response.status_code == 400
+    assert "only explicitly synthetic" in response.json()["detail"]
