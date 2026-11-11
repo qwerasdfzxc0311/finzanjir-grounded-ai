@@ -42,7 +42,11 @@ class GroundedContext:
 
 
 class GroundedContextAssembler:
-    MIN_LEXICAL_RELEVANCE = 0.51
+    # A two-token query such as "FINZANJIR nima?" can legitimately yield
+    # 0.50 lexical overlap from the authoritative FINZANJIR record. The
+    # boundary must reject genuinely weak matches without discarding valid
+    # short queries. Authoritative evidence is still required below.
+    MIN_LEXICAL_RELEVANCE = 0.35
 
     def __init__(self, index: KnowledgeIndex) -> None:
         self.index = index
