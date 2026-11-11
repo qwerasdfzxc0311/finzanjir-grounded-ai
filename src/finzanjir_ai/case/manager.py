@@ -5,6 +5,8 @@ from typing import Any
 
 
 class CaseManager:
+    ALLOWED_HUMAN_DECISIONS = frozenset({"APPROVE_ACTION", "DISMISS"})
+
     def __init__(self) -> None:
         self._cases: dict[str, dict[str, Any]] = {}
         self._human_decisions: dict[str, dict[str, Any]] = {}
@@ -84,15 +86,19 @@ class CaseManager:
             raise ValueError(f"Unknown case: {case_id}")
         if case["status"] not in {"OPEN", "IN_REVIEW"}:
             raise ValueError(f"Case is not reviewable: {case['status']}")
+        if decision not in self.ALLOWED_HUMAN_DECISIONS:
+            raise ValueError(f"Unsupported human decision: {decision}")
+        if not isinstance(actor_id, str) or not actor_id.strip() or not isinstance(reason, str) or not reason.strip():
+            raise ValueError("Human decision requires non-empty actor_id and reason")
 
         decided_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         human_decision = {
             "decision_id": f"decision-{case_id}",
             "case_id": case_id,
-            "actor_id": actor_id,
+            "actor_id": actor_id.strip(),
             "decision": decision,
             "decided_at": decided_at,
-            "reason": reason,
+            "reason": reason.strip(),
         }
         case["status"] = "ACTIONED" if decision == "APPROVE_ACTION" else "DISMISSED"
 
@@ -119,7 +125,7 @@ class CaseManager:
         audit_event = {
             "audit_id": f"audit-{case_id}",
             "event_type": "HumanDecisionApplied",
-            "actor_id": actor_id,
+            "actor_id": actor_id.strip(),
             "occurred_at": decided_at,
             "object_type": "HumanDecision",
             "object_id": human_decision["decision_id"],
