@@ -26,7 +26,7 @@ def test_full_demo_chain_connects_transaction_to_case_audit_cross_bank_and_ai():
     assert cross.matches[0]["scope"] == "cross_bank"
 
     index = build_knowledge_index([{"id": "ck-full", "concept_id": "c-full", "canonical_concept_id": "c-full", "statement": "A case requires supporting evidence and an escalation threshold.", "aliases": ["case escalation"], "evidence": {"status": "supported"}, "provenance": [{"source": "canonical-v0.6"}], "reconciliation": {}}])
-    ai = FINZANJIRAI(index).answer("Why was this case opened?", runtime_refs=(tx["transaction_id"], pipeline.case["id"]), working_memory_scope=pipeline.case["id"])
+    ai = FINZANJIRAI(index).answer("What does a case require before escalation?", runtime_refs=(tx["transaction_id"], pipeline.case["id"]), working_memory_scope=pipeline.case["id"])
     assert ai.answer.abstained is False
     assert ai.answer.citations == ("ck-full",)
 
