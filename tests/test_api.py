@@ -84,6 +84,25 @@ def test_prototype_endpoint_rejects_coerced_cross_bank_authorization():
     assert response.status_code == 422
 
 
+def test_prototype_endpoint_blocks_unauthorized_cross_bank_exchange():
+    response = client.post(
+        "/api/prototype/run",
+        json={
+            "transaction_id": "TX-API-CROSS-BANK-UNAUTH-001",
+            "bank_id": "bank-a",
+            "amount": 2500,
+            "occurred_at": "2026-11-11T00:00:00Z",
+            "synthetic": True,
+            "device_id": "device-1",
+            "network_id": "network-1",
+            "cross_bank_authorized": False,
+        },
+    )
+
+    assert response.status_code == 403
+    assert "authorized cross-bank exchange" in response.json()["detail"]
+
+
 def test_prototype_endpoint_never_returns_authoritative_synthetic_demo_decision():
     response = client.post(
         "/api/prototype/run",
