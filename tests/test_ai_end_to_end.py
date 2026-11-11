@@ -5,6 +5,7 @@ from finzanjir_ai.case.manager import CaseManager
 from finzanjir_ai.knowledge.index import build_knowledge_index
 from finzanjir_ai.orchestration.engine import FINZANJIRAI
 from finzanjir_ai.risk.pipeline import process_transaction
+from finzanjir_ai.retrieval.grounding import GroundedContext, GroundedContextItem
 
 
 def test_end_to_end_synthetic_transaction_to_grounded_ai_explanation():
@@ -89,3 +90,21 @@ def test_adversarial_cases_are_safe():
     )
     assert empty.abstained is True
     assert empty.confidence == 0
+
+
+def test_grounded_ai_abstains_when_available_evidence_is_too_weak():
+    context = GroundedContext(items=(
+        GroundedContextItem(
+            record_id="ck-weak",
+            concept_id="c-weak",
+            statement="Weakly related statement.",
+            score=0.05,
+            provenance=({"source": "test"},),
+            evidence={"status": "observed"},
+        ),
+    ))
+
+    result = GroundedAnswerGenerator().generate("Unrelated question", context)
+
+    assert result.abstained is True
+    assert result.confidence < 0.35

@@ -26,6 +26,7 @@ def test_system_flow_executes_one_transaction_through_all_runtime_stages():
         "synthetic": True,
         "device_id": "device-1",
         "network_id": "network-1",
+        "cross_bank_authorized": True,
     }
     result = flow.execute(transaction, knowledge_index=flow.demo_knowledge_index())
 
@@ -51,6 +52,7 @@ def test_system_flow_keeps_cross_bank_authorization_explicit():
         "synthetic": True,
         "device_id": "device-2",
         "network_id": "network-2",
+        "cross_bank_authorized": True,
     }
     result = flow.execute(transaction, knowledge_index=flow.demo_knowledge_index())
     assert all(match["scope"] == "cross_bank" for match in result["cross_bank"].matches)

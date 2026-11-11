@@ -24,3 +24,15 @@ def test_grounded_answer_abstains_without_grounded_context():
     assert result.confidence == 0
     assert result.citations == ()
     assert "yetarli" in result.answer.casefold()
+
+
+def test_grounded_answer_abstains_when_context_has_no_supported_evidence():
+    context = GroundedContext(items=(GroundedContextItem(
+        record_id="ck-observed", concept_id="c1",
+        statement="Observed but not authoritative evidence.",
+        score=0.95, provenance=({"source": "source-a"},),
+        evidence={"status": "observed"},
+    ),))
+    result = GroundedAnswerGenerator().generate("Why is evidence required?", context)
+    assert result.abstained is True
+    assert result.confidence < GroundedAnswerGenerator.ABSTENTION_THRESHOLD

@@ -30,6 +30,14 @@ class SystemFlow:
             escalation_threshold=0.75,
         )
 
+        cross_bank_authorized = bool(transaction.get("cross_bank_authorized", False))
+        has_cross_bank_keys = any(
+            isinstance(transaction.get(key), str) and transaction.get(key, "").strip()
+            for key in ("device_id", "network_id")
+        )
+        if has_cross_bank_keys and not cross_bank_authorized:
+            raise ValueError("authorized cross-bank exchange is required")
+
         if pipeline.signal is None or pipeline.risk is None:
             ai = FINZANJIRAI(knowledge_index).answer(
                 "Why was no case opened?",
@@ -79,7 +87,7 @@ class SystemFlow:
                 },
             ],
             scope="cross_bank",
-            authorized_exchange=True,
+            authorized_exchange=cross_bank_authorized or not has_cross_bank_keys,
         )
 
         manager = CaseManager()
@@ -89,7 +97,7 @@ class SystemFlow:
             risk_id=pipeline.case["risk_id"],
             threshold_id=pipeline.case["threshold_id"],
             transaction_id=transaction["transaction_id"],
-            escalation_met=True,
+            escalation_met=bool(pipeline.risk["threshold_met"]),
         )
         decision = manager.apply_human_decision(
             case_id=case["case_id"],

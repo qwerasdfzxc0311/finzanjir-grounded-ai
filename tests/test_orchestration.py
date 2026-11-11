@@ -20,7 +20,7 @@ def test_ai_orchestrator_connects_retrieval_grounding_runtime_and_answer():
     ai = FINZANJIRAI(index)
 
     result = ai.answer(
-        "Why is evidence required?",
+        "Why does fraud signal require supporting evidence?",
         runtime_refs=("tx-1", "sig-1"),
         working_memory_scope="case-1",
     )
