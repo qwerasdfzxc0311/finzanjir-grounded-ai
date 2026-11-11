@@ -1,21 +1,30 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import re
 from typing import Any
 
 from finzanjir_ai.knowledge.index import KnowledgeIndex
 from .hybrid import RetrievalResult
 
 
-# Canonical v0.6 uses several evidence states. Only states that are already
-# grounded in an identified source/project authority may support an answer.
-# Review, proposal, unverified, or source-dependent records must not be
-# presented as confirmed facts by the answer layer.
 GROUNDED_EVIDENCE_STATUSES = frozenset({
     "established",
     "project_source",
     "source_derived",
     "supported",
+})
+
+# Common function words are poor evidence of semantic relevance. Keeping this
+# list small avoids turning the lexical guard into a language model while
+# preventing queries such as "unsupported fact with no grounded evidence" from
+# matching merely because they contain the generic word "evidence".
+_QUERY_STOPWORDS = frozenset({
+    "a", "an", "and", "are", "as", "at", "be", "does", "for", "from", "how",
+    "in", "is", "it", "no", "of", "on", "or", "the", "to", "what", "why",
+    "with", "without",
+    "bu", "bilan", "bir", "bo", "bo'yicha", "deb", "degan", "ekan", "uchun",
+    "va", "yoki", "qanday", "nima", "nega", "ning", "dan", "da", "ga",
 })
 
 
@@ -24,6 +33,14 @@ def is_grounded_evidence(evidence: Any) -> bool:
         isinstance(evidence, dict)
         and evidence.get("status") in GROUNDED_EVIDENCE_STATUSES
     )
+
+
+def _query_tokens(value: str) -> set[str]:
+    return {
+        token.casefold()
+        for token in re.findall(r"[^\W_]+", value, flags=re.UNICODE)
+        if token.casefold() not in _QUERY_STOPWORDS
+    }
 
 
 @dataclass(frozen=True)
@@ -42,25 +59,35 @@ class GroundedContext:
 
 
 class GroundedContextAssembler:
-    # A two-token query such as "FINZANJIR nima?" can legitimately yield
-    # 0.50 lexical overlap from the authoritative FINZANJIR record. The
-    # boundary must reject genuinely weak matches without discarding valid
-    # short queries. Authoritative evidence is still required below.
     MIN_LEXICAL_RELEVANCE = 0.35
+    MIN_QUERY_RELEVANCE = 0.60
 
     def __init__(self, index: KnowledgeIndex) -> None:
         self.index = index
 
-    def assemble(self, results: tuple[RetrievalResult, ...], *, max_items: int = 8) -> GroundedContext:
+    def assemble(
+        self,
+        results: tuple[RetrievalResult, ...],
+        *,
+        query: str | None = None,
+        max_items: int = 8,
+    ) -> GroundedContext:
         items = []
+        query_tokens = _query_tokens(query) if query else set()
         for result in results:
             if result.lexical_score < self.MIN_LEXICAL_RELEVANCE:
                 continue
             record = self.index.get_record(result.record_id)
-            if record is None:
+            if record is None or not is_grounded_evidence(record.evidence):
                 continue
-            if not is_grounded_evidence(record.evidence):
-                continue
+
+            if query_tokens:
+                record_tokens = _query_tokens(record.statement + " " + " ".join(record.aliases))
+                overlap = len(query_tokens & record_tokens)
+                relevance = overlap / len(query_tokens)
+                if relevance < self.MIN_QUERY_RELEVANCE:
+                    continue
+
             items.append(GroundedContextItem(
                 record_id=record.record_id,
                 concept_id=record.concept_id,
