@@ -33,6 +33,25 @@ def test_orchestrator_keeps_strongly_relevant_grounding():
     assert result.answer.citations
 
 
+def test_grounding_filters_retrieval_results_below_minimum_score():
+    index = build_knowledge_index([
+        {
+            "id": "ck-weak",
+            "concept_id": "c1",
+            "canonical_concept_id": "c1",
+            "statement": "Case escalation requires evidence.",
+            "aliases": ["case evidence"],
+            "evidence": {"status": "source_derived", "verification": "confirmed"},
+            "provenance": [{"source": "doc-1"}],
+            "reconciliation": {},
+        },
+    ])
+
+    results = (RetrievalResult("ck-weak", 0.20, 1.0, 0.1),)
+    grounded = GroundedContextAssembler(index).assemble(results)
+
+    assert grounded.items == ()
+
 
 def test_grounding_accepts_canonical_source_derived_evidence():
     index = build_knowledge_index([
@@ -106,3 +125,4 @@ def test_grounding_rejects_source_derived_record_with_unconfirmed_status_marker(
     grounded = GroundedContextAssembler(index).assemble(results)
 
     assert tuple(item.record_id for item in grounded.items) == ("ck-confirmed",)
+)
