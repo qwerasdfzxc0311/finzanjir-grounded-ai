@@ -24,9 +24,6 @@ def test_system_flow_executes_one_transaction_through_all_runtime_stages():
         "amount": 2500,
         "occurred_at": "2026-11-11T00:00:00Z",
         "synthetic": True,
-        "device_id": "device-1",
-        "network_id": "network-1",
-        "cross_bank_authorized": True,
     }
     result = flow.execute(transaction, knowledge_index=flow.demo_knowledge_index())
 
@@ -35,14 +32,14 @@ def test_system_flow_executes_one_transaction_through_all_runtime_stages():
     assert result["pipeline"].risk["signal_id"] == result["pipeline"].signal["id"]
     assert result["case"]["transaction_id"] == "TX-FLOW-001"
     assert result["decision"]["case"]["case_id"] == result["case"]["case_id"]
-    assert result["cross_bank"].matches
+    assert result["cross_bank"].matches == []
     assert result["audit"]
     assert result["ai"].runtime_context.runtime_refs
     assert result["citizen_status"]["case_id"] == result["case"]["case_id"]
     assert len(result["layers_16"]) == 16
 
 
-def test_system_flow_keeps_cross_bank_authorization_explicit():
+def test_system_flow_rejects_synthetic_cross_bank_authorization():
     flow = build_system_flow()
     transaction = {
         "transaction_id": "TX-FLOW-002",
@@ -54,5 +51,11 @@ def test_system_flow_keeps_cross_bank_authorization_explicit():
         "network_id": "network-2",
         "cross_bank_authorized": True,
     }
-    result = flow.execute(transaction, knowledge_index=flow.demo_knowledge_index())
-    assert all(match["scope"] == "cross_bank" for match in result["cross_bank"].matches)
+
+    try:
+        flow.execute(transaction, knowledge_index=flow.demo_knowledge_index())
+    except ValueError as exc:
+        assert "synthetic" in str(exc)
+        assert "cross-bank" in str(exc)
+    else:
+        raise AssertionError("synthetic cross-bank authorization must fail closed")
