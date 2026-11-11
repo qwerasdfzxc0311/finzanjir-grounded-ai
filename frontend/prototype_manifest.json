@@ -1,5 +1,5 @@
 {
-  "version": "1.1",
+  "version": "1.2",
   "data_mode": "synthetic",
   "window_ids": [
     "dashboard",
@@ -60,14 +60,14 @@
       ],
       [
         "signal_risk",
-        "human_case"
-      ],
-      [
-        "human_case",
         "cross_bank_fraud"
       ],
       [
         "cross_bank_fraud",
+        "human_case"
+      ],
+      [
+        "human_case",
         "audit_kpi"
       ],
       [
@@ -97,24 +97,24 @@
       "input": "Tranzaksiya va kontekst",
       "output": "Signal, dalil, risk va threshold"
     },
-    "human_case": {
-      "input": "Escalation va Case",
-      "output": "Inson ko‘rigi va vakolatli qaror"
-    },
     "cross_bank_fraud": {
       "input": "Vakolatli cross-bank signal konteksti",
-      "output": "Alohida scope ichidagi bog‘lanishlar"
+      "output": "Alohida scope ichidagi banklararo bog‘lanishlar"
+    },
+    "human_case": {
+      "input": "Escalation va cross-bank konteksti",
+      "output": "Case, inson ko‘rigi va vakolatli qaror"
     },
     "audit_kpi": {
       "input": "Qarorlar, hodisalar va natijalar",
       "output": "Audit izi va sintetik KPI"
     },
     "finzanjir_ai": {
-      "input": "Knowledge + runtime context + provenance",
+      "input": "Knowledge + barcha kerakli runtime refs + provenance",
       "output": "Grounded AI izohi va confidence/abstention"
     },
     "citizen": {
-      "input": "Vakolatli status va shaffoflik ma’lumotlari",
+      "input": "Vakolatli Human Decisiondan kelgan status",
       "output": "Fuqaro uchun tushunarli xavfsizlik holati"
     },
     "layers_16": {
