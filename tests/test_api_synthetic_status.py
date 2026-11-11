@@ -15,9 +15,6 @@ def test_api_synthetic_decision_does_not_action_case():
             "amount": 2500,
             "occurred_at": "2026-11-11T00:00:00Z",
             "synthetic": True,
-            "device_id": "device-1",
-            "network_id": "network-1",
-            "cross_bank_authorized": True,
         },
     )
 
