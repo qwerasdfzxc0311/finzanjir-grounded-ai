@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import math
 
 
 @dataclass(frozen=True)
@@ -13,10 +14,16 @@ class RiskEvaluation:
 
 
 def evaluate_risk(*, signal_score: float, evidence_count: int, escalation_threshold: float) -> RiskEvaluation:
+    if not isinstance(signal_score, (int, float)) or isinstance(signal_score, bool) or not math.isfinite(signal_score):
+        raise ValueError("signal_score must be finite")
     if not 0 <= signal_score <= 1:
         raise ValueError("signal_score must be between 0 and 1")
+    if not isinstance(evidence_count, int) or isinstance(evidence_count, bool):
+        raise ValueError("evidence_count must be an integer")
     if evidence_count < 0:
         raise ValueError("evidence_count must be non-negative")
+    if not isinstance(escalation_threshold, (int, float)) or isinstance(escalation_threshold, bool) or not math.isfinite(escalation_threshold):
+        raise ValueError("escalation_threshold must be finite")
     if not 0 <= escalation_threshold <= 1:
         raise ValueError("escalation_threshold must be between 0 and 1")
 
