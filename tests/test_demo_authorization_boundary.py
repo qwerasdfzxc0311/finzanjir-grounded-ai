@@ -35,6 +35,12 @@ def test_demo_decision_is_explicitly_marked_as_synthetic_demo():
 
     result = flow.execute(transaction, knowledge_index=flow.demo_knowledge_index())
 
-    assert result["decision"]["decision"]["decision_origin"] == "synthetic_demo"
-    assert result["decision"]["decision"]["actor_type"] == "synthetic_demo"
-    assert result["decision"]["decision"]["is_authoritative"] is False
+    human_decision = result["decision"]["human_decision"]
+    audit_change = result["decision"]["audit_event"]["change"]
+
+    assert human_decision["decision_origin"] == "synthetic_demo"
+    assert human_decision["actor_type"] == "synthetic_demo"
+    assert human_decision["is_authoritative"] is False
+    assert audit_change["decision_origin"] == "synthetic_demo"
+    assert audit_change["actor_type"] == "synthetic_demo"
+    assert audit_change["is_authoritative"] is False
