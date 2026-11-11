@@ -125,4 +125,3 @@ def test_grounding_rejects_source_derived_record_with_unconfirmed_status_marker(
     grounded = GroundedContextAssembler(index).assemble(results)
 
     assert tuple(item.record_id for item in grounded.items) == ("ck-confirmed",)
-)
