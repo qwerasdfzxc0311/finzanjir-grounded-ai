@@ -77,6 +77,7 @@ def test_grounding_rejects_source_derived_record_with_unconfirmed_status_marker(
             "aliases": ["case evidence"],
             "evidence": {
                 "status": "source_derived",
+                "verification": "unconfirmed",
                 "sources": [{"source_id": "doc-1"}],
             },
             "provenance": [{"source": "doc-1"}],
@@ -90,6 +91,7 @@ def test_grounding_rejects_source_derived_record_with_unconfirmed_status_marker(
             "aliases": ["case evidence escalation"],
             "evidence": {
                 "status": "source_derived",
+                "verification": "confirmed",
                 "sources": [{"source_id": "doc-2"}],
             },
             "provenance": [{"source": "doc-2"}],
