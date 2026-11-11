@@ -33,6 +33,8 @@ class SystemFlow:
         cross_bank_authorized = transaction.get("cross_bank_authorized", False)
         if not isinstance(cross_bank_authorized, bool):
             raise ValueError("cross_bank_authorized must be boolean")
+        if cross_bank_authorized and transaction.get("synthetic") is True:
+            raise ValueError("synthetic transactions cannot authorize cross-bank exchange")
         has_cross_bank_keys = any(
             isinstance(transaction.get(key), str) and transaction.get(key, "").strip()
             for key in ("device_id", "network_id")
