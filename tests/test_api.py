@@ -38,6 +38,7 @@ def test_prototype_endpoint_executes_synthetic_flow():
             "synthetic": True,
             "device_id": "device-1",
             "network_id": "network-1",
+            "cross_bank_authorized": True,
         },
     )
     assert response.status_code == 200
