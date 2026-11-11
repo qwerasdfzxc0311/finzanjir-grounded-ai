@@ -25,3 +25,6 @@ def test_api_synthetic_decision_does_not_action_case():
     body = response.json()
     assert body["decision"]["case"]["status"] == "OPEN"
     assert body["decision"]["audit_event"]["change"]["case_status"] == "OPEN"
+    assert body["kpi"]["data_mode"] == "synthetic"
+    assert body["kpi"]["cases_opened"] == 1
+    assert body["kpi"]["cases_actioned"] == 0
