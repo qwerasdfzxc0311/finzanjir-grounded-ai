@@ -45,7 +45,7 @@ class FINZANJIRAI:
                     by_id[result.record_id] = result
 
         ranked = self.reranker.rerank(query, tuple(by_id.values()))
-        grounded = self.grounder.assemble(ranked, max_items=top_k)
+        grounded = self.grounder.assemble(ranked, query=query, max_items=top_k)
         runtime = RuntimeContext.from_refs(
             knowledge_refs=tuple(item.record_id for item in grounded.items),
             runtime_refs=runtime_refs,
