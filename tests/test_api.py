@@ -27,7 +27,7 @@ def test_ai_endpoint_answers_from_grounded_knowledge():
     assert "provenance" in body
 
 
-def test_prototype_endpoint_executes_synthetic_flow():
+def test_prototype_endpoint_executes_synthetic_flow_without_cross_bank_authorization():
     response = client.post(
         "/api/prototype/run",
         json={
@@ -36,9 +36,6 @@ def test_prototype_endpoint_executes_synthetic_flow():
             "amount": 2500,
             "occurred_at": "2026-11-11T00:00:00Z",
             "synthetic": True,
-            "device_id": "device-1",
-            "network_id": "network-1",
-            "cross_bank_authorized": True,
         },
     )
     assert response.status_code == 200
@@ -46,7 +43,7 @@ def test_prototype_endpoint_executes_synthetic_flow():
     assert body["transaction_id"] == "TX-API-001"
     assert body["pipeline"]["signal"]["transaction_id"] == "TX-API-001"
     assert body["case"]["transaction_id"] == "TX-API-001"
-    assert body["cross_bank"]["matches"]
+    assert body["cross_bank"]["matches"] == []
     assert body["decision"]["case"]["case_id"] == body["case"]["case_id"]
     assert len(body["layers_16"]) == 16
 
