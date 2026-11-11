@@ -117,7 +117,8 @@ class CaseManager:
             "actor_type": actor_type.strip(),
             "is_authoritative": is_authoritative,
         }
-        case["status"] = "ACTIONED" if decision == "APPROVE_ACTION" else "DISMISSED"
+        if is_authoritative:
+            case["status"] = "ACTIONED" if decision == "APPROVE_ACTION" else "DISMISSED"
 
         bank_status = {
             "status_id": f"bank-status-{case_id}",
