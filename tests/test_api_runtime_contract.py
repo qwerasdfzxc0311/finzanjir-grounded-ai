@@ -63,4 +63,5 @@ def test_prototype_run_accepts_only_explicitly_synthetic_transaction():
     assert response.status_code == 200
     body = response.json()
     assert body["transaction_id"] == "TX-SYNTH-001"
-    assert body["pipeline"]["transaction"]["synthetic"] is True
+    assert body["pipeline"]["signal"]["transaction_id"] == "TX-SYNTH-001"
+    assert body["pipeline"]["evidence"]["provenance"]["source"] == "synthetic-bank"
