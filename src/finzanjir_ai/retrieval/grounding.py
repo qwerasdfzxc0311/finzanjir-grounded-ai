@@ -23,7 +23,7 @@ class GroundedContext:
 
 
 class GroundedContextAssembler:
-    MIN_LEXICAL_RELEVANCE = 0.50
+    MIN_LEXICAL_RELEVANCE = 0.51
 
     def __init__(self, index: KnowledgeIndex) -> None:
         self.index = index
