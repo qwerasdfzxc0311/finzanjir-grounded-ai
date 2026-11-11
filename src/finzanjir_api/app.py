@@ -108,6 +108,7 @@ def prototype_demo() -> dict[str, Any]:
         "synthetic": True,
         "device_id": "device-demo",
         "network_id": "network-demo",
+        "cross_bank_authorized": True,
     }
     flow = build_system_flow()
     result = flow.execute(transaction, knowledge_index=knowledge_index())
