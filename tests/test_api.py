@@ -82,3 +82,31 @@ def test_prototype_endpoint_rejects_coerced_cross_bank_authorization():
         },
     )
     assert response.status_code == 422
+
+
+def test_prototype_endpoint_never_returns_authoritative_synthetic_demo_decision():
+    response = client.post(
+        "/api/prototype/run",
+        json={
+            "transaction_id": "TX-API-SYNTHETIC-AUTH-001",
+            "bank_id": "bank-a",
+            "amount": 2500,
+            "occurred_at": "2026-11-11T00:00:00Z",
+            "synthetic": True,
+            "device_id": "device-1",
+            "network_id": "network-1",
+            "cross_bank_authorized": True,
+        },
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    human_decision = body["decision"]["human_decision"]
+    audit_change = body["decision"]["audit_event"]["change"]
+
+    assert human_decision["decision_origin"] == "synthetic_demo"
+    assert human_decision["actor_type"] == "synthetic_demo"
+    assert human_decision["is_authoritative"] is False
+    assert audit_change["decision_origin"] == "synthetic_demo"
+    assert audit_change["actor_type"] == "synthetic_demo"
+    assert audit_change["is_authoritative"] is False
