@@ -24,6 +24,8 @@ class CrossBankMatcher:
     ) -> CrossBankMatchResult:
         if scope != "cross_bank":
             raise ValueError("cross_bank scope is required")
+        if not isinstance(authorized_exchange, bool):
+            raise ValueError("authorized_exchange must be boolean")
         if not authorized_exchange:
             raise ValueError("authorized cross-bank exchange is required")
 
