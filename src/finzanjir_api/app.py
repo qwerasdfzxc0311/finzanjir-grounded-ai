@@ -24,6 +24,7 @@ class AIAnswerRequest(BaseModel):
 class PrototypeTransaction(BaseModel):
     transaction_id: str = Field(min_length=1, max_length=128)
     bank_id: str = Field(min_length=1, max_length=128)
+    actor_id: str = Field(min_length=1, max_length=128)
     amount: float = Field(ge=0)
     occurred_at: str = Field(min_length=1, max_length=64)
     synthetic: bool = False
@@ -103,6 +104,7 @@ def prototype_demo() -> dict[str, Any]:
     transaction = {
         "transaction_id": "TX-DEMO-2500",
         "bank_id": "bank-a",
+        "actor_id": "actor-demo-2500",
         "amount": 2500,
         "occurred_at": "2026-11-11T00:00:00Z",
         "synthetic": True,
