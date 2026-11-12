@@ -41,6 +41,15 @@ def evaluate_signal_set(
         if not isinstance(value, int) or isinstance(value, bool) or value < 1:
             raise ValueError(f"{field} must be a positive integer")
 
+    event_signal_ids: set[str] = set()
+    for index, event in enumerate(signal_events):
+        if not isinstance(event, dict):
+            raise ValueError(f"signal_events[{index}] must be an object")
+        signal_id = event.get("signal_id")
+        if not isinstance(signal_id, str) or signal_id not in SIGNAL_REGISTRY:
+            raise ValueError(f"unknown signal_id at index {index}")
+        event_signal_ids.add(signal_id)
+
     seen_evidence: set[str] = set()
     contributions: list[dict[str, Any]] = []
     deduplicated: list[str] = []
@@ -68,7 +77,19 @@ def evaluate_signal_set(
         quality = _unit_interval(event.get("evidence_quality"), "evidence_quality")
         recency = _unit_interval(event.get("recency_factor"), "recency_factor")
         quality_values.append(quality)
-        raw_contribution = definition.weight * quality * recency
+        score_suppressed_reason = None
+        corroborated = True
+        if definition.requires_corroboration:
+            corroborating_ids = event.get("corroborating_signal_ids", [])
+            if not isinstance(corroborating_ids, list) or any(not isinstance(value, str) for value in corroborating_ids):
+                raise ValueError("corroborating_signal_ids must be a list of signal IDs")
+            corroborated = any(value in event_signal_ids and value != signal_id for value in corroborating_ids)
+            if not corroborated:
+                score_suppressed_reason = "requires_corroboration"
+        if not definition.score_eligible:
+            score_suppressed_reason = "context_only"
+        score_eligible = definition.score_eligible and corroborated
+        raw_contribution = definition.weight * quality * recency if score_eligible else 0.0
         family_totals[definition.family] += raw_contribution
         contributions.append({
             "signal_id": definition.signal_id,
@@ -82,6 +103,8 @@ def evaluate_signal_set(
             "recency_factor": recency,
             "raw_contribution": round(raw_contribution, 4),
             "source_status": definition.source_status,
+            "score_eligible": score_eligible,
+            "score_suppressed_reason": score_suppressed_reason,
         })
 
     family_contributions = {
