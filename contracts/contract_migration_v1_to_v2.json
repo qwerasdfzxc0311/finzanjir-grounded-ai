@@ -54,13 +54,19 @@
       "object": "AuditEvent",
       "v1": "id",
       "v2": "event_id",
-      "runtime_alias": "audit_id"
+      "runtime_alias": "id"
     },
     {
       "object": "AuditEvent",
       "v1": "details",
       "v2": "payload",
       "runtime_alias": "details"
+    },
+    {
+      "object": "AuditEvent",
+      "v1": "audit_id",
+      "v2": "legacy_audit_id",
+      "runtime_alias": "audit_id preserved for legacy lookup; canonical event_id is a new unique identifier"
     }
   ],
   "notes": [
