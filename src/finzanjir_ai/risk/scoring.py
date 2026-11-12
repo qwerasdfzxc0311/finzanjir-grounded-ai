@@ -47,6 +47,7 @@ def evaluate_signal_set(
 
     normalized: list[dict[str, Any]] = []
     evidence_groups: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    evidence_event_keys: dict[str, str] = {}
 
     for index, event in enumerate(signal_events):
         if not isinstance(event, dict):
@@ -65,6 +66,15 @@ def evaluate_signal_set(
             raise ValueError(f"signal_events[{index}].observed_at must be ISO-8601") from exc
         if observed_at.tzinfo is None or observed_at.utcoffset() is None:
             raise ValueError(f"signal_events[{index}].observed_at must include a timezone")
+        event_key = event.get("event_key", event["evidence_id"].strip())
+        if not isinstance(event_key, str) or not event_key.strip():
+            raise ValueError(f"signal_events[{index}].event_key must be a non-empty string")
+        event_key = event_key.strip()
+        evidence_id = event["evidence_id"].strip()
+        prior_event_key = evidence_event_keys.get(evidence_id)
+        if prior_event_key is not None and prior_event_key != event_key:
+            raise ValueError("the same evidence_id cannot refer to multiple event_key values")
+        evidence_event_keys[evidence_id] = event_key
         corroborating_ids = event.get("corroborating_signal_ids", [])
         if (
             not isinstance(corroborating_ids, list)
@@ -81,7 +91,8 @@ def evaluate_signal_set(
         item = {
             "definition": definition,
             "signal_id": signal_id,
-            "evidence_id": event["evidence_id"].strip(),
+            "evidence_id": evidence_id,
+            "event_key": event_key,
             "source": event["source"].strip(),
             "observed_at": event["observed_at"].strip(),
             "evidence_quality": _unit_interval(event.get("evidence_quality"), "evidence_quality"),
@@ -91,25 +102,26 @@ def evaluate_signal_set(
             "detector_version": detector_version.strip(),
         }
         normalized.append(item)
-        evidence_groups[item["evidence_id"]].append(item)
+        evidence_groups[item["event_key"]].append(item)
 
-    signal_ids_by_evidence = {
-        evidence_id: {item["signal_id"] for item in items}
-        for evidence_id, items in evidence_groups.items()
+    signal_ids_by_event = {
+        event_key: {item["signal_id"] for item in items}
+        for event_key, items in evidence_groups.items()
     }
     contributions: list[dict[str, Any]] = []
     deduplicated: list[str] = []
+    deduplicated_event_keys: list[str] = []
     family_totals: dict[str, float] = defaultdict(float)
     quality_values: list[float] = []
 
-    for evidence_id in sorted(evidence_groups):
+    for event_key in sorted(evidence_groups):
         options: list[tuple[float, str, dict[str, Any], str | None]] = []
-        for item in evidence_groups[evidence_id]:
+        for item in evidence_groups[event_key]:
             definition = item["definition"]
             corroborated = any(
                 signal_id in other_signal_ids
-                for other_evidence_id, other_signal_ids in signal_ids_by_evidence.items()
-                if other_evidence_id != evidence_id
+                for other_event_key, other_signal_ids in signal_ids_by_event.items()
+                if other_event_key != event_key
                 for signal_id in item["corroborating_signal_ids"]
             )
             suppressed_reason = None
@@ -130,12 +142,14 @@ def evaluate_signal_set(
         quality_values.append(chosen["evidence_quality"])
         family_totals[definition.family] += raw_contribution
         if len(options) > 1:
-            deduplicated.append(evidence_id)
+            deduplicated.extend(sorted({item["evidence_id"] for item in evidence_groups[event_key]}))
+            deduplicated_event_keys.append(event_key)
         contributions.append({
             "signal_id": definition.signal_id,
             "signal_name": definition.name,
             "family": definition.family,
-            "evidence_id": evidence_id,
+            "evidence_id": chosen["evidence_id"],
+            "event_key": event_key,
             "source": chosen["source"],
             "observed_at": chosen["observed_at"],
             "rule_version": chosen["rule_version"],
@@ -196,7 +210,8 @@ def evaluate_signal_set(
         "case_block_reason": case_block_reason,
         "family_contributions": family_contributions,
         "contributions": contributions,
-        "deduplicated_evidence_ids": deduplicated,
+        "deduplicated_evidence_ids": sorted(set(deduplicated)),
+        "deduplicated_event_keys": deduplicated_event_keys,
         "engine_version": "multi-signal-shadow-v1",
         "registry_version": REGISTRY_VERSION,
         "score_semantics": "priority_score_not_probability_or_guilt",
