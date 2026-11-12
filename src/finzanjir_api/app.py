@@ -442,7 +442,7 @@ async def stream_prototype(transaction: PrototypeTransaction) -> StreamingRespon
             event_name, data = await queue.get()
             if event_name == "end":
                 break
-            yield f"event: {event_name}\\ndata: {json.dumps(data, ensure_ascii=False)}\\n\\n"
+            yield f"event: {event_name}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
         await task
 
     return StreamingResponse(
