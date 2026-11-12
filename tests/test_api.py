@@ -273,3 +273,31 @@ def test_prototype_run_stops_after_signal_module_failure_without_trace_or_histor
     assert response.json()["detail"] == "synthetic signal module failure"
     assert "window_trace" not in response.json()
     assert "prototype_run_id" not in response.json()
+
+
+
+def test_prototype_run_history_failure_returns_unavailable_without_success_trace(monkeypatch):
+    import sqlite3
+
+    class FailingRunStore:
+        def save(self, summary):
+            raise sqlite3.OperationalError("synthetic storage unavailable")
+
+    monkeypatch.setattr("finzanjir_api.app.prototype_run_store", lambda: FailingRunStore())
+
+    response = client.post(
+        "/api/prototype/run",
+        json={
+            "transaction_id": "TX-API-HISTORY-FAILURE-001",
+            "bank_id": "bank-synthetic-a",
+            "actor_id": "actor-history-failure",
+            "amount": 2500,
+            "occurred_at": "2026-11-12T09:00:00Z",
+            "synthetic": True,
+        },
+    )
+
+    assert response.status_code == 503
+    assert response.json()["detail"] == "Prototype run could not be safely saved."
+    assert "window_trace" not in response.json()
+    assert "prototype_run_id" not in response.json()
