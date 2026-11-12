@@ -173,9 +173,32 @@ function windowSummaryLines(windowId) {
 }
 
 
+function windowTraceFor(windowId) {
+  const snapshot = lastExecution || {};
+  return Array.isArray(snapshot.window_trace)
+    ? snapshot.window_trace.find(item => item.window_id === windowId)
+    : null;
+}
+
+function windowTraceLines(windowId) {
+  const trace = windowTraceFor(windowId);
+  if (!trace) return [];
+  const refs = items => Array.isArray(items) && items.length ? items.join(", ") : "—";
+  return [
+    "Bosqich #" + trace.sequence + " · " + trace.status,
+    "Holat: " + (trace.status_label || trace.status),
+    "Izoh: " + (trace.summary || "—"),
+    "Kirish refs: " + refs(trace.input_refs),
+    "Chiqish refs: " + refs(trace.output_refs)
+  ];
+}
+
 function windowExecutionStatus(windowId) {
-  if (executionStatus === "running") return "Yagona oqim bajarilmoqda · natija kutilmoqda";
+  if (executionStatus === "running") return "Yagona oqim bajarilmoqda · bosqichlar javob kelgach yangilanadi";
   if (executionStatus === "failed") return "Sinov xato bilan tugadi · oldingi natija saqlangan";
+
+  const trace = windowTraceFor(windowId);
+  if (trace) return trace.status_label || trace.status;
   if (executionStatus === "demo") return "Demo ko‘rinishi · to‘liq sinov hali ishga tushmagan";
 
   const snapshot = lastExecution || {};
@@ -240,7 +263,7 @@ function selectWindow(windowId) {
   document.querySelector("#activeWindowPurpose").textContent = currentManifest.window_roles[windowId].output;
   document.querySelector("#activeWindowInput").textContent = "Kirish: " + currentManifest.window_roles[windowId].input;
   const list = document.querySelector("#activeWindowData");
-  list.replaceChildren(...windowSummaryLines(windowId).map(line => {
+  list.replaceChildren(...[...windowTraceLines(windowId), ...windowSummaryLines(windowId)].map(line => {
     const item = document.createElement("li");
     item.textContent = line;
     return item;
