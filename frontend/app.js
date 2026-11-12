@@ -87,15 +87,47 @@ function windowSummaryLines(windowId) {
         "Amount: " + value(transaction.amount),
         "Synthetic: " + (transaction.synthetic === true || snapshot.data_mode === "synthetic" ? "Ha" : "Tasdiqlanmagan")
       ];
-    case "signal_risk":
+    case "signal_risk": {
+      const contributions = Array.isArray(risk.contributions) ? risk.contributions : [];
+      const evidenceById = new Map((pipeline.evidences || []).map(item => [item.id, item]));
+      const signalLines = contributions.length
+        ? contributions.map(item => {
+            const contribution = item.score_eligible
+              ? value(item.raw_contribution) + " ball"
+              : "0 ball · hisobga olinmadi: " + value(item.score_suppressed_reason);
+            return "Signal " + value(item.signal_id) + " — " + value(item.signal_name)
+              + " · " + value(item.family) + " · " + contribution;
+          })
+        : ["Signal contribution: hozircha mavjud emas"];
+      const evidenceLines = contributions.map(item => {
+        const evidence = evidenceById.get(item.evidence_id) || {};
+        const provenance = evidence.provenance || {};
+        return "Dalil " + value(item.evidence_id)
+          + " · manba " + value(provenance.source || item.source)
+          + " · vaqt " + value(item.observed_at || evidence.observed_at)
+          + " · sifat " + value(item.evidence_quality ?? evidence.evidence_quality)
+          + " · freshness " + value(item.recency_factor ?? evidence.recency_factor)
+          + " · qoida " + value(item.rule_version);
+      });
+      const familyLines = Object.entries(risk.family_contributions || {}).map(
+        ([family, score]) => "Oila " + family + ": " + value(score) + " ball"
+      );
       return [
         "Signals: " + value(pipeline.signals?.length ?? runtime.signal_ids?.length ?? 0),
         "Evidence: " + value(pipeline.evidences?.length ?? runtime.evidence_ids?.length ?? 0),
-        "Risk score: " + value(risk.score ?? runtime.risk_score),
+        "Risk score: " + value(risk.score ?? runtime.risk_score) + " / 100",
         "Risk level: " + value(risk.level ?? runtime.risk_level),
-        "Threshold: " + value(risk.escalation_threshold ?? risk.threshold ?? runtime.threshold),
-        "Case eligibility: " + value(risk.case_eligible)
+        "Threshold: " + value(risk.escalation_threshold ?? risk.threshold?.value ?? runtime.threshold) + " / 100",
+        "Threshold reason: " + value(risk.threshold?.reason),
+        "Threshold met: " + value(risk.threshold_met),
+        "Case eligibility: " + value(risk.case_eligible),
+        "Case block/suppression: " + value(risk.case_block_reason || risk.case_suppressed_reason || "yo‘q"),
+        "Score meaning: ustuvorlik balli, firibgarlik ehtimoli yoki aybdorlik emas",
+        ...familyLines,
+        ...signalLines,
+        ...evidenceLines
       ];
+    }
     case "cross_bank_fraud":
       return [
         "Scope: " + value(crossBank.scope || "cross_bank"),
