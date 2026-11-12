@@ -1,0 +1,71 @@
+{
+  "schema_version": "1.0",
+  "from": "event_contracts_v1 + event_envelope_v1",
+  "to": "event_contracts_v2 + event_envelope_v2",
+  "status": "migration-crosswalk",
+  "preserved_v1_files": [
+    "contracts/event_contracts_v1.json",
+    "contracts/event_envelope_v1.json"
+  ],
+  "mappings": [
+    {
+      "object": "Transaction",
+      "v1": "id",
+      "v2": "id",
+      "runtime_alias": "transaction_id"
+    },
+    {
+      "object": "Risk",
+      "v1": "signal_id",
+      "v2": "signal_ids[]",
+      "runtime_alias": "signal_id retained only for legacy single-signal path"
+    },
+    {
+      "object": "Case",
+      "v1": "id",
+      "v2": "id",
+      "runtime_alias": "case_id"
+    },
+    {
+      "object": "Case",
+      "v1": "signal_ids",
+      "v2": "signal_ids",
+      "runtime_alias": "source_signal_ids"
+    },
+    {
+      "object": "HumanDecision",
+      "v1": "id",
+      "v2": "id",
+      "runtime_alias": "decision_id"
+    },
+    {
+      "object": "BankStatus",
+      "v1": "id",
+      "v2": "id",
+      "runtime_alias": "status_id"
+    },
+    {
+      "object": "CitizenStatus",
+      "v1": "id",
+      "v2": "id",
+      "runtime_alias": "status_id; citizen_id alias actor_id"
+    },
+    {
+      "object": "AuditEvent",
+      "v1": "id",
+      "v2": "event_id",
+      "runtime_alias": "audit_id"
+    },
+    {
+      "object": "AuditEvent",
+      "v1": "details",
+      "v2": "payload",
+      "runtime_alias": "details"
+    }
+  ],
+  "notes": [
+    "V1 files are retained as historical contracts and are not overwritten.",
+    "V2 is the canonical target; runtime migration is incremental and regression-tested.",
+    "Any alias removal requires a separate versioned migration and consumer audit."
+  ]
+}
