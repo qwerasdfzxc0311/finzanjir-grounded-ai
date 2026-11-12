@@ -135,3 +135,32 @@ def test_ai_api_abstains_when_runtime_knowledge_is_empty(monkeypatch):
     body = response.json()
     assert body["abstained"] is True
     assert body["confidence"] < 0.35
+
+
+
+def test_prototype_api_exposes_invalid_feature_type_as_detector_abstention():
+    response = client.post(
+        "/api/prototype/run",
+        json={
+            "transaction_id": "TX-TYPE-MISMATCH-001",
+            "bank_id": "synthetic-bank",
+            "actor_id": "synthetic-type-test",
+            "amount": 2500,
+            "occurred_at": "2026-11-12T09:00:00Z",
+            "synthetic": True,
+            "signal_features": {
+                "mfa_strength_decreased": True,
+                "mfa_change_to_transfer_seconds": "300",
+            },
+        },
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    detector = body["detector"]
+    outcome = next(item for item in detector["detections"] if item["signal_id"] == "SIG-018")
+
+    assert outcome["status"] == "INSUFFICIENT_DATA"
+    assert outcome["reason_code"] == "invalid_feature_values"
+    assert outcome["invalid_features"] == ["mfa_change_to_transfer_seconds"]
+    assert detector["data_mode"] == "synthetic"
