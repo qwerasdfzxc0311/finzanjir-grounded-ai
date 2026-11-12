@@ -320,7 +320,11 @@ async function loadRunHistory() {
       item.append(left, right);
       list.appendChild(item);
     });
-    target.replaceChildren(list, element("p", "muted", "Saqlash muddati: " + body.retention_days + " kun. Tarixda xom tranzaksiya yoki shaxsiy identifikatorlar saqlanmaydi."));
+    target.replaceChildren(
+      list,
+      element("p", "muted", "Saqlash muddati: " + body.retention_days + " kun. Tarixda xom tranzaksiya yoki shaxsiy identifikatorlar saqlanmaydi."),
+      element("p", "muted", body.persistence_note || "Tarixning doimiy saqlanishi hosting disk sozlamasiga bog‘liq.")
+    );
   } catch (error) {
     target.replaceChildren(element("p", "muted", error.message));
   }
