@@ -168,3 +168,24 @@ def test_corroboration_must_use_a_different_evidence_item():
 def test_signal_event_count_is_bounded():
     with pytest.raises(ValueError, match="100 items"):
         evaluate_signal_set([_event("SIG-006", f"ev-{index}") for index in range(101)])
+
+
+@pytest.mark.parametrize("observed_at", [
+    "2026-11-12T09:00:00",
+    "2026-13-40T09:00:00Z",
+    "not-a-timestamp",
+])
+def test_signal_event_requires_valid_timezone_aware_iso_timestamp(observed_at):
+    with pytest.raises(ValueError, match="observed_at"):
+        evaluate_signal_set([_event("SIG-006", "ev-bad-time", observed_at=observed_at)])
+
+
+def test_signal_event_rejects_unknown_or_duplicate_corroboration_references():
+    with pytest.raises(ValueError, match="corroborating_signal_ids"):
+        evaluate_signal_set([
+            _event("SIG-036", "ev-micro", corroborating_signal_ids=["SIG-999"]),
+        ])
+    with pytest.raises(ValueError, match="corroborating_signal_ids"):
+        evaluate_signal_set([
+            _event("SIG-036", "ev-micro", corroborating_signal_ids=["SIG-002", "SIG-002"]),
+        ])
