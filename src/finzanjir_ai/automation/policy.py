@@ -33,8 +33,10 @@ class AutomationSafetyPolicy:
             raise ValueError("automation reason is required")
         if not isinstance(kill_switch_enabled, bool):
             raise ValueError("kill_switch_enabled must be boolean")
-        if circuit_breaker_state not in {"closed", "open"}:
+        if not isinstance(circuit_breaker_state, str) or circuit_breaker_state not in {"closed", "open"}:
             raise ValueError("circuit_breaker_state must be closed or open")
+        if not isinstance(state, str):
+            raise ValueError("state must be a string")
         if not kill_switch_enabled:
             return {"status": "SAFE_STOP", "route": "human_review", "reason": "kill_switch_disabled"}
         if circuit_breaker_state == "open":
