@@ -529,9 +529,9 @@ def test_stream_audit_module_failure_stops_shadow_flow_before_ai(monkeypatch):
     )
     stages, errors, results = _stream_events(response)
 
-    assert stages[-4]["window_id"] == "audit_kpi"
-    assert [item["status"] for item in stages[-4:]] == [
-        "RUNNING", "FAILED", "NOT_RUN", "NOT_RUN"
+    assert stages[-5]["window_id"] == "audit_kpi"
+    assert [item["status"] for item in stages[-5:]] == [
+        "RUNNING", "FAILED", "NOT_RUN", "NOT_RUN", "NOT_RUN"
     ]
     assert errors == [{"status_code": 500, "detail": "Prototype flow failed safely."}]
     assert results == []
