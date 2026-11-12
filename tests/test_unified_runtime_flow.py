@@ -1,4 +1,5 @@
 from finzanjir_ai.prototype.flow import build_system_flow
+from finzanjir_ai.risk.scenarios import build_synthetic_case_signal_events
 
 
 def test_system_flow_is_a_real_pipeline_not_only_a_visual_sequence():
@@ -25,12 +26,14 @@ def test_system_flow_keeps_synthetic_decision_non_authoritative():
         "amount": 2500,
         "occurred_at": "2026-11-11T00:00:00Z",
         "synthetic": True,
+        "signal_events": build_synthetic_case_signal_events(transaction_id="TX-FLOW-001", observed_at="2026-11-11T00:00:00Z"),
+        "shadow_mode": False,
     }
     result = flow.execute(transaction, knowledge_index=flow.demo_knowledge_index())
 
     assert result["transaction_id"] == "TX-FLOW-001"
     assert result["pipeline"].signal["transaction_id"] == "TX-FLOW-001"
-    assert result["pipeline"].risk["signal_id"] == result["pipeline"].signal["id"]
+    assert result["pipeline"].signal["id"] in result["pipeline"].risk["signal_ids"]
     assert result["case"]["transaction_id"] == "TX-FLOW-001"
     assert result["case"]["status"] == "OPEN"
     assert result["decision"]["case"]["case_id"] == result["case"]["case_id"]
