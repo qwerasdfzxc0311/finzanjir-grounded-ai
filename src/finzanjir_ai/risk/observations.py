@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Any
+import re
 
 from .registry import SIGNAL_REGISTRY
 
@@ -86,8 +87,11 @@ def normalize_signal_observations(
             raise ValueError(f"signal_observations[{index}].corroborating_signal_ids must contain known signal IDs")
 
         event_key = observation.get("event_key", observation["evidence_id"])
-        if not isinstance(event_key, str) or not event_key.strip():
-            raise ValueError(f"signal_observations[{index}].event_key must be a non-empty string")
+        if (
+            not isinstance(event_key, str)
+            or not re.fullmatch(r"[A-Za-z0-9._:-]{1,256}", event_key.strip())
+        ):
+            raise ValueError(f"signal_observations[{index}].event_key must be a 1-256 character opaque identifier")
         normalized.append({
             "signal_id": signal_id,
             "evidence_id": observation["evidence_id"].strip(),
