@@ -319,6 +319,15 @@ def run_prototype(transaction: PrototypeTransaction) -> dict[str, Any]:
     except (OSError, sqlite3.Error, ValueError) as exc:
         raise HTTPException(status_code=503, detail="Prototype run could not be safely saved.") from exc
     response = jsonable_encoder(result)
+    # Expose only the minimal synthetic transaction summary needed by the UI.
+    # Do not echo actor, device, network, raw features or evidence identifiers.
+    response["transaction"] = {
+        "transaction_id": payload["transaction_id"],
+        "bank_id": payload["bank_id"],
+        "amount": payload["amount"],
+        "occurred_at": payload["occurred_at"],
+        "synthetic": True,
+    }
     response["prototype_run_id"] = saved_run["run_id"]
     if detector_result is not None:
         response["detector"] = detector_result
