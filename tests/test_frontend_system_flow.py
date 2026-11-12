@@ -115,6 +115,7 @@ def test_each_window_exposes_truthful_shared_execution_status():
 
 def test_signal_risk_window_shows_signal_reasons_evidence_and_threshold_explanation():
     script = Path("frontend/app.js").read_text(encoding="utf-8")
+    styles = Path("frontend/styles.css").read_text(encoding="utf-8")
     for field in [
         "risk.contributions",
         "signal_name",
