@@ -387,6 +387,9 @@ async def stream_prototype(transaction: PrototypeTransaction) -> StreamingRespon
                     failed_sequence = active["sequence"]
                 elif last_event and last_event.get("sequence", 0) < len(flow.window_ids):
                     failed_sequence = last_event["sequence"] + 1
+                elif not last_event:
+                    # HTTP preflight rejection occurs before the first stage event.
+                    failed_sequence = 1
                 if failed_sequence is not None:
                     failed_window = flow.window_ids[failed_sequence - 1]
                     publish("stage", {
@@ -413,12 +416,30 @@ async def stream_prototype(transaction: PrototypeTransaction) -> StreamingRespon
                 publish("error", {"status_code": exc.status_code, "detail": exc.detail})
             except Exception:
                 active = state.get("active")
+                last_event = state.get("last_event")
+                failed_sequence = None
                 if active:
                     failed_sequence = active["sequence"]
+                elif last_event and last_event.get("sequence", 0) < len(flow.window_ids):
+                    failed_sequence = last_event["sequence"] + 1
+                elif not last_event:
+                    # Preflight failures (for example, non-synthetic input) happen
+                    # before the first stage emits RUNNING; expose that stop honestly.
+                    failed_sequence = 1
+                if failed_sequence is not None:
+                    failed_window = flow.window_ids[failed_sequence - 1]
+                    failed_payload = active if active and active.get("sequence") == failed_sequence else {
+                        "sequence": failed_sequence,
+                        "window_id": failed_window,
+                        "transaction_id": transaction.transaction_id,
+                        "data_mode": "synthetic",
+                        "input_refs": [],
+                        "output_refs": [],
+                    }
                     publish("stage", {
-                        **active,
+                        **failed_payload,
                         "status": "FAILED",
-                        "summary": "Ichki modul xatosi sabab bosqich to‘xtadi.",
+                        "summary": "Ichki modul yoki dastlabki tekshiruv xatosi sabab bosqich xavfsiz to‘xtadi.",
                     })
                     for sequence, window_id in enumerate(flow.window_ids[failed_sequence:], start=failed_sequence + 1):
                         publish("stage", {

@@ -552,3 +552,33 @@ def test_stream_layer_registry_failure_is_reported_without_success_result(monkey
     assert [item["status"] for item in stages[-2:]] == ["RUNNING", "FAILED"]
     assert errors == [{"status_code": 500, "detail": "Prototype flow failed safely."}]
     assert results == []
+
+
+
+def test_stream_rejects_non_synthetic_input_with_failed_first_stage_and_remaining_not_run():
+    response = client.post(
+        "/api/prototype/run/stream",
+        json={
+            "transaction_id": "TX-STREAM-PREFLIGHT-FAIL-001",
+            "bank_id": "bank-synthetic-a",
+            "actor_id": "actor-preflight-fail",
+            "amount": 2500,
+            "occurred_at": "2026-11-12T09:00:00Z",
+            "synthetic": False,
+        },
+    )
+    stages, errors, results = _stream_events(response)
+
+    assert [item["window_id"] for item in stages] == [
+        "synthetic_bank", "signal_risk", "cross_bank_fraud", "human_case",
+        "audit_kpi", "finzanjir_ai", "citizen", "layers_16",
+    ]
+    assert [item["status"] for item in stages] == [
+        "FAILED", "NOT_RUN", "NOT_RUN", "NOT_RUN",
+        "NOT_RUN", "NOT_RUN", "NOT_RUN", "NOT_RUN",
+    ]
+    assert errors == [{
+        "status_code": 400,
+        "detail": "The prototype flow accepts only explicitly synthetic transactions.",
+    }]
+    assert results == []
