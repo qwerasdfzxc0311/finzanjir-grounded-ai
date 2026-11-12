@@ -38,7 +38,7 @@ def test_system_flow_keeps_synthetic_decision_non_authoritative():
     assert result["cross_bank"].matches == []
     assert result["audit"]
     assert result["ai"].runtime_context.runtime_refs
-    assert result["citizen_status"] is None
+    assert result["citizen_status"]["status"] == "SYNTHETIC_REVIEW_ONLY"
     assert result["bank_status"] is None
     assert len(result["layers_16"]) == 16
 
