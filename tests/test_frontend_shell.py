@@ -12,3 +12,5 @@ def test_frontend_shell_exposes_unified_windows_and_synthetic_mode():
     assert 'id="scenarioSelector"' in html
     assert 'id="runSyntheticScenario"' in html
     assert 'id="runHistory"' in html
+    assert 'id="runShadowEvaluation"' in html
+    assert 'id="shadowResult"' in html

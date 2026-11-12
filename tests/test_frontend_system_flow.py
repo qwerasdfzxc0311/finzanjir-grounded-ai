@@ -37,3 +37,12 @@ def test_frontend_runs_synthetic_detector_and_reads_persisted_history():
     assert "signal_features" in script
     assert "synthetic: true" in script
     assert "clipboard" not in script.lower()
+
+
+def test_frontend_connects_synthetic_shadow_evaluation_api():
+    script = Path("frontend/app.js").read_text(encoding="utf-8")
+    assert "/api/prototype/shadow-evaluate" in script
+    assert "buildShadowScenarios" in script
+    assert "synthetic: true" in script
+    assert "real fraud precision/recall" in script
+    assert "Shadow Mode: Case ochilmaydi" in script

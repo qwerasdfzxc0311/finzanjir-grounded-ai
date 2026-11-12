@@ -203,3 +203,111 @@ loadShell().catch(error => {
   document.querySelector("#prototypeResult").replaceChildren(element("p", "muted", "Runtime demo hozircha mavjud emas."));
 });
 loadRunHistory();
+
+
+function makeShadowEvents(prefix) {
+  const definitions = [
+    ["SIG-018", "auth"],
+    ["SIG-006", "device"],
+    ["SIG-012", "account"],
+    ["SIG-004", "beneficiary"],
+    ["SIG-002", "velocity"]
+  ];
+  return definitions.map(([signal_id, suffix], index) => ({
+    signal_id,
+    evidence_id: prefix + "-" + suffix,
+    source: "synthetic-shadow-ui",
+    observed_at: new Date(Date.now() + index * 1000).toISOString(),
+    evidence_quality: 1.0,
+    recency_factor: 1.0
+  }));
+}
+
+function buildShadowScenarios() {
+  const scenarios = [];
+  for (let index = 0; index < 4; index += 1) {
+    const id = "ui-tp-" + index;
+    scenarios.push({
+      scenario_id: id,
+      expected_label: "suspicious",
+      synthetic: true,
+      signal_events: makeShadowEvents(id)
+    });
+  }
+  for (let index = 0; index < 3; index += 1) {
+    scenarios.push({
+      scenario_id: "ui-tn-" + index,
+      expected_label: "benign",
+      synthetic: true,
+      signal_events: []
+    });
+  }
+  scenarios.push({
+    scenario_id: "ui-fp-example",
+    expected_label: "benign",
+    synthetic: true,
+    signal_events: makeShadowEvents("ui-fp")
+  });
+  scenarios.push({
+    scenario_id: "ui-fn-example",
+    expected_label: "suspicious",
+    synthetic: true,
+    signal_events: [{
+      signal_id: "SIG-001",
+      evidence_id: "ui-fn-amount",
+      source: "synthetic-shadow-ui",
+      observed_at: new Date().toISOString(),
+      evidence_quality: 1.0,
+      recency_factor: 1.0
+    }]
+  });
+  return scenarios;
+}
+
+async function runShadowEvaluation() {
+  const button = document.querySelector("#runShadowEvaluation");
+  const target = document.querySelector("#shadowResult");
+  button.disabled = true;
+  button.textContent = "Shadow Mode baholanmoqda...";
+  target.replaceChildren(element("p", "muted", "9 ta sintetik scenario tekshirilmoqda..."));
+  try {
+    const response = await fetch("/api/prototype/shadow-evaluate", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({scenarios: buildShadowScenarios(), escalation_threshold: 75})
+    });
+    const body = await response.json();
+    if (!response.ok) throw new Error(body.detail || "Shadow baholash bajarilmadi");
+    const matrix = body.confusion_matrix;
+    const metrics = body.metrics;
+    const grid = element("div", "result-grid");
+    [
+      ["Ssenariylar", body.scenario_count],
+      ["TP / FP", matrix.tp + " / " + matrix.fp],
+      ["TN / FN", matrix.tn + " / " + matrix.fn],
+      ["Precision", (metrics.precision * 100).toFixed(1) + "%"],
+      ["Recall", (metrics.recall * 100).toFixed(1) + "%"],
+      ["Specificity", (metrics.specificity * 100).toFixed(1) + "%"],
+      ["False-positive rate", (metrics.false_positive_rate * 100).toFixed(1) + "%"],
+      ["False-negative rate", (metrics.false_negative_rate * 100).toFixed(1) + "%"],
+      ["Accuracy", (metrics.accuracy * 100).toFixed(1) + "%"]
+    ].forEach(([label, value]) => {
+      const metric = element("div", "metric");
+      metric.append(element("span", "muted", label), element("strong", "", value));
+      grid.appendChild(metric);
+    });
+    target.replaceChildren(
+      element("p", "status-good", "Sintetik Shadow Mode baholashi tugadi"),
+      grid,
+      element("p", "muted", "Bu ko‘rsatkichlar faqat ushbu 9 ta qo‘lda tuzilgan sintetik fixture uchun. Ular real fraud precision/recall yoki detector source-data qamrovini isbotlamaydi."),
+      element("p", "muted", "Shadow Mode: Case ochilmaydi, to‘lov/bank/fuqaro holati o‘zgarmaydi.")
+    );
+  } catch (error) {
+    target.replaceChildren(element("p", "status-muted", error.message));
+  } finally {
+    button.disabled = false;
+    button.textContent = "Shadow Mode sinovini bajarish";
+  }
+}
+
+document.querySelector("#runShadowEvaluation").addEventListener("click", runShadowEvaluation);
