@@ -59,8 +59,7 @@
       "cross_bank_data_enabled": false,
       "legal_gate": "unverified_bank_internal_lawful_purpose_required",
       "required_features": [
-        "transaction_count_10m",
-        "failed_or_pending_attempt_count_10m"
+        "transaction_count_10m"
       ],
       "all_of": [
         {
@@ -79,7 +78,10 @@
       ],
       "missing_data_policy": "insufficient_data_not_detected",
       "counter_evidence_policy": "suppress_detection_and_record_reason",
-      "note": "Faol savdogar va batch to‘lovlar benign bo‘lishi mumkin."
+      "note": "Faol savdogar va batch to‘lovlar benign bo‘lishi mumkin.",
+      "optional_features": [
+        "failed_or_pending_attempt_count_10m"
+      ]
     },
     {
       "signal_id": "SIG-003",
@@ -499,8 +501,7 @@
       "legal_gate": "unverified_bank_internal_lawful_purpose_required",
       "required_features": [
         "watchlist_match_status",
-        "watchlist_match_confidence",
-        "watchlist_list_version"
+        "watchlist_match_confidence"
       ],
       "all_of": [
         {
@@ -524,7 +525,10 @@
       ],
       "missing_data_policy": "insufficient_data_not_detected",
       "counter_evidence_policy": "suppress_detection_and_record_reason",
-      "note": "Faqat vakolatli, yangilangan va tuzatish mexanizmi bor ro‘yxat; ism o‘xshashligi yetarli emas."
+      "note": "Faqat vakolatli, yangilangan va tuzatish mexanizmi bor ro‘yxat; ism o‘xshashligi yetarli emas.",
+      "optional_features": [
+        "watchlist_list_version"
+      ]
     },
     {
       "signal_id": "SIG-014",
@@ -823,8 +827,7 @@
       "cross_bank_data_enabled": false,
       "legal_gate": "unverified_bank_internal_lawful_purpose_required",
       "required_features": [
-        "bank_verified_name_match_confidence",
-        "name_match_normalization_version"
+        "bank_verified_name_match_confidence"
       ],
       "all_of": [
         {
@@ -843,7 +846,10 @@
       ],
       "missing_data_policy": "insufficient_data_not_detected",
       "counter_evidence_policy": "suppress_detection_and_record_reason",
-      "note": "Transliteratsiya, qisqartma va imlo farqlari alohida tekshiriladi."
+      "note": "Transliteratsiya, qisqartma va imlo farqlari alohida tekshiriladi.",
+      "optional_features": [
+        "name_match_normalization_version"
+      ]
     },
     {
       "signal_id": "SIG-022",
