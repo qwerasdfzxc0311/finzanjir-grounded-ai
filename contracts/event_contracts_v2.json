@@ -89,7 +89,8 @@
       "optional": [
         "signal_id",
         "family",
-        "source_status"
+        "source_status",
+        "scoring_mode"
       ]
     },
     "Evidence": {
@@ -135,13 +136,18 @@
         "threshold_version",
         "threshold_changed_by",
         "threshold_effective_at",
+        "threshold",
+        "scoring_mode",
+        "case_block_reason",
+        "case_suppressed_reason",
         "threshold"
       ],
       "constraints": [
         "score is a 0..100 prioritization score, not probability or guilt",
         "Case eligibility requires threshold plus independent evidence policy",
         "shadow_mode=true creates no Case or bank action",
-        "score_scale and threshold_scale must declare legacy_0_1 or priority_0_100; values from different scales are not comparable"
+        "score_scale and threshold_scale must declare legacy_0_1 or priority_0_100; values from different scales are not comparable",
+        "Context-only legacy events must have score=0, case_eligible=false and shadow_mode=true"
       ]
     },
     "Threshold": {
