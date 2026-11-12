@@ -20,12 +20,25 @@ def _is_finite_number(value: Any) -> bool:
 def _matches(actual: Any, condition: dict[str, Any]) -> bool:
     operator = condition["op"]
     expected = condition["value"]
-    if operator == "eq":
-        return actual == expected
-    if operator == "ne":
-        return actual != expected
+    if operator in {"eq", "ne"}:
+        if isinstance(expected, bool):
+            same_type_value = isinstance(actual, bool) and actual is expected
+        elif isinstance(expected, str):
+            same_type_value = isinstance(actual, str) and actual == expected
+        elif _is_finite_number(expected):
+            same_type_value = _is_finite_number(actual) and actual == expected
+        else:
+            same_type_value = actual == expected
+        return same_type_value if operator == "eq" else not same_type_value
     if operator == "in":
-        return actual in expected if isinstance(expected, list) else False
+        if not isinstance(expected, list):
+            return False
+        return any(
+            (isinstance(item, bool) and isinstance(actual, bool) and actual is item)
+            or (isinstance(item, str) and isinstance(actual, str) and actual == item)
+            or (_is_finite_number(item) and _is_finite_number(actual) and actual == item)
+            for item in expected
+        )
     if not _is_finite_number(actual) or not _is_finite_number(expected):
         return False
     if operator == "gt":
@@ -144,6 +157,8 @@ class SyntheticSignalDetector:
                 raise ValueError(f"feature {field} must be a scalar value")
             if isinstance(value, float) and not math.isfinite(value):
                 raise ValueError(f"feature {field} must be finite")
+            if isinstance(value, str) and len(value) > 256:
+                raise ValueError(f"feature {field} exceeds the 256-character limit")
 
         outcomes: list[dict[str, Any]] = []
         detected_ids: list[str] = []
