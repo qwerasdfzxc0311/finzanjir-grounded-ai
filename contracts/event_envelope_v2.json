@@ -1,0 +1,47 @@
+{
+  "schema_version": "2.0",
+  "status": "canonical-target-with-prototype-adapter",
+  "required": [
+    "event_id",
+    "event_type",
+    "occurred_at",
+    "actor_id",
+    "source",
+    "scope",
+    "object_type",
+    "object_id",
+    "correlation_id",
+    "causation_id",
+    "payload"
+  ],
+  "fields": {
+    "event_id": "string-immutable",
+    "event_type": "string",
+    "occurred_at": "datetime-utc",
+    "actor_id": "string",
+    "source": "string",
+    "scope": [
+      "bank_internal",
+      "cross_bank"
+    ],
+    "object_type": "string",
+    "object_id": "string",
+    "correlation_id": "string",
+    "causation_id": "string|null",
+    "payload": "object",
+    "data_mode": [
+      "synthetic",
+      "real",
+      "unknown"
+    ]
+  },
+  "rules": [
+    "event_id is immutable and unique within the event store.",
+    "correlation_id links events in one end-to-end transaction/case flow.",
+    "causation_id references the immediate causal event when available; null is allowed when no prior event is emitted.",
+    "scope=cross_bank requires server-side authorization, explicit legal purpose and authorized exchange agreement.",
+    "Synthetic events must set data_mode=synthetic and must not trigger real bank actions.",
+    "payload is validated against the object/event contract.",
+    "Legacy aliases such as audit_id and details may coexist during migration but are not canonical identifiers."
+  ]
+}

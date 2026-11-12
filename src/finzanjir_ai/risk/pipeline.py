@@ -80,6 +80,8 @@ def _process_multi_signal_transaction(
         "id": f"risk-{transaction['transaction_id']}",
         "signal_ids": [item["id"] for item in signals],
         "score": evaluation["score"],
+        "score_scale": "priority_0_100",
+        "threshold_scale": "priority_0_100",
         "level": evaluation["risk_level"],
         "evidence_confidence": evaluation["evidence_confidence"],
         "calculated_at": transaction["occurred_at"],
@@ -103,6 +105,9 @@ def _process_multi_signal_transaction(
     if evaluation["case_eligible"] and not shadow_mode:
         case = {
             "id": f"case-{transaction['transaction_id']}",
+            "bank_id": transaction["bank_id"],
+            "citizen_id": transaction.get("citizen_id", "synthetic-subject"),
+            "transaction_id": transaction["transaction_id"],
             "signal_ids": [item["id"] for item in signals],
             "risk_id": risk["id"],
             "threshold_id": "multi-signal-escalation-v1",
@@ -194,14 +199,21 @@ def process_transaction(
     risk = {
         "id": f"risk-{transaction['transaction_id']}",
         "signal_id": signal["id"],
+        "signal_ids": [signal["id"]],
         "score": evaluation.signal_score,
+        "score_scale": "legacy_0_1",
+        "threshold_scale": "legacy_0_1",
         "level": evaluation.risk_level,
         "calculated_at": transaction["occurred_at"],
         "engine_version": "risk-v1-legacy-demo",
         "threshold_met": evaluation.threshold_met,
+        "case_eligible": evaluation.case_should_open,
+        "independent_families": 1,
         "evidence_count": evaluation.evidence_count,
         "escalation_threshold": escalation_threshold,
         "scoring_mode": "legacy_demo_compatibility",
+        "score_semantics": "legacy_demo_score_not_probability",
+        "shadow_mode": False,
         "data_mode": "synthetic",
     }
 
@@ -209,6 +221,9 @@ def process_transaction(
     if evaluation.case_should_open:
         case = {
             "id": f"case-{transaction['transaction_id']}",
+            "bank_id": transaction["bank_id"],
+            "citizen_id": transaction.get("citizen_id", "synthetic-subject"),
+            "transaction_id": transaction["transaction_id"],
             "signal_ids": [signal["id"]],
             "risk_id": risk["id"],
             "threshold_id": "case-escalation-v1",
