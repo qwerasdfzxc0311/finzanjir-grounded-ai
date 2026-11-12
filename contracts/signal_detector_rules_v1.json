@@ -107,6 +107,11 @@
         },
         {
           "field": "inbound_to_outbound_seconds",
+          "op": "gte",
+          "value": 0
+        },
+        {
+          "field": "inbound_to_outbound_seconds",
           "op": "lte",
           "value": 1800
         },
@@ -144,6 +149,11 @@
         "beneficiary_prior_transaction_count"
       ],
       "all_of": [
+        {
+          "field": "beneficiary_age_days",
+          "op": "gte",
+          "value": 0
+        },
         {
           "field": "beneficiary_age_days",
           "op": "lte",
@@ -230,6 +240,11 @@
       "all_of": [
         {
           "field": "device_age_hours",
+          "op": "gte",
+          "value": 0
+        },
+        {
+          "field": "device_age_hours",
           "op": "lte",
           "value": 24
         },
@@ -275,8 +290,18 @@
         },
         {
           "field": "geo_elapsed_seconds",
+          "op": "gte",
+          "value": 0
+        },
+        {
+          "field": "geo_elapsed_seconds",
           "op": "lte",
           "value": 3600
+        },
+        {
+          "field": "geo_accuracy_meters",
+          "op": "gte",
+          "value": 0
         },
         {
           "field": "geo_accuracy_meters",
@@ -390,6 +415,11 @@
       "all_of": [
         {
           "field": "activity_time_probability",
+          "op": "gte",
+          "value": 0
+        },
+        {
+          "field": "activity_time_probability",
           "op": "lte",
           "value": 0.01
         },
@@ -427,6 +457,11 @@
         "high_risk_action_count"
       ],
       "all_of": [
+        {
+          "field": "session_duration_seconds",
+          "op": "gte",
+          "value": 0
+        },
         {
           "field": "session_duration_seconds",
           "op": "lte",
@@ -598,6 +633,11 @@
           "field": "distinct_graph_hops",
           "op": "gte",
           "value": 3
+        },
+        {
+          "field": "graph_cycle_duration_seconds",
+          "op": "gte",
+          "value": 0
         },
         {
           "field": "graph_cycle_duration_seconds",
@@ -832,6 +872,11 @@
       "all_of": [
         {
           "field": "bank_verified_name_match_confidence",
+          "op": "gte",
+          "value": 0
+        },
+        {
+          "field": "bank_verified_name_match_confidence",
           "op": "lte",
           "value": 0.4
         }
@@ -914,6 +959,11 @@
         },
         {
           "field": "outflow_after_inbound_seconds",
+          "op": "gte",
+          "value": 0
+        },
+        {
+          "field": "outflow_after_inbound_seconds",
           "op": "lte",
           "value": 3600
         },
@@ -958,6 +1008,11 @@
         },
         {
           "field": "transfer_chain_duration_seconds",
+          "op": "gte",
+          "value": 0
+        },
+        {
+          "field": "transfer_chain_duration_seconds",
           "op": "lte",
           "value": 1800
         }
@@ -994,6 +1049,11 @@
           "field": "inflow_to_outflow_ratio",
           "op": "gte",
           "value": 0.9
+        },
+        {
+          "field": "drain_after_inflow_seconds",
+          "op": "gte",
+          "value": 0
         },
         {
           "field": "drain_after_inflow_seconds",
@@ -1482,6 +1542,11 @@
         "beneficiary_account_age_days"
       ],
       "all_of": [
+        {
+          "field": "beneficiary_account_age_days",
+          "op": "gte",
+          "value": 0
+        },
         {
           "field": "beneficiary_account_age_days",
           "op": "lte",

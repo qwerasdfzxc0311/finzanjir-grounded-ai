@@ -110,9 +110,14 @@ function renderScenarioResult(body) {
     const title = element("h3", "", "Detector natijalari");
     const list = element("ul", "layers");
     detector.detections
-      .filter(item => item.status === "DETECTED" || item.status === "SUPPRESSED_BENIGN")
+      .filter(item => ["DETECTED", "SUPPRESSED_BENIGN", "INSUFFICIENT_DATA"].includes(item.status))
       .forEach(item => {
-        list.appendChild(element("li", "", item.signal_id + " — " + item.name + " — " + item.status));
+        const detail = item.invalid_features?.length
+          ? " — noto‘g‘ri qiymat: " + item.invalid_features.join(", ")
+          : item.missing_features?.length
+            ? " — yetishmaydi: " + item.missing_features.join(", ")
+            : "";
+        list.appendChild(element("li", "", item.signal_id + " — " + item.name + " — " + item.status + detail));
       });
     if (!list.children.length) list.appendChild(element("li", "muted", "Hech qanday signal aniqlanmadi."));
     target.append(title, list);

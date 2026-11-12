@@ -169,9 +169,22 @@ class SyntheticSignalDetector:
         for signal_id, rule in self._rules.items():
             conditions = rule["all_of"]
             missing = sorted({item["field"] for item in conditions if item["field"] not in features})
+            invalid = sorted({
+                item["field"]
+                for item in conditions
+                if item["op"] == "gte"
+                and item["value"] == 0
+                and item["field"] in features
+                and _is_finite_number(features[item["field"]])
+                and features[item["field"]] < 0
+            })
             if missing:
                 status = "INSUFFICIENT_DATA"
                 reason = "missing_required_features"
+                matched = []
+            elif invalid:
+                status = "INSUFFICIENT_DATA"
+                reason = "invalid_feature_values"
                 matched = []
             else:
                 matched = [item["field"] for item in conditions if _matches(features[item["field"]], item)]
@@ -198,6 +211,7 @@ class SyntheticSignalDetector:
                 "reason_code": reason,
                 "matched_features": matched,
                 "missing_features": missing,
+                "invalid_features": invalid,
                 "observed_optional_features": [
                     field for field in rule.get("optional_features", []) if field in features
                 ],

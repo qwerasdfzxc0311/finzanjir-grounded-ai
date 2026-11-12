@@ -30,19 +30,39 @@ def _fixture(rule):
 
 def _negative_fixture(rule):
     values = _fixture(rule)
-    condition = rule["all_of"][0]
-    field, op, expected = condition["field"], condition["op"], condition["value"]
-    if op == "eq":
-        values[field] = "__not_equal__" if isinstance(expected, str) else not expected
-    elif op in {"gte", "gt"}:
-        values[field] = expected - 1
-    elif op in {"lte", "lt"}:
-        values[field] = expected + 1
-    elif op == "in":
-        values[field] = "__not_in_set__"
-    elif op == "ne":
-        values[field] = expected
-    return values
+    for condition in rule["all_of"]:
+        field, op, expected = condition["field"], condition["op"], condition["value"]
+        if op == "eq":
+            candidate = "__not_equal__" if isinstance(expected, str) else not expected
+        elif op == "gte":
+            candidate = expected - 1
+        elif op == "gt":
+            candidate = expected
+        elif op == "lte":
+            candidate = expected + 1
+        elif op == "lt":
+            candidate = expected
+        elif op == "in":
+            candidate = "__not_in_set__"
+        elif op == "ne":
+            candidate = expected
+        else:
+            continue
+
+        # A negative fixture must violate one detector condition without
+        # introducing an invalid value for another declared non-negative field.
+        violates_domain = any(
+            guard["field"] == field
+            and guard["op"] == "gte"
+            and guard["value"] == 0
+            and (not isinstance(candidate, (int, float)) or isinstance(candidate, bool) or candidate < 0)
+            for guard in rule["all_of"]
+        )
+        if not violates_domain:
+            values[field] = candidate
+            return values
+
+    raise AssertionError(f"No valid negative fixture could be built for {rule['signal_id']}")
 
 
 def test_detector_rule_contract_covers_registry_without_cross_bank_data():
@@ -214,3 +234,37 @@ def test_each_signal_threshold_boundary_is_inclusive_or_exact_as_declared(rule, 
     )
     outcome = next(item for item in result["detections"] if item["signal_id"] == rule["signal_id"])
     assert outcome["status"] == "DETECTED", (rule["signal_id"], condition, outcome)
+
+
+
+@pytest.mark.parametrize(
+    "rule,condition",
+    [
+        (rule, condition)
+        for rule in CONTRACT["detectors"]
+        for condition in rule["all_of"]
+        if condition["op"] == "gte" and condition["value"] == 0
+    ],
+    ids=[
+        f"{rule['signal_id']}-{condition['field']}"
+        for rule in CONTRACT["detectors"]
+        for condition in rule["all_of"]
+        if condition["op"] == "gte" and condition["value"] == 0
+    ],
+)
+def test_negative_nonnegative_feature_values_abstain_instead_of_being_called_benign(rule, condition):
+    features = _fixture(rule)
+    field = condition["field"]
+    features[field] = -1
+
+    result = SyntheticSignalDetector().evaluate(
+        scenario_id=f"negative-domain-{rule['signal_id']}-{field}",
+        observed_at="2026-11-12T09:00:00Z",
+        features=features,
+    )
+    outcome = next(item for item in result["detections"] if item["signal_id"] == rule["signal_id"])
+
+    assert outcome["status"] == "INSUFFICIENT_DATA"
+    assert outcome["reason_code"] == "invalid_feature_values"
+    assert outcome["invalid_features"] == [field]
+    assert outcome["missing_features"] == []
