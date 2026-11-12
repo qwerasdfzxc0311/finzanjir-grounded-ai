@@ -16,6 +16,8 @@ def test_prototype_api_exposes_multi_signal_result_in_shadow_mode():
             "amount": 2500,
             "occurred_at": "2026-11-12T09:00:00Z",
             "synthetic": True,
+            "device_id": "synthetic-device-shadow",
+            "network_id": "synthetic-network-shadow",
             "signal_events": [
                 {"signal_id": "SIG-018", "evidence_id": "ev-auth", "source": "synthetic-auth", "observed_at": "2026-11-12T08:59:00Z", "evidence_quality": 1.0, "recency_factor": 1.0},
                 {"signal_id": "SIG-006", "evidence_id": "ev-device", "source": "synthetic-device", "observed_at": "2026-11-12T08:59:10Z", "evidence_quality": 1.0, "recency_factor": 1.0},
