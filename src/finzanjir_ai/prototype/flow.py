@@ -263,9 +263,9 @@ class SystemFlow:
             data_mode="synthetic",
         )
         audit_event = decision["audit_event"]
-        emit("audit_kpi", "COMPLETED", "Audit hodisasi va sintetik KPI tayyor.", input_refs=(transaction_id,), output_refs=tuple(
+        emit("audit_kpi", "COMPLETED", "Audit hodisasi va sintetik KPI tayyor.", input_refs=(transaction_id,), output_refs=tuple(dict.fromkeys(
                 ref for ref in (audit_event.get("event_id"), audit_event.get("audit_id")) if ref
-            ))
+            )))
 
         emit("finzanjir_ai", "RUNNING", "Canonical knowledge va runtime dalillari bilan izoh tayyorlanmoqda.")
         runtime_refs = tuple(
@@ -458,12 +458,12 @@ class SystemFlow:
                 "status_label": "Audit va KPI natijasi tayyor" if audit_events and result.get("kpi") else "Qisman · audit yoki KPI natijasi yetishmaydi",
                 "summary": "Audit hodisalari va sintetik KPI ko‘rsatkichlari.",
                 "input_refs": [transaction_id],
-                "output_refs": [
+                "output_refs": list(dict.fromkeys(
                     ref
                     for item in audit_events
                     for ref in (item.get("event_id"), item.get("audit_id"))
                     if ref
-                ],
+                )),
             },
             {
                 "window_id": "finzanjir_ai",
