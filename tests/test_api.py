@@ -385,7 +385,7 @@ def test_stream_endpoint_reports_failed_and_not_run_stages_without_success_resul
     assert [item["status"] for item in stages] == [
         "RUNNING", "COMPLETED", "RUNNING", "FAILED",
         "NOT_RUN", "NOT_RUN", "NOT_RUN", "NOT_RUN",
-        "NOT_RUN", "NOT_RUN", "NOT_RUN", "NOT_RUN",
+        "NOT_RUN", "NOT_RUN",
     ]
     assert stages[3]["window_id"] == "signal_risk"
     assert errors == [{"status_code": 400, "detail": "synthetic signal pipeline failure"}]
