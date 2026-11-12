@@ -140,3 +140,16 @@ def test_cross_bank_window_never_claims_a_check_without_authorized_exchange():
     assert 'snapshot.runtime?.cross_bank_authorized !== true' in script
     assert 'Cross-bank almashinuvi o‘chiq · ruxsat yo‘q' in script
     assert 'Ruxsatli scope tekshirildi · moslik topilmadi' in script
+
+
+
+def test_frontend_renders_backend_execution_trace_for_each_window():
+    script = Path("frontend/app.js").read_text(encoding="utf-8")
+    assert "function windowTraceFor(windowId)" in script
+    assert "function windowTraceLines(windowId)" in script
+    assert "snapshot.window_trace" in script
+    assert "[...windowTraceLines(windowId), ...windowSummaryLines(windowId)]" in script
+    assert "Bosqich #" in script
+    assert "Kirish refs:" in script
+    assert "Chiqish refs:" in script
+    assert "bosqichlar javob kelgach yangilanadi" in script

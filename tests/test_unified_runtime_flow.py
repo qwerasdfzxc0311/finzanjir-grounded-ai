@@ -142,3 +142,46 @@ def test_all_window_outputs_share_one_synthetic_transaction_correlation(shadow_m
         assert result["decision"]["case"]["case_id"] == result["case"]["case_id"]
         assert result["decision"]["human_decision"]["is_authoritative"] is False
         assert result["citizen_status"]["status"] == "SYNTHETIC_REVIEW_ONLY"
+
+
+
+def test_window_execution_trace_reports_actual_status_for_shadow_and_review_paths():
+    flow = build_system_flow()
+    for shadow_mode in (True, False):
+        transaction_id = "TX-WINDOW-STATUS-" + ("SHADOW" if shadow_mode else "REVIEW")
+        transaction = {
+            "transaction_id": transaction_id,
+            "bank_id": "bank-synthetic",
+            "actor_id": "actor-window-status",
+            "amount": 2500,
+            "occurred_at": "2026-11-12T09:00:00Z",
+            "synthetic": True,
+            "signal_events": build_synthetic_case_signal_events(
+                transaction_id=transaction_id,
+                observed_at="2026-11-12T09:00:00Z",
+            ),
+            "shadow_mode": shadow_mode,
+        }
+        result = flow.execute(transaction, knowledge_index=flow.demo_knowledge_index())
+        trace = flow.build_window_trace(result)
+        by_window = {item["window_id"]: item for item in trace}
+
+        assert [item["window_id"] for item in trace] == list(flow.window_ids)
+        assert all(item["transaction_id"] == transaction_id for item in trace)
+        assert all(item["data_mode"] == "synthetic" for item in trace)
+        assert by_window["synthetic_bank"]["status"] == "COMPLETED"
+        assert by_window["signal_risk"]["status"] == "COMPLETED"
+        assert by_window["cross_bank_fraud"]["status"] == "DISABLED"
+        assert by_window["cross_bank_fraud"]["output_refs"] == []
+        assert by_window["audit_kpi"]["status"] == "COMPLETED"
+        assert by_window["finzanjir_ai"]["status"] in {"COMPLETED", "ABSTAINED"}
+        assert by_window["citizen"]["status"] == "SYNTHETIC_STATUS_ONLY"
+        assert by_window["layers_16"]["status"] == "PARTIAL"
+        assert len(by_window["layers_16"]["output_refs"]) == 16
+
+        if shadow_mode:
+            assert by_window["human_case"]["status"] == "SHADOW_ONLY"
+            assert by_window["human_case"]["output_refs"] == []
+        else:
+            assert by_window["human_case"]["status"] == "SYNTHETIC_REVIEW_ONLY"
+            assert result["case"]["case_id"] in by_window["human_case"]["output_refs"]

@@ -196,3 +196,51 @@ def test_windows_endpoint_reports_real_layer_implementation_status():
         "partial": 12,
         "planned": 4,
     }
+
+
+
+def test_prototype_demo_exposes_truthful_per_window_execution_trace():
+    response = client.get("/api/prototype/demo")
+    assert response.status_code == 200
+    body = response.json()
+    trace = body["window_trace"]
+
+    assert [item["window_id"] for item in trace] == [
+        "synthetic_bank",
+        "signal_risk",
+        "cross_bank_fraud",
+        "human_case",
+        "audit_kpi",
+        "finzanjir_ai",
+        "citizen",
+        "layers_16",
+    ]
+    assert all(item["transaction_id"] == body["transaction"]["transaction_id"] for item in trace)
+    assert all(item["data_mode"] == "synthetic" for item in trace)
+    assert next(item for item in trace if item["window_id"] == "cross_bank_fraud")["status"] == "DISABLED"
+    assert next(item for item in trace if item["window_id"] == "human_case")["status"] == "SYNTHETIC_REVIEW_ONLY"
+    assert next(item for item in trace if item["window_id"] == "layers_16")["status"] == "PARTIAL"
+
+
+def test_prototype_run_returns_per_window_status_and_reference_trace():
+    response = client.post(
+        "/api/prototype/run",
+        json={
+            "transaction_id": "TX-API-WINDOW-TRACE",
+            "bank_id": "bank-a",
+            "actor_id": "actor-api-window-trace",
+            "amount": 2500,
+            "occurred_at": "2026-11-12T09:00:00Z",
+            "synthetic": True,
+            **_multi_signal_fields("TX-API-WINDOW-TRACE", "2026-11-12T09:00:00Z"),
+        },
+    )
+    assert response.status_code == 200
+    body = response.json()
+    trace = body["window_trace"]
+
+    assert len(trace) == 8
+    assert all(item["transaction_id"] == body["transaction_id"] for item in trace)
+    assert next(item for item in trace if item["window_id"] == "cross_bank_fraud")["status"] == "DISABLED"
+    assert next(item for item in trace if item["window_id"] == "human_case")["status"] == "SYNTHETIC_REVIEW_ONLY"
+    assert next(item for item in trace if item["window_id"] == "layers_16")["status"] == "PARTIAL"
