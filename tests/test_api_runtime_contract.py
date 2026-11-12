@@ -157,6 +157,13 @@ def test_prototype_api_exposes_invalid_feature_type_as_detector_abstention():
 
     assert response.status_code == 200
     body = response.json()
+    assert body["transaction"] == {
+        "transaction_id": "TX-TYPE-MISMATCH-001",
+        "bank_id": "synthetic-bank",
+        "amount": 2500.0,
+        "occurred_at": "2026-11-12T09:00:00Z",
+        "synthetic": True,
+    }
     detector = body["detector"]
     outcome = next(item for item in detector["detections"] if item["signal_id"] == "SIG-018")
 
