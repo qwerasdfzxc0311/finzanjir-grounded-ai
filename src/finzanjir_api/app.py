@@ -24,7 +24,7 @@ class AIAnswerRequest(BaseModel):
 class PrototypeTransaction(BaseModel):
     transaction_id: str = Field(min_length=1, max_length=128)
     bank_id: str = Field(min_length=1, max_length=128)
-    actor_id: str = Field(min_length=1, max_length=128)
+    actor_id: str = Field(default="", max_length=128)
     amount: float = Field(ge=0)
     occurred_at: str = Field(min_length=1, max_length=64)
     synthetic: bool = False
