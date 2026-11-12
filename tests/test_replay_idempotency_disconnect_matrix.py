@@ -31,16 +31,6 @@ def _payload(transaction_id: str, *, shadow_mode: bool = False) -> dict:
     }
 
 
-def _frames(response):
-    import json
-
-    parsed = []
-    for frame in response.text.strip().split("\\n\\n"):
-        lines = frame.splitlines()
-        if len(lines) >= 2 and lines[0].startswith("event: ") and lines[1].startswith("data: "):
-            parsed.append((lines[0][7:], json.loads(lines[1][6:])))
-    return parsed
-
 
 def test_duplicate_evidence_replay_does_not_inflate_risk_or_evidence_count():
     payload = _payload("TX-REPLAY-EVIDENCE-001")
