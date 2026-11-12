@@ -41,7 +41,11 @@ class SystemFlow:
             isinstance(transaction.get(key), str) and transaction.get(key, "").strip()
             for key in ("device_id", "network_id")
         )
-        if has_cross_bank_keys and not cross_bank_authorized:
+        shadow_only_multi_signal = (
+            transaction.get("signal_events") is not None
+            and transaction.get("shadow_mode", True) is True
+        )
+        if has_cross_bank_keys and not cross_bank_authorized and not shadow_only_multi_signal:
             raise ValueError("authorized cross-bank exchange is required")
 
         if pipeline.signal is None or pipeline.risk is None or pipeline.case is None:
