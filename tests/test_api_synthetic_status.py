@@ -12,6 +12,7 @@ def test_api_synthetic_decision_does_not_action_case():
         json={
             "transaction_id": "TX-API-SYNTHETIC-STATUS-001",
             "bank_id": "bank-a",
+            "actor_id": "actor-api-synth-status",
             "amount": 2500,
             "occurred_at": "2026-11-11T00:00:00Z",
             "synthetic": True,
