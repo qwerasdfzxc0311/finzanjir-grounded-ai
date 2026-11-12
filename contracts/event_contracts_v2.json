@@ -256,9 +256,6 @@
         ],
         "payload": [
           "details"
-        ],
-        "details": [
-          "payload"
         ]
       }
     }
