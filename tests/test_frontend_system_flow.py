@@ -78,10 +78,35 @@ def test_work_windows_are_interactive_and_show_shared_latest_runtime_output():
     assert 'id="activeWindowTitle"' in html
     assert 'id="activeWindowData"' in html
     assert 'element("button", "window-card")' in script
-    assert 'button.addEventListener("click", () => selectWindow(id))' in script
+    assert 'button.addEventListener("click", () => {' in script
+    assert "selectWindow(id);" in script
+    assert 'if (id === "synthetic_bank") runSyntheticScenario();' in script
     assert 'function selectWindow(windowId)' in script
     assert "function windowSummaryLines(windowId)" in script
     assert "lastExecution = body" in script
     assert 'setAttribute("aria-pressed"' in script
     assert '.window-card[aria-pressed="true"]' in styles
     assert "innerHTML" not in script
+
+
+
+def test_synthetic_bank_window_click_starts_a_synthetic_run():
+    script = Path("frontend/app.js").read_text(encoding="utf-8")
+    assert 'if (id === "synthetic_bank") runSyntheticScenario();' in script
+    assert 'if (button.disabled) return;' in script
+    assert 'synthetic: true' in script
+
+
+def test_each_window_exposes_truthful_shared_execution_status():
+    html = Path("frontend/index.html").read_text(encoding="utf-8")
+    script = Path("frontend/app.js").read_text(encoding="utf-8")
+    styles = Path("frontend/styles.css").read_text(encoding="utf-8")
+
+    assert 'id="activeWindowStatus"' in html
+    assert 'element("small", "window-status", windowExecutionStatus(id))' in script
+    assert "function windowExecutionStatus(windowId)" in script
+    assert "function refreshWindowStatuses()" in script
+    assert 'executionStatus = "running"' in script
+    assert 'executionStatus = "success"' in script
+    assert 'executionStatus = "failed"' in script
+    assert '.window-status[data-state="running"]' in styles
