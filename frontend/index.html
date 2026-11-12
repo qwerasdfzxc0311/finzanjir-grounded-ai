@@ -7,6 +7,26 @@
 <section><h2>Bir tizim, alohida oynalar</h2><p class="muted">Har bir oyna mustaqil ko‘rinadi, lekin bir xil tranzaksiya izi va umumiy tizim oqimi bilan bog‘langan.</p><div id="flow" class="flow"></div></section>
 <section><h2>Work windows</h2><div id="windows" class="grid"></div></section>
 <section><h2>Live prototype execution</h2><div id="prototypeResult" class="card"><p class="muted">Runtime demo yuklanmoqda...</p></div></section>
+<section>
+  <h2>Sintetik detector sinovi</h2>
+  <p class="muted">Bu maydon faqat sun’iy feature qiymatlarini tekshiradi. Haqiqiy bank yoki mijoz ma’lumoti kiritmang.</p>
+  <div class="controls">
+    <label for="scenarioSelector">Sinov ssenariysi</label>
+    <select id="scenarioSelector">
+      <option value="multi_signal_high">Ko‘p signal — yuqori ustuvorlik</option>
+      <option value="micro_transaction">Mikro tranzaksiya + mustaqil tasdiq</option>
+      <option value="new_device_benign">Yangi qurilma — benign izoh</option>
+      <option value="language_context">Til o‘zgarishi — faqat kontekst</option>
+    </select>
+    <label class="checkbox-label"><input id="openSyntheticCase" type="checkbox"> Sintetik Case ochilishini ko‘rsatish (rasmiy qaror emas)</label>
+    <button id="runSyntheticScenario" type="button">Sintetik sinovni ishga tushirish</button>
+  </div>
+  <div id="scenarioResult" class="card" aria-live="polite"><p class="muted">Sinov ssenariysini tanlang.</p></div>
+</section>
+<section>
+  <h2>Oxirgi sintetik sinovlar</h2>
+  <div id="runHistory" class="card" aria-live="polite"><p class="muted">Sinovlar tarixi yuklanmoqda...</p></div>
+</section>
 <section><h2>16 Layers</h2><ol id="layers" class="layers"></ol></section>
 <noscript><p>Synthetic data mode</p><p>JavaScript yoqilgan bo‘lsa, oynalar va yagona tizim oqimi ko‘rsatiladi.</p></noscript>
 </main><script src="./app.js"></script>
