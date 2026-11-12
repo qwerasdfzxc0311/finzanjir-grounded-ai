@@ -44,6 +44,8 @@ def test_prototype_run_can_detect_and_score_multiple_synthetic_features():
     assert response.status_code == 200
     body = response.json()
     assert body["detector"]["detected_count"] == 5
+    assert len(body["detector"]["detections"]) == 40
+    assert all(item["reason_code"] and item["status"] for item in body["detector"]["detections"])
     assert body["pipeline"]["risk"]["score"] == 80
     assert body["pipeline"]["risk"]["independent_families"] == 5
     assert body["pipeline"]["risk"]["case_eligible"] is True
