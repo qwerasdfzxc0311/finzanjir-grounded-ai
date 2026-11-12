@@ -423,3 +423,33 @@ def test_stream_storage_failure_keeps_completed_windows_but_returns_no_success_r
     assert all(item["status"] not in {"FAILED", "NOT_RUN"} for item in stages)
     assert errors == [{"status_code": 503, "detail": "Prototype run could not be safely saved."}]
     assert results == []
+
+
+
+def test_stream_endpoint_marks_unauthorized_cross_bank_stage_failed_and_stops_later_windows():
+    response = client.post(
+        "/api/prototype/run/stream",
+        json={
+            "transaction_id": "TX-API-STREAM-CROSS-FAIL-001",
+            "bank_id": "bank-synthetic-a",
+            "actor_id": "actor-stream-cross-fail",
+            "amount": 2500,
+            "occurred_at": "2026-11-12T09:00:00Z",
+            "synthetic": True,
+            "device_id": "synthetic-device-1",
+            "network_id": "synthetic-network-1",
+            "cross_bank_authorized": False,
+            **_multi_signal_fields("TX-API-STREAM-CROSS-FAIL-001", "2026-11-12T09:00:00Z"),
+        },
+    )
+
+    frames = _parse_sse_frames(response.text)
+    stages = [data for name, data in frames if name == "stage"]
+    errors = [data for name, data in frames if name == "error"]
+    results = [data for name, data in frames if name == "result"]
+
+    assert stages[-6]["window_id"] == "cross_bank_fraud"
+    assert stages[-6]["status"] == "FAILED"
+    assert [item["status"] for item in stages[-5:]] == ["NOT_RUN"] * 5
+    assert errors == [{"status_code": 403, "detail": "authorized cross-bank exchange is required"}]
+    assert results == []
