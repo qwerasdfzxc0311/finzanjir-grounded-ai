@@ -4,7 +4,7 @@ import math
 from collections import defaultdict
 from typing import Any
 
-from .registry import FAMILY_CAPS, SIGNAL_REGISTRY
+from .registry import FAMILY_CAPS, REGISTRY_VERSION, SIGNAL_REGISTRY
 
 
 def _unit_interval(value: Any, field: str) -> float:
@@ -133,5 +133,6 @@ def evaluate_signal_set(
         "contributions": contributions,
         "deduplicated_evidence_ids": deduplicated,
         "engine_version": "multi-signal-shadow-v1",
+        "registry_version": REGISTRY_VERSION,
         "score_semantics": "priority_score_not_probability_or_guilt",
     }
