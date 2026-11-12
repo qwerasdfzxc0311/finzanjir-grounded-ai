@@ -53,6 +53,7 @@ class SystemFlow:
                 "pipeline": pipeline,
                 "case": None,
                 "decision": None,
+                "bank_status": None,
                 "cross_bank": CrossBankMatcher().match(
                     [],
                     scope="cross_bank",
@@ -138,6 +139,7 @@ class SystemFlow:
             "pipeline": pipeline,
             "case": case,
             "decision": decision,
+            "bank_status": decision["bank_status"],
             "cross_bank": cross_bank,
             "audit": (decision["audit_event"],),
             "ai": ai,
