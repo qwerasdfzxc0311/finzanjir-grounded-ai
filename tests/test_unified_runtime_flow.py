@@ -21,6 +21,7 @@ def test_system_flow_executes_one_transaction_through_all_runtime_stages():
     transaction = {
         "transaction_id": "TX-FLOW-001",
         "bank_id": "bank-a",
+        "actor_id": "actor-flow-001",
         "amount": 2500,
         "occurred_at": "2026-11-11T00:00:00Z",
         "synthetic": True,
@@ -47,6 +48,7 @@ def test_system_flow_keeps_cross_bank_authorization_explicit():
     transaction = {
         "transaction_id": "TX-FLOW-002",
         "bank_id": "bank-a",
+        "actor_id": "actor-flow-002",
         "amount": 2500,
         "occurred_at": "2026-11-11T00:00:00Z",
         "synthetic": True,
