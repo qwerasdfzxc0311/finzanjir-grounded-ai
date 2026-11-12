@@ -387,3 +387,35 @@ def test_every_signal_zero_recency_factor_contributes_zero_priority(rule):
     assert pipeline.risk["score"] == 0
     assert pipeline.risk["case_eligible"] is False
     assert pipeline.case is None
+
+
+
+@pytest.mark.parametrize(
+    "rule,benign_condition",
+    [
+        (rule, condition)
+        for rule in CONTRACT["detectors"]
+        for condition in rule["benign_if"]
+    ],
+    ids=[
+        f"{rule['signal_id']}-{condition['field']}"
+        for rule in CONTRACT["detectors"]
+        for condition in rule["benign_if"]
+    ],
+)
+def test_all_benign_counterevidence_requires_the_declared_value_type(rule, benign_condition):
+    features = _fixture(rule)
+    field = benign_condition["field"]
+    expected = benign_condition["value"]
+    assert isinstance(expected, bool)
+    features[field] = str(expected).lower()
+
+    result = SyntheticSignalDetector().evaluate(
+        scenario_id=f"wrong-benign-type-{rule['signal_id']}-{field}",
+        observed_at="2026-11-12T09:00:00Z",
+        features=features,
+    )
+    outcome = next(item for item in result["detections"] if item["signal_id"] == rule["signal_id"])
+
+    assert outcome["status"] == "DETECTED"
+    assert outcome["reason_code"] != "benign_counter_evidence"
