@@ -165,3 +165,12 @@ def test_frontend_uses_server_sent_events_for_real_window_progress():
     assert "liveWindowTrace" in script
     assert 'trace.status === "RUNNING"' in script
     assert 'trace.status === "PENDING"' in script
+
+
+
+def test_frontend_preserves_backend_failed_and_not_run_states_after_stream_error():
+    script = Path("frontend/app.js").read_text(encoding="utf-8")
+
+    assert 'executionStatus === "failed" && liveWindowTrace.length' in script
+    assert 'trace?.status === "FAILED"' in script
+    assert 'trace?.status === "NOT_RUN"' in script
