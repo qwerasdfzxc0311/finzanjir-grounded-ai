@@ -118,7 +118,9 @@
         "threshold_met",
         "case_eligible",
         "data_mode",
-        "shadow_mode"
+        "shadow_mode",
+        "score_scale",
+        "threshold_scale"
       ],
       "optional": [
         "signal_id",
@@ -133,7 +135,8 @@
       "constraints": [
         "score is a 0..100 prioritization score, not probability or guilt",
         "Case eligibility requires threshold plus independent evidence policy",
-        "shadow_mode=true creates no Case or bank action"
+        "shadow_mode=true creates no Case or bank action",
+        "score_scale and threshold_scale must declare legacy_0_1 or priority_0_100; values from different scales are not comparable"
       ]
     },
     "Threshold": {
