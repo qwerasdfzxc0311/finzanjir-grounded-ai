@@ -23,9 +23,12 @@ class CaseManager:
         threshold_id: str,
         transaction_id: str = "derived-from-case",
         escalation_met: bool,
+        data_mode: str = "synthetic",
     ) -> dict[str, Any]:
         if not escalation_met:
             raise ValueError("Case cannot open when escalation threshold is not met")
+        if data_mode not in {"synthetic", "real", "unknown"}:
+            raise ValueError("data_mode must be synthetic, real, or unknown")
         if case_id in self._cases:
             raise ValueError(f"Case already exists: {case_id}")
         if not signal_ids or any(not isinstance(value, str) or not value.strip() for value in signal_ids):
@@ -39,6 +42,7 @@ class CaseManager:
             "risk_id": risk_id,
             "threshold_id": threshold_id,
             "transaction_id": transaction_id,
+            "data_mode": data_mode,
             "status": "OPEN",
             "opened_at": created_at,
             "created_at": created_at,
@@ -120,6 +124,7 @@ class CaseManager:
             "decision_origin": decision_origin.strip(),
             "actor_type": actor_type.strip(),
             "is_authoritative": is_authoritative,
+            "data_mode": case["data_mode"],
         }
         if is_authoritative:
             case["status"] = "ACTIONED" if decision == "APPROVE_ACTION" else "DISMISSED"
@@ -135,6 +140,7 @@ class CaseManager:
                 "transaction_id": case["transaction_id"],
                 "status": "REVIEW_REQUIRED" if decision == "APPROVE_ACTION" else "MONITORING",
                 "updated_at": decided_at,
+                "data_mode": case["data_mode"],
             }
             citizen_status = {
                 "id": f"citizen-status-{case_id}",
@@ -149,6 +155,7 @@ class CaseManager:
                     else "Hodisa bo‘yicha tekshiruv yakunlandi"
                 ),
                 "updated_at": decided_at,
+                "data_mode": case["data_mode"],
             }
 
         change = {
@@ -173,7 +180,7 @@ class CaseManager:
             "correlation_id": case["transaction_id"],
             "causation_id": None,
             "payload": {"case_id": case_id, **change},
-            "data_mode": "synthetic" if decision_origin == "synthetic_demo" else "unknown",
+            "data_mode": case["data_mode"] if decision_origin == "synthetic_demo" else "unknown",
             "schema_version": "event-envelope-v2",
             "case_id": case_id,
             "change": change,
