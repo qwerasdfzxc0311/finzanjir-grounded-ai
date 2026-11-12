@@ -22,11 +22,17 @@ class CaseManager:
         risk_id: str,
         threshold_id: str,
         transaction_id: str = "derived-from-case",
+        bank_id: str = "synthetic-demo",
+        citizen_id: str = "synthetic-subject",
         escalation_met: bool,
         data_mode: str = "synthetic",
     ) -> dict[str, Any]:
         if not escalation_met:
             raise ValueError("Case cannot open when escalation threshold is not met")
+        if not isinstance(bank_id, str) or not bank_id.strip():
+            raise ValueError("bank_id must be a non-empty string")
+        if not isinstance(citizen_id, str) or not citizen_id.strip():
+            raise ValueError("citizen_id must be a non-empty string")
         if data_mode not in {"synthetic", "real", "unknown"}:
             raise ValueError("data_mode must be synthetic, real, or unknown")
         if case_id in self._cases:
@@ -42,6 +48,8 @@ class CaseManager:
             "risk_id": risk_id,
             "threshold_id": threshold_id,
             "transaction_id": transaction_id,
+            "bank_id": bank_id.strip(),
+            "citizen_id": citizen_id.strip(),
             "data_mode": data_mode,
             "status": "OPEN",
             "opened_at": created_at,
@@ -135,7 +143,7 @@ class CaseManager:
             bank_status = {
                 "id": f"bank-status-{case_id}",
                 "status_id": f"bank-status-{case_id}",
-                "bank_id": "synthetic-demo",
+                "bank_id": case["bank_id"],
                 "case_id": case_id,
                 "transaction_id": case["transaction_id"],
                 "status": "REVIEW_REQUIRED" if decision == "APPROVE_ACTION" else "MONITORING",
@@ -145,8 +153,8 @@ class CaseManager:
             citizen_status = {
                 "id": f"citizen-status-{case_id}",
                 "status_id": f"citizen-status-{case_id}",
-                "actor_id": "authorized-subject",
-                "citizen_id": "authorized-subject",
+                "actor_id": case["citizen_id"],
+                "citizen_id": case["citizen_id"],
                 "case_id": case_id,
                 "status": "UNDER_REVIEW" if decision == "APPROVE_ACTION" else "RESOLVED",
                 "message": (
