@@ -18,8 +18,8 @@ class SignalDefinition:
 
 
 # Legacy SIG-001..015 weights are initial engineering defaults, not calibrated
-# probabilities. SIG-016..035 are candidate additions awaiting expert/legal
-# approval and shadow-mode evaluation.
+# probabilities. SIG-016..035 are core candidates; SIG-036..040 are small-signal
+# candidates. All candidates await expert/legal approval and shadow-mode evaluation.
 _DEFINITIONS = (
     SignalDefinition("SIG-001", "Unusual transaction amount", "TRANSACTION_AMOUNT", 10),
     SignalDefinition("SIG-002", "High transaction velocity", "TRANSACTION_VELOCITY", 15),
