@@ -94,3 +94,38 @@ def test_all_single_signal_scenarios_are_blocked_from_opening_a_case():
         (ROOT / "contracts" / "signal_synthetic_scenarios_v1.json").read_text(encoding="utf-8")
     )
     assert all(item["expected_case_eligible"] is False for item in catalog["scenarios"])
+
+
+def test_each_of_40_false_conditions_produces_no_scored_signal():
+    catalog = json.loads(
+        (ROOT / "contracts" / "signal_synthetic_scenarios_v1.json").read_text(encoding="utf-8")
+    )
+
+    for scenario in catalog["scenarios"]:
+        observation = _observation(
+            scenario,
+            scenario["signal_id"],
+            f"false-evidence-{scenario['signal_id']}",
+        )
+        observation["condition_met"] = False
+        result = process_transaction(
+            {
+                "transaction_id": f"TX-FALSE-{scenario['scenario_id']}",
+                "bank_id": "bank-synthetic",
+                "actor_id": "actor-synthetic",
+                "amount": 2500,
+                "occurred_at": "2026-11-12T09:00:00Z",
+                "synthetic": True,
+                "signal_observations": [observation],
+                "shadow_mode": True,
+            },
+            signal_amount_threshold=1000,
+            escalation_threshold=0.75,
+        )
+
+        assert result.signals == ()
+        assert result.evidences == ()
+        assert result.risk["score"] == 0
+        assert result.risk["evidence_count"] == 0
+        assert result.risk["case_eligible"] is False
+        assert result.case is None
