@@ -25,11 +25,11 @@ def test_multi_signal_flow_connects_case_human_audit_ai_citizen_and_kpi():
 
     assert result["pipeline"].risk["score"] == 80
     assert result["case"] is not None
-    assert len(result["case"]["signal_ids"]) == 5
+    assert len(result["case"]["source_signal_ids"]) == 5
     assert result["decision"]["human_decision"]["is_authoritative"] is False
     assert result["bank_status"] is None
     assert result["citizen_status"]["status"] == "SYNTHETIC_REVIEW_ONLY"
-    assert result["audit"][0]["event_type"] == "HUMAN_DECISION_RECORDED"
+    assert result["audit"][0]["event_type"] == "HumanDecisionApplied"
     assert result["kpi"]["signal_to_case_rate"] == 0.2
     assert all(signal["id"] in runtime_refs for signal in result["pipeline"].signals)
     assert all(evidence["id"] in runtime_refs for evidence in result["pipeline"].evidences)
