@@ -144,7 +144,7 @@ def test_legacy_and_multi_signal_pipeline_objects_match_v2_required_fields():
         },
     ]
 
-    for transaction in transactions:
+    for index, transaction in enumerate(transactions):
         result = process_transaction(
             transaction,
             signal_amount_threshold=1000,
@@ -155,4 +155,5 @@ def test_legacy_and_multi_signal_pipeline_objects_match_v2_required_fields():
         for evidence in result.evidences:
             assert set(schemas["Evidence"]["required"]).issubset(evidence)
         assert set(schemas["Risk"]["required"]).issubset(result.risk)
+        assert result.risk["score_scale"] == ("legacy_0_1" if index == 0 else "priority_0_100")
         assert set(schemas["Case"]["required"]).issubset(result.case)
