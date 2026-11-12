@@ -32,12 +32,15 @@ class CaseManager:
             raise ValueError("Case requires at least one signal reference")
         created_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         case = {
+            "id": case_id,
             "case_id": case_id,
+            "signal_ids": list(signal_ids),
             "source_signal_ids": list(signal_ids),
             "risk_id": risk_id,
             "threshold_id": threshold_id,
             "transaction_id": transaction_id,
             "status": "OPEN",
+            "opened_at": created_at,
             "created_at": created_at,
         }
         self._cases[case_id] = case
@@ -107,6 +110,7 @@ class CaseManager:
 
         decided_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         human_decision = {
+            "id": f"decision-{case_id}",
             "decision_id": f"decision-{case_id}",
             "case_id": case_id,
             "actor_id": actor_id.strip(),
@@ -124,6 +128,7 @@ class CaseManager:
         citizen_status = None
         if is_authoritative:
             bank_status = {
+                "id": f"bank-status-{case_id}",
                 "status_id": f"bank-status-{case_id}",
                 "bank_id": "synthetic-demo",
                 "case_id": case_id,
@@ -132,8 +137,10 @@ class CaseManager:
                 "updated_at": decided_at,
             }
             citizen_status = {
+                "id": f"citizen-status-{case_id}",
                 "status_id": f"citizen-status-{case_id}",
                 "actor_id": "authorized-subject",
+                "citizen_id": "authorized-subject",
                 "case_id": case_id,
                 "status": "UNDER_REVIEW" if decision == "APPROVE_ACTION" else "RESOLVED",
                 "message": (
@@ -144,20 +151,32 @@ class CaseManager:
                 "updated_at": decided_at,
             }
 
+        change = {
+            "decision": decision,
+            "case_status": case["status"],
+            "decision_origin": decision_origin.strip(),
+            "actor_type": actor_type.strip(),
+            "is_authoritative": is_authoritative,
+        }
+        audit_id = f"audit-{case_id}"
         audit_event = {
-            "audit_id": f"audit-{case_id}",
+            "id": audit_id,
+            "event_id": audit_id,
+            "audit_id": audit_id,
             "event_type": "HumanDecisionApplied",
             "actor_id": actor_id.strip(),
             "occurred_at": decided_at,
+            "source": "case_manager",
+            "scope": "bank_internal",
             "object_type": "HumanDecision",
             "object_id": human_decision["decision_id"],
-            "change": {
-                "decision": decision,
-                "case_status": case["status"],
-                "decision_origin": decision_origin.strip(),
-                "actor_type": actor_type.strip(),
-                "is_authoritative": is_authoritative,
-            },
+            "correlation_id": case["transaction_id"],
+            "causation_id": None,
+            "payload": {"case_id": case_id, **change},
+            "data_mode": "synthetic" if decision_origin == "synthetic_demo" else "unknown",
+            "schema_version": "event-envelope-v2",
+            "case_id": case_id,
+            "change": change,
         }
         self._human_decisions[human_decision["decision_id"]] = dict(human_decision)
         if bank_status is not None and citizen_status is not None:
