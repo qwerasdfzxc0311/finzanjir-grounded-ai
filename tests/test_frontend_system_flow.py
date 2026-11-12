@@ -152,7 +152,7 @@ def test_frontend_renders_backend_execution_trace_for_each_window():
     assert "Bosqich #" in script
     assert "Kirish refs:" in script
     assert "Chiqish refs:" in script
-    assert "bosqichlar javob kelgach yangilanadi" in script
+    assert 'fetch("/api/prototype/run/stream"' in script
 
 
 
