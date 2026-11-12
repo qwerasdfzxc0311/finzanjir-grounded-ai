@@ -254,3 +254,33 @@ def test_same_signal_duplicate_source_event_tie_break_is_order_independent():
     assert forward["contributions"] == reverse["contributions"]
     assert forward["contributions"][0]["evidence_id"] == "ev-a"
     assert forward["contributions"][0]["source"] == "source-a"
+
+
+
+def test_zero_recency_factor_contributes_no_priority_points():
+    result = evaluate_signal_set([
+        _event("SIG-006", "ev-stale-factor-zero", recency_factor=0.0),
+    ])
+
+    assert result["score"] == 0
+    assert result["evidence_count"] == 1
+    assert result["contributions"][0]["raw_contribution"] == 0
+    assert result["case_eligible"] is False
+    assert result["case_block_reason"] == "threshold_not_met"
+
+
+def test_scoring_is_independent_of_arrival_order_for_nonchronological_events():
+    events = [
+        _event("SIG-018", "ev-later", observed_at="2026-11-12T11:00:00Z"),
+        _event("SIG-006", "ev-earlier", observed_at="2026-11-12T08:00:00Z"),
+        _event("SIG-012", "ev-middle", observed_at="2026-11-12T09:30:00Z"),
+        _event("SIG-004", "ev-earliest", observed_at="2026-11-12T07:00:00Z"),
+        _event("SIG-002", "ev-latest", observed_at="2026-11-12T12:00:00Z"),
+    ]
+
+    forward = evaluate_signal_set(events)
+    reverse = evaluate_signal_set(list(reversed(events)))
+
+    assert forward == reverse
+    assert forward["score"] == 80
+    assert forward["evidence_count"] == 5
