@@ -16,6 +16,7 @@ from finzanjir_ai.prototype.flow import build_system_flow
 from finzanjir_ai.orchestration.engine import FINZANJIRAI
 from finzanjir_ai.risk.shadow import evaluate_shadow_batch
 from finzanjir_ai.risk.scenarios import build_synthetic_case_signal_events
+from finzanjir_ai.risk.detectors import synthetic_signal_detector
 from finzanjir_ai.storage.prototype_history import PrototypeRunStore, default_database_path
 import sqlite3
 
@@ -41,7 +42,7 @@ class ShadowEvaluationRequest(BaseModel):
 class PrototypeTransaction(BaseModel):
     transaction_id: str = Field(min_length=1, max_length=128)
     bank_id: str = Field(min_length=1, max_length=128)
-    actor_id: str = Field(default="", max_length=128)
+    actor_id: str = Field(default="synthetic-demo-actor", max_length=128)
     amount: float = Field(ge=0)
     occurred_at: str = Field(min_length=1, max_length=64)
     synthetic: StrictBool = False
@@ -51,6 +52,10 @@ class PrototypeTransaction(BaseModel):
     signal_events: list[dict[str, Any]] | None = Field(default=None, max_length=100)
     signal_observations: list[dict[str, Any]] | None = Field(default=None, max_length=100)
     shadow_mode: StrictBool = True
+    signal_features: dict[str, Any] | None = None
+    detector_scenario_id: str = Field(default="synthetic-prototype", min_length=1, max_length=128)
+    detector_evidence_quality: float = Field(default=1.0, ge=0, le=1)
+    detector_recency_factor: float = Field(default=1.0, ge=0, le=1)
 
 
 def _parse_allowed_origins(raw: str | None) -> list[str]:
@@ -175,6 +180,19 @@ def shadow_evaluate(request: ShadowEvaluationRequest) -> dict[str, Any]:
     )
 
 
+@app.get("/api/prototype/detectors")
+def prototype_detectors() -> dict[str, Any]:
+    detector = synthetic_signal_detector()
+    return {
+        "data_mode": "synthetic",
+        "scope": "bank_internal",
+        "status": "synthetic_test_only",
+        "cross_bank_data_enabled": False,
+        "count": len(detector.catalogue()),
+        "detectors": detector.catalogue(),
+    }
+
+
 @app.get("/api/prototype/demo")
 def prototype_demo() -> dict[str, Any]:
     """Execute a deterministic synthetic scenario for the prototype presentation."""
@@ -223,6 +241,22 @@ def run_prototype(transaction: PrototypeTransaction) -> dict[str, Any]:
     flow = build_system_flow()
     try:
         payload = transaction.model_dump()
+        detector_result = None
+        if payload.get("signal_features") is not None:
+            if payload.get("signal_events") is not None or payload.get("signal_observations") is not None:
+                raise ValueError("provide signal_features or precomputed signal events/observations, not both")
+            detector_result = synthetic_signal_detector().evaluate(
+                scenario_id=payload["detector_scenario_id"],
+                observed_at=payload["occurred_at"],
+                features=payload["signal_features"],
+                evidence_quality=payload["detector_evidence_quality"],
+                recency_factor=payload["detector_recency_factor"],
+            )
+            payload["signal_observations"] = detector_result["signal_observations"]
+        payload.pop("signal_features", None)
+        payload.pop("detector_scenario_id", None)
+        payload.pop("detector_evidence_quality", None)
+        payload.pop("detector_recency_factor", None)
         # Authorization is a trusted server-side decision, never a client claim.
         # The public prototype endpoint therefore fails closed for cross-bank access.
         payload["cross_bank_authorized"] = False
@@ -256,6 +290,8 @@ def run_prototype(transaction: PrototypeTransaction) -> dict[str, Any]:
         raise HTTPException(status_code=503, detail="Prototype run could not be safely saved.") from exc
     response = jsonable_encoder(result)
     response["prototype_run_id"] = saved_run["run_id"]
+    if detector_result is not None:
+        response["detector"] = detector_result
     return response
 
 

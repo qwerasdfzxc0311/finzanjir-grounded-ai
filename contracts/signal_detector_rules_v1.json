@@ -1,0 +1,1591 @@
+{
+  "schema_version": "1.0",
+  "contract_id": "signal-detector-rules-v1",
+  "status": "synthetic_candidate_rules_not_production_approved",
+  "data_mode": "synthetic_only",
+  "scope": "bank_internal_only",
+  "rule_count": 40,
+  "threshold_semantics": "engineering_test_thresholds_not_calibrated",
+  "cross_bank_data_enabled": false,
+  "detectors": [
+    {
+      "signal_id": "SIG-001",
+      "name": "Unusual transaction amount",
+      "rule_version": "1.0.0-candidate",
+      "detector_version": "synthetic-feature-engine-v1",
+      "status": "synthetic_test_only",
+      "scope": "bank_internal",
+      "data_mode": "synthetic",
+      "source_owner": "bank_side_source_system_only",
+      "cross_bank_data_enabled": false,
+      "legal_gate": "unverified_bank_internal_lawful_purpose_required",
+      "required_features": [
+        "amount_to_customer_p95_ratio",
+        "customer_baseline_sample_count"
+      ],
+      "all_of": [
+        {
+          "field": "amount_to_customer_p95_ratio",
+          "op": "gte",
+          "value": 3
+        },
+        {
+          "field": "customer_baseline_sample_count",
+          "op": "gte",
+          "value": 20
+        }
+      ],
+      "any_of": [],
+      "benign_if": [
+        {
+          "field": "baseline_explained",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "missing_data_policy": "insufficient_data_not_detected",
+      "counter_evidence_policy": "suppress_detection_and_record_reason",
+      "note": "Yirik qonuniy xarid, ish haqi yoki biznes tushumi baseline bilan izohlanishi mumkin."
+    },
+    {
+      "signal_id": "SIG-002",
+      "name": "High transaction velocity",
+      "rule_version": "1.0.0-candidate",
+      "detector_version": "synthetic-feature-engine-v1",
+      "status": "synthetic_test_only",
+      "scope": "bank_internal",
+      "data_mode": "synthetic",
+      "source_owner": "bank_side_source_system_only",
+      "cross_bank_data_enabled": false,
+      "legal_gate": "unverified_bank_internal_lawful_purpose_required",
+      "required_features": [
+        "transaction_count_10m"
+      ],
+      "all_of": [
+        {
+          "field": "transaction_count_10m",
+          "op": "gte",
+          "value": 5
+        }
+      ],
+      "any_of": [],
+      "benign_if": [
+        {
+          "field": "known_merchant_batch_activity",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "missing_data_policy": "insufficient_data_not_detected",
+      "counter_evidence_policy": "suppress_detection_and_record_reason",
+      "note": "Faol savdogar va batch to‘lovlar benign bo‘lishi mumkin.",
+      "optional_features": [
+        "failed_or_pending_attempt_count_10m"
+      ]
+    },
+    {
+      "signal_id": "SIG-003",
+      "name": "Rapid pass-through flow",
+      "rule_version": "1.0.0-candidate",
+      "detector_version": "synthetic-feature-engine-v1",
+      "status": "synthetic_test_only",
+      "scope": "bank_internal",
+      "data_mode": "synthetic",
+      "source_owner": "bank_side_source_system_only",
+      "cross_bank_data_enabled": false,
+      "legal_gate": "unverified_bank_internal_lawful_purpose_required",
+      "required_features": [
+        "inbound_outbound_ratio",
+        "inbound_to_outbound_seconds",
+        "distinct_flow_hops"
+      ],
+      "all_of": [
+        {
+          "field": "inbound_outbound_ratio",
+          "op": "gte",
+          "value": 0.8
+        },
+        {
+          "field": "inbound_to_outbound_seconds",
+          "op": "lte",
+          "value": 1800
+        },
+        {
+          "field": "distinct_flow_hops",
+          "op": "gte",
+          "value": 2
+        }
+      ],
+      "any_of": [],
+      "benign_if": [
+        {
+          "field": "known_business_settlement",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "missing_data_policy": "insufficient_data_not_detected",
+      "counter_evidence_policy": "suppress_detection_and_record_reason",
+      "note": "Biznes settlement va oila ichidagi pul aylanishi tekshirilishi kerak."
+    },
+    {
+      "signal_id": "SIG-004",
+      "name": "New beneficiary",
+      "rule_version": "1.0.0-candidate",
+      "detector_version": "synthetic-feature-engine-v1",
+      "status": "synthetic_test_only",
+      "scope": "bank_internal",
+      "data_mode": "synthetic",
+      "source_owner": "bank_side_source_system_only",
+      "cross_bank_data_enabled": false,
+      "legal_gate": "unverified_bank_internal_lawful_purpose_required",
+      "required_features": [
+        "beneficiary_age_days",
+        "beneficiary_prior_transaction_count"
+      ],
+      "all_of": [
+        {
+          "field": "beneficiary_age_days",
+          "op": "lte",
+          "value": 7
+        },
+        {
+          "field": "beneficiary_prior_transaction_count",
+          "op": "eq",
+          "value": 0
+        }
+      ],
+      "any_of": [],
+      "benign_if": [
+        {
+          "field": "trusted_new_beneficiary",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "missing_data_policy": "insufficient_data_not_detected",
+      "counter_evidence_policy": "suppress_detection_and_record_reason",
+      "note": "Yangi qabul qiluvchi yakka holda firibgarlik belgisi emas."
+    },
+    {
+      "signal_id": "SIG-005",
+      "name": "Structuring / limit avoidance",
+      "rule_version": "1.0.0-candidate",
+      "detector_version": "synthetic-feature-engine-v1",
+      "status": "synthetic_test_only",
+      "scope": "bank_internal",
+      "data_mode": "synthetic",
+      "source_owner": "bank_side_source_system_only",
+      "cross_bank_data_enabled": false,
+      "legal_gate": "unverified_bank_internal_lawful_purpose_required",
+      "required_features": [
+        "related_transfer_count_60m",
+        "below_limit_ratio",
+        "cumulative_to_limit_ratio"
+      ],
+      "all_of": [
+        {
+          "field": "related_transfer_count_60m",
+          "op": "gte",
+          "value": 3
+        },
+        {
+          "field": "below_limit_ratio",
+          "op": "gte",
+          "value": 0.8
+        },
+        {
+          "field": "cumulative_to_limit_ratio",
+          "op": "gte",
+          "value": 0.9
+        }
+      ],
+      "any_of": [],
+      "benign_if": [
+        {
+          "field": "known_scheduled_or_payroll_batch",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "missing_data_policy": "insufficient_data_not_detected",
+      "counter_evidence_policy": "suppress_detection_and_record_reason",
+      "note": "Bo‘lib to‘lash, payroll va qonuniy limitlar sabab bo‘lishi mumkin."
+    },
+    {
+      "signal_id": "SIG-006",
+      "name": "New device",
+      "rule_version": "1.0.0-candidate",
+      "detector_version": "synthetic-feature-engine-v1",
+      "status": "synthetic_test_only",
+      "scope": "bank_internal",
+      "data_mode": "synthetic",
+      "source_owner": "bank_side_source_system_only",
+      "cross_bank_data_enabled": false,
+      "legal_gate": "unverified_bank_internal_lawful_purpose_required",
+      "required_features": [
+        "device_age_hours",
+        "trusted_device"
+      ],
+      "all_of": [
+        {
+          "field": "device_age_hours",
+          "op": "lte",
+          "value": 24
+        },
+        {
+          "field": "trusted_device",
+          "op": "eq",
+          "value": false
+        }
+      ],
+      "any_of": [],
+      "benign_if": [
+        {
+          "field": "verified_device_replacement",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "missing_data_policy": "insufficient_data_not_detected",
+      "counter_evidence_policy": "suppress_detection_and_record_reason",
+      "note": "Yangi telefon, app reinstall yoki telefon ta’miri benign izoh bo‘lishi mumkin."
+    },
+    {
+      "signal_id": "SIG-007",
+      "name": "Geographic anomaly",
+      "rule_version": "1.0.0-candidate",
+      "detector_version": "synthetic-feature-engine-v1",
+      "status": "synthetic_test_only",
+      "scope": "bank_internal",
+      "data_mode": "synthetic",
+      "source_owner": "bank_side_source_system_only",
+      "cross_bank_data_enabled": false,
+      "legal_gate": "unverified_bank_internal_lawful_purpose_required",
+      "required_features": [
+        "geo_distance_km",
+        "geo_elapsed_seconds",
+        "geo_accuracy_meters"
+      ],
+      "all_of": [
+        {
+          "field": "geo_distance_km",
+          "op": "gte",
+          "value": 500
+        },
+        {
+          "field": "geo_elapsed_seconds",
+          "op": "lte",
+          "value": 3600
+        },
+        {
+          "field": "geo_accuracy_meters",
+          "op": "lte",
+          "value": 1000
+        }
+      ],
+      "any_of": [],
+      "benign_if": [
+        {
+          "field": "verified_travel_or_roaming",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "missing_data_policy": "insufficient_data_not_detected",
+      "counter_evidence_policy": "suppress_detection_and_record_reason",
+      "note": "VPN, roaming, safar va geo aniqligi hisobga olinadi."
+    },
+    {
+      "signal_id": "SIG-008",
+      "name": "Multiple cards on one device",
+      "rule_version": "1.0.0-candidate",
+      "detector_version": "synthetic-feature-engine-v1",
+      "status": "synthetic_test_only",
+      "scope": "bank_internal",
+      "data_mode": "synthetic",
+      "source_owner": "bank_side_source_system_only",
+      "cross_bank_data_enabled": false,
+      "legal_gate": "unverified_bank_internal_lawful_purpose_required",
+      "required_features": [
+        "instrument_count_per_device_24h"
+      ],
+      "all_of": [
+        {
+          "field": "instrument_count_per_device_24h",
+          "op": "gte",
+          "value": 3
+        }
+      ],
+      "any_of": [],
+      "benign_if": [
+        {
+          "field": "shared_household_or_work_device",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "missing_data_policy": "insufficient_data_not_detected",
+      "counter_evidence_policy": "suppress_detection_and_record_reason",
+      "note": "Oilaviy yoki ish qurilmasi bir nechta instrumentga xizmat qilishi mumkin."
+    },
+    {
+      "signal_id": "SIG-009",
+      "name": "VPN / proxy / Tor context",
+      "rule_version": "1.0.0-candidate",
+      "detector_version": "synthetic-feature-engine-v1",
+      "status": "synthetic_test_only",
+      "scope": "bank_internal",
+      "data_mode": "synthetic",
+      "source_owner": "bank_side_source_system_only",
+      "cross_bank_data_enabled": false,
+      "legal_gate": "unverified_bank_internal_lawful_purpose_required",
+      "required_features": [
+        "network_reputation_category",
+        "network_reputation_confidence"
+      ],
+      "all_of": [
+        {
+          "field": "network_reputation_category",
+          "op": "in",
+          "value": [
+            "vpn",
+            "proxy",
+            "tor"
+          ]
+        },
+        {
+          "field": "network_reputation_confidence",
+          "op": "gte",
+          "value": 0.8
+        }
+      ],
+      "any_of": [],
+      "benign_if": [
+        {
+          "field": "known_corporate_or_privacy_network",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "missing_data_policy": "insufficient_data_not_detected",
+      "counter_evidence_policy": "suppress_detection_and_record_reason",
+      "note": "VPN va proxy ishlatish qonuniy bo‘lishi mumkin; past vaznli kontekst."
+    },
+    {
+      "signal_id": "SIG-010",
+      "name": "Unusual activity time",
+      "rule_version": "1.0.0-candidate",
+      "detector_version": "synthetic-feature-engine-v1",
+      "status": "synthetic_test_only",
+      "scope": "bank_internal",
+      "data_mode": "synthetic",
+      "source_owner": "bank_side_source_system_only",
+      "cross_bank_data_enabled": false,
+      "legal_gate": "unverified_bank_internal_lawful_purpose_required",
+      "required_features": [
+        "activity_time_probability",
+        "customer_baseline_sample_count"
+      ],
+      "all_of": [
+        {
+          "field": "activity_time_probability",
+          "op": "lte",
+          "value": 0.01
+        },
+        {
+          "field": "customer_baseline_sample_count",
+          "op": "gte",
+          "value": 20
+        }
+      ],
+      "any_of": [],
+      "benign_if": [
+        {
+          "field": "known_shift_work_or_time_zone_change",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "missing_data_policy": "insufficient_data_not_detected",
+      "counter_evidence_policy": "suppress_detection_and_record_reason",
+      "note": "Tungi smena va safar vaqt profilini o‘zgartiradi."
+    },
+    {
+      "signal_id": "SIG-011",
+      "name": "Rushed session",
+      "rule_version": "1.0.0-candidate",
+      "detector_version": "synthetic-feature-engine-v1",
+      "status": "synthetic_test_only",
+      "scope": "bank_internal",
+      "data_mode": "synthetic",
+      "source_owner": "bank_side_source_system_only",
+      "cross_bank_data_enabled": false,
+      "legal_gate": "unverified_bank_internal_lawful_purpose_required",
+      "required_features": [
+        "session_duration_seconds",
+        "high_risk_action_count"
+      ],
+      "all_of": [
+        {
+          "field": "session_duration_seconds",
+          "op": "lte",
+          "value": 30
+        },
+        {
+          "field": "high_risk_action_count",
+          "op": "gte",
+          "value": 2
+        }
+      ],
+      "any_of": [],
+      "benign_if": [
+        {
+          "field": "accessibility_or_fast_payment_flow",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "missing_data_policy": "insufficient_data_not_detected",
+      "counter_evidence_policy": "suppress_detection_and_record_reason",
+      "note": "Accessibility shortcuts yoki odatiy tezkor to‘lovlar false positive bo‘lishi mumkin."
+    },
+    {
+      "signal_id": "SIG-012",
+      "name": "Password reset followed by transfer",
+      "rule_version": "1.0.0-candidate",
+      "detector_version": "synthetic-feature-engine-v1",
+      "status": "synthetic_test_only",
+      "scope": "bank_internal",
+      "data_mode": "synthetic",
+      "source_owner": "bank_side_source_system_only",
+      "cross_bank_data_enabled": false,
+      "legal_gate": "unverified_bank_internal_lawful_purpose_required",
+      "required_features": [
+        "password_reset_to_transfer_seconds"
+      ],
+      "all_of": [
+        {
+          "field": "password_reset_to_transfer_seconds",
+          "op": "gte",
+          "value": 0
+        },
+        {
+          "field": "password_reset_to_transfer_seconds",
+          "op": "lte",
+          "value": 3600
+        }
+      ],
+      "any_of": [],
+      "benign_if": [
+        {
+          "field": "customer_verified_self_reset",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "missing_data_policy": "insufficient_data_not_detected",
+      "counter_evidence_policy": "suppress_detection_and_record_reason",
+      "note": "Mijozning o‘zi parolni tiklagan bo‘lishi mumkin; auth secretlari olinmaydi."
+    },
+    {
+      "signal_id": "SIG-013",
+      "name": "Known suspicious beneficiary",
+      "rule_version": "1.0.0-candidate",
+      "detector_version": "synthetic-feature-engine-v1",
+      "status": "synthetic_test_only",
+      "scope": "bank_internal",
+      "data_mode": "synthetic",
+      "source_owner": "bank_side_source_system_only",
+      "cross_bank_data_enabled": false,
+      "legal_gate": "unverified_bank_internal_lawful_purpose_required",
+      "required_features": [
+        "watchlist_match_status",
+        "watchlist_match_confidence"
+      ],
+      "all_of": [
+        {
+          "field": "watchlist_match_status",
+          "op": "eq",
+          "value": "confirmed"
+        },
+        {
+          "field": "watchlist_match_confidence",
+          "op": "gte",
+          "value": 0.95
+        }
+      ],
+      "any_of": [],
+      "benign_if": [
+        {
+          "field": "watchlist_match_disputed_or_expired",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "missing_data_policy": "insufficient_data_not_detected",
+      "counter_evidence_policy": "suppress_detection_and_record_reason",
+      "note": "Faqat vakolatli, yangilangan va tuzatish mexanizmi bor ro‘yxat; ism o‘xshashligi yetarli emas.",
+      "optional_features": [
+        "watchlist_list_version"
+      ]
+    },
+    {
+      "signal_id": "SIG-014",
+      "name": "Shared device / phone attributes",
+      "rule_version": "1.0.0-candidate",
+      "detector_version": "synthetic-feature-engine-v1",
+      "status": "synthetic_test_only",
+      "scope": "bank_internal",
+      "data_mode": "synthetic",
+      "source_owner": "bank_side_source_system_only",
+      "cross_bank_data_enabled": false,
+      "legal_gate": "unverified_bank_internal_lawful_purpose_required",
+      "required_features": [
+        "linked_account_count_24h",
+        "link_attribute_type"
+      ],
+      "all_of": [
+        {
+          "field": "linked_account_count_24h",
+          "op": "gte",
+          "value": 3
+        },
+        {
+          "field": "link_attribute_type",
+          "op": "in",
+          "value": [
+            "device_token",
+            "phone_token"
+          ]
+        }
+      ],
+      "any_of": [],
+      "benign_if": [
+        {
+          "field": "shared_household_or_work_device",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "missing_data_policy": "insufficient_data_not_detected",
+      "counter_evidence_policy": "suppress_detection_and_record_reason",
+      "note": "Oila va korxona qurilmalarini alohida hisobga olish zarur."
+    },
+    {
+      "signal_id": "SIG-015",
+      "name": "Circular transaction flow",
+      "rule_version": "1.0.0-candidate",
+      "detector_version": "synthetic-feature-engine-v1",
+      "status": "synthetic_test_only",
+      "scope": "bank_internal",
+      "data_mode": "synthetic",
+      "source_owner": "bank_side_source_system_only",
+      "cross_bank_data_enabled": false,
+      "legal_gate": "unverified_bank_internal_lawful_purpose_required",
+      "required_features": [
+        "graph_returns_to_origin",
+        "distinct_graph_hops",
+        "graph_cycle_duration_seconds"
+      ],
+      "all_of": [
+        {
+          "field": "graph_returns_to_origin",
+          "op": "eq",
+          "value": true
+        },
+        {
+          "field": "distinct_graph_hops",
+          "op": "gte",
+          "value": 3
+        },
+        {
+          "field": "graph_cycle_duration_seconds",
+          "op": "lte",
+          "value": 86400
+        }
+      ],
+      "any_of": [],
+      "benign_if": [
+        {
+          "field": "known_merchant_settlement_cycle",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "missing_data_policy": "insufficient_data_not_detected",
+      "counter_evidence_policy": "suppress_detection_and_record_reason",
+      "note": "Qonuniy biznes settlement sikllari false positive bo‘lishi mumkin."
+    },
+    {
+      "signal_id": "SIG-016",
+      "name": "Repeated failed authentication",
+      "rule_version": "1.0.0-candidate",
+      "detector_version": "synthetic-feature-engine-v1",
+      "status": "synthetic_test_only",
+      "scope": "bank_internal",
+      "data_mode": "synthetic",
+      "source_owner": "bank_side_source_system_only",
+      "cross_bank_data_enabled": false,
+      "legal_gate": "unverified_bank_internal_lawful_purpose_required",
+      "required_features": [
+        "failed_auth_count_10m"
+      ],
+      "all_of": [
+        {
+          "field": "failed_auth_count_10m",
+          "op": "gte",
+          "value": 5
+        }
+      ],
+      "any_of": [],
+      "benign_if": [
+        {
+          "field": "known_keyboard_or_autofill_error",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "missing_data_policy": "insufficient_data_not_detected",
+      "counter_evidence_policy": "suppress_detection_and_record_reason",
+      "note": "Mijoz xatosi va klaviatura/autofill muammolari hisobga olinadi."
+    },
+    {
+      "signal_id": "SIG-017",
+      "name": "Unusual OTP challenge retry cycle",
+      "rule_version": "1.0.0-candidate",
+      "detector_version": "synthetic-feature-engine-v1",
+      "status": "synthetic_test_only",
+      "scope": "bank_internal",
+      "data_mode": "synthetic",
+      "source_owner": "bank_side_source_system_only",
+      "cross_bank_data_enabled": false,
+      "legal_gate": "unverified_bank_internal_lawful_purpose_required",
+      "required_features": [
+        "otp_retry_count_5m"
+      ],
+      "all_of": [
+        {
+          "field": "otp_retry_count_5m",
+          "op": "gte",
+          "value": 3
+        }
+      ],
+      "any_of": [],
+      "benign_if": [
+        {
+          "field": "verified_carrier_delivery_delay",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "missing_data_policy": "insufficient_data_not_detected",
+      "counter_evidence_policy": "suppress_detection_and_record_reason",
+      "note": "SMS kechikishi yoki aloqa sifati sabab bo‘lishi mumkin."
+    },
+    {
+      "signal_id": "SIG-018",
+      "name": "MFA protection downgrade",
+      "rule_version": "1.0.0-candidate",
+      "detector_version": "synthetic-feature-engine-v1",
+      "status": "synthetic_test_only",
+      "scope": "bank_internal",
+      "data_mode": "synthetic",
+      "source_owner": "bank_side_source_system_only",
+      "cross_bank_data_enabled": false,
+      "legal_gate": "unverified_bank_internal_lawful_purpose_required",
+      "required_features": [
+        "mfa_strength_decreased",
+        "mfa_change_to_transfer_seconds"
+      ],
+      "all_of": [
+        {
+          "field": "mfa_strength_decreased",
+          "op": "eq",
+          "value": true
+        },
+        {
+          "field": "mfa_change_to_transfer_seconds",
+          "op": "gte",
+          "value": 0
+        },
+        {
+          "field": "mfa_change_to_transfer_seconds",
+          "op": "lte",
+          "value": 86400
+        }
+      ],
+      "any_of": [],
+      "benign_if": [
+        {
+          "field": "customer_verified_security_change",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "missing_data_policy": "insufficient_data_not_detected",
+      "counter_evidence_policy": "suppress_detection_and_record_reason",
+      "note": "Mijozning xavfsizlik sozlamasini qonuniy o‘zgartirishi mumkin."
+    },
+    {
+      "signal_id": "SIG-019",
+      "name": "Trusted-device binding removed",
+      "rule_version": "1.0.0-candidate",
+      "detector_version": "synthetic-feature-engine-v1",
+      "status": "synthetic_test_only",
+      "scope": "bank_internal",
+      "data_mode": "synthetic",
+      "source_owner": "bank_side_source_system_only",
+      "cross_bank_data_enabled": false,
+      "legal_gate": "unverified_bank_internal_lawful_purpose_required",
+      "required_features": [
+        "trusted_device_binding_removed",
+        "device_binding_change_to_transfer_seconds"
+      ],
+      "all_of": [
+        {
+          "field": "trusted_device_binding_removed",
+          "op": "eq",
+          "value": true
+        },
+        {
+          "field": "device_binding_change_to_transfer_seconds",
+          "op": "gte",
+          "value": 0
+        },
+        {
+          "field": "device_binding_change_to_transfer_seconds",
+          "op": "lte",
+          "value": 86400
+        }
+      ],
+      "any_of": [],
+      "benign_if": [
+        {
+          "field": "verified_device_replacement",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "missing_data_policy": "insufficient_data_not_detected",
+      "counter_evidence_policy": "suppress_detection_and_record_reason",
+      "note": "Telefon almashtirish yoki zavod sozlamasi benign bo‘lishi mumkin."
+    },
+    {
+      "signal_id": "SIG-020",
+      "name": "Existing beneficiary details changed",
+      "rule_version": "1.0.0-candidate",
+      "detector_version": "synthetic-feature-engine-v1",
+      "status": "synthetic_test_only",
+      "scope": "bank_internal",
+      "data_mode": "synthetic",
+      "source_owner": "bank_side_source_system_only",
+      "cross_bank_data_enabled": false,
+      "legal_gate": "unverified_bank_internal_lawful_purpose_required",
+      "required_features": [
+        "beneficiary_details_changed",
+        "beneficiary_change_to_transfer_seconds"
+      ],
+      "all_of": [
+        {
+          "field": "beneficiary_details_changed",
+          "op": "eq",
+          "value": true
+        },
+        {
+          "field": "beneficiary_change_to_transfer_seconds",
+          "op": "gte",
+          "value": 0
+        },
+        {
+          "field": "beneficiary_change_to_transfer_seconds",
+          "op": "lte",
+          "value": 86400
+        }
+      ],
+      "any_of": [],
+      "benign_if": [
+        {
+          "field": "customer_confirmed_beneficiary_change",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "missing_data_policy": "insufficient_data_not_detected",
+      "counter_evidence_policy": "suppress_detection_and_record_reason",
+      "note": "Qabul qiluvchi rekvizitlari qonuniy yangilangan bo‘lishi mumkin."
+    },
+    {
+      "signal_id": "SIG-021",
+      "name": "Beneficiary name-match discrepancy",
+      "rule_version": "1.0.0-candidate",
+      "detector_version": "synthetic-feature-engine-v1",
+      "status": "synthetic_test_only",
+      "scope": "bank_internal",
+      "data_mode": "synthetic",
+      "source_owner": "bank_side_source_system_only",
+      "cross_bank_data_enabled": false,
+      "legal_gate": "unverified_bank_internal_lawful_purpose_required",
+      "required_features": [
+        "bank_verified_name_match_confidence"
+      ],
+      "all_of": [
+        {
+          "field": "bank_verified_name_match_confidence",
+          "op": "lte",
+          "value": 0.4
+        }
+      ],
+      "any_of": [],
+      "benign_if": [
+        {
+          "field": "transliteration_or_abbreviation_equivalent",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "missing_data_policy": "insufficient_data_not_detected",
+      "counter_evidence_policy": "suppress_detection_and_record_reason",
+      "note": "Transliteratsiya, qisqartma va imlo farqlari alohida tekshiriladi.",
+      "optional_features": [
+        "name_match_normalization_version"
+      ]
+    },
+    {
+      "signal_id": "SIG-022",
+      "name": "Dormant account reactivated",
+      "rule_version": "1.0.0-candidate",
+      "detector_version": "synthetic-feature-engine-v1",
+      "status": "synthetic_test_only",
+      "scope": "bank_internal",
+      "data_mode": "synthetic",
+      "source_owner": "bank_side_source_system_only",
+      "cross_bank_data_enabled": false,
+      "legal_gate": "unverified_bank_internal_lawful_purpose_required",
+      "required_features": [
+        "account_dormant_days",
+        "outbound_transactions_since_reactivation"
+      ],
+      "all_of": [
+        {
+          "field": "account_dormant_days",
+          "op": "gte",
+          "value": 180
+        },
+        {
+          "field": "outbound_transactions_since_reactivation",
+          "op": "gte",
+          "value": 1
+        }
+      ],
+      "any_of": [],
+      "benign_if": [
+        {
+          "field": "known_seasonal_or_savings_account",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "missing_data_policy": "insufficient_data_not_detected",
+      "counter_evidence_policy": "suppress_detection_and_record_reason",
+      "note": "Mavsumiy yoki jamg‘arma hisoblari uzoq muddat faol bo‘lmasligi mumkin."
+    },
+    {
+      "signal_id": "SIG-023",
+      "name": "Multiple independent senders then outflow",
+      "rule_version": "1.0.0-candidate",
+      "detector_version": "synthetic-feature-engine-v1",
+      "status": "synthetic_test_only",
+      "scope": "bank_internal",
+      "data_mode": "synthetic",
+      "source_owner": "bank_side_source_system_only",
+      "cross_bank_data_enabled": false,
+      "legal_gate": "unverified_bank_internal_lawful_purpose_required",
+      "required_features": [
+        "independent_inbound_sender_count_24h",
+        "outflow_after_inbound_seconds",
+        "outflow_ratio"
+      ],
+      "all_of": [
+        {
+          "field": "independent_inbound_sender_count_24h",
+          "op": "gte",
+          "value": 3
+        },
+        {
+          "field": "outflow_after_inbound_seconds",
+          "op": "lte",
+          "value": 3600
+        },
+        {
+          "field": "outflow_ratio",
+          "op": "gte",
+          "value": 0.8
+        }
+      ],
+      "any_of": [],
+      "benign_if": [
+        {
+          "field": "known_crowdfunding_payroll_or_collection",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "missing_data_policy": "insufficient_data_not_detected",
+      "counter_evidence_policy": "suppress_detection_and_record_reason",
+      "note": "Crowdfunding, payroll yoki umumiy to‘lov yig‘imi benign bo‘lishi mumkin."
+    },
+    {
+      "signal_id": "SIG-024",
+      "name": "Rapid multi-hop transfer chain",
+      "rule_version": "1.0.0-candidate",
+      "detector_version": "synthetic-feature-engine-v1",
+      "status": "synthetic_test_only",
+      "scope": "bank_internal",
+      "data_mode": "synthetic",
+      "source_owner": "bank_side_source_system_only",
+      "cross_bank_data_enabled": false,
+      "legal_gate": "unverified_bank_internal_lawful_purpose_required",
+      "required_features": [
+        "transfer_chain_hop_count",
+        "transfer_chain_duration_seconds"
+      ],
+      "all_of": [
+        {
+          "field": "transfer_chain_hop_count",
+          "op": "gte",
+          "value": 3
+        },
+        {
+          "field": "transfer_chain_duration_seconds",
+          "op": "lte",
+          "value": 1800
+        }
+      ],
+      "any_of": [],
+      "benign_if": [
+        {
+          "field": "known_payment_aggregator_or_settlement",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "missing_data_policy": "insufficient_data_not_detected",
+      "counter_evidence_policy": "suppress_detection_and_record_reason",
+      "note": "Payment aggregator va biznes settlement tarmoqlari alohida baholanadi."
+    },
+    {
+      "signal_id": "SIG-025",
+      "name": "Near-total balance drained after inflow",
+      "rule_version": "1.0.0-candidate",
+      "detector_version": "synthetic-feature-engine-v1",
+      "status": "synthetic_test_only",
+      "scope": "bank_internal",
+      "data_mode": "synthetic",
+      "source_owner": "bank_side_source_system_only",
+      "cross_bank_data_enabled": false,
+      "legal_gate": "unverified_bank_internal_lawful_purpose_required",
+      "required_features": [
+        "inflow_to_outflow_ratio",
+        "drain_after_inflow_seconds"
+      ],
+      "all_of": [
+        {
+          "field": "inflow_to_outflow_ratio",
+          "op": "gte",
+          "value": 0.9
+        },
+        {
+          "field": "drain_after_inflow_seconds",
+          "op": "lte",
+          "value": 1800
+        }
+      ],
+      "any_of": [],
+      "benign_if": [
+        {
+          "field": "known_scheduled_large_obligation",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "missing_data_policy": "insufficient_data_not_detected",
+      "counter_evidence_policy": "suppress_detection_and_record_reason",
+      "note": "Ijara, kredit, soliq yoki yirik qonuniy to‘lovlar bo‘lishi mumkin."
+    },
+    {
+      "signal_id": "SIG-026",
+      "name": "Unusual reversal / refund pattern",
+      "rule_version": "1.0.0-candidate",
+      "detector_version": "synthetic-feature-engine-v1",
+      "status": "synthetic_test_only",
+      "scope": "bank_internal",
+      "data_mode": "synthetic",
+      "source_owner": "bank_side_source_system_only",
+      "cross_bank_data_enabled": false,
+      "legal_gate": "unverified_bank_internal_lawful_purpose_required",
+      "required_features": [
+        "reversal_count_24h",
+        "reversal_rate_24h"
+      ],
+      "all_of": [
+        {
+          "field": "reversal_count_24h",
+          "op": "gte",
+          "value": 3
+        },
+        {
+          "field": "reversal_rate_24h",
+          "op": "gte",
+          "value": 0.5
+        }
+      ],
+      "any_of": [],
+      "benign_if": [
+        {
+          "field": "known_merchant_batch_reversal",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "missing_data_policy": "insufficient_data_not_detected",
+      "counter_evidence_policy": "suppress_detection_and_record_reason",
+      "note": "Merchant refund yoki texnik reversal benign bo‘lishi mumkin."
+    },
+    {
+      "signal_id": "SIG-027",
+      "name": "Repeated cancel-and-retry payment pattern",
+      "rule_version": "1.0.0-candidate",
+      "detector_version": "synthetic-feature-engine-v1",
+      "status": "synthetic_test_only",
+      "scope": "bank_internal",
+      "data_mode": "synthetic",
+      "source_owner": "bank_side_source_system_only",
+      "cross_bank_data_enabled": false,
+      "legal_gate": "unverified_bank_internal_lawful_purpose_required",
+      "required_features": [
+        "cancel_retry_count_10m"
+      ],
+      "all_of": [
+        {
+          "field": "cancel_retry_count_10m",
+          "op": "gte",
+          "value": 3
+        }
+      ],
+      "any_of": [],
+      "benign_if": [
+        {
+          "field": "verified_network_timeout_or_outage",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "missing_data_policy": "insufficient_data_not_detected",
+      "counter_evidence_policy": "suppress_detection_and_record_reason",
+      "note": "Internet uzilishi va timeout qayta urinishlarni keltirib chiqarishi mumkin."
+    },
+    {
+      "signal_id": "SIG-028",
+      "name": "Channel switch after security event",
+      "rule_version": "1.0.0-candidate",
+      "detector_version": "synthetic-feature-engine-v1",
+      "status": "synthetic_test_only",
+      "scope": "bank_internal",
+      "data_mode": "synthetic",
+      "source_owner": "bank_side_source_system_only",
+      "cross_bank_data_enabled": false,
+      "legal_gate": "unverified_bank_internal_lawful_purpose_required",
+      "required_features": [
+        "security_event_to_channel_switch_seconds",
+        "channel_switch_followed_by_transfer"
+      ],
+      "all_of": [
+        {
+          "field": "security_event_to_channel_switch_seconds",
+          "op": "gte",
+          "value": 0
+        },
+        {
+          "field": "security_event_to_channel_switch_seconds",
+          "op": "lte",
+          "value": 900
+        },
+        {
+          "field": "channel_switch_followed_by_transfer",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "any_of": [],
+      "benign_if": [
+        {
+          "field": "customer_verified_channel_switch",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "missing_data_policy": "insufficient_data_not_detected",
+      "counter_evidence_policy": "suppress_detection_and_record_reason",
+      "note": "Mijoz web va mobile o‘rtasida qonuniy o‘tishi mumkin."
+    },
+    {
+      "signal_id": "SIG-029",
+      "name": "Conflicting parallel active sessions",
+      "rule_version": "1.0.0-candidate",
+      "detector_version": "synthetic-feature-engine-v1",
+      "status": "synthetic_test_only",
+      "scope": "bank_internal",
+      "data_mode": "synthetic",
+      "source_owner": "bank_side_source_system_only",
+      "cross_bank_data_enabled": false,
+      "legal_gate": "unverified_bank_internal_lawful_purpose_required",
+      "required_features": [
+        "overlapping_active_session_count",
+        "distinct_session_device_count",
+        "session_conflict_score"
+      ],
+      "all_of": [
+        {
+          "field": "overlapping_active_session_count",
+          "op": "gte",
+          "value": 2
+        },
+        {
+          "field": "distinct_session_device_count",
+          "op": "gte",
+          "value": 2
+        },
+        {
+          "field": "session_conflict_score",
+          "op": "gte",
+          "value": 0.8
+        }
+      ],
+      "any_of": [],
+      "benign_if": [
+        {
+          "field": "same_customer_verified_dual_device",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "missing_data_policy": "insufficient_data_not_detected",
+      "counter_evidence_policy": "suppress_detection_and_record_reason",
+      "note": "Bir mijozning ikki qurilmadagi seansi bo‘lishi mumkin."
+    },
+    {
+      "signal_id": "SIG-030",
+      "name": "Digital-to-ATM cash-out sequence",
+      "rule_version": "1.0.0-candidate",
+      "detector_version": "synthetic-feature-engine-v1",
+      "status": "synthetic_test_only",
+      "scope": "bank_internal",
+      "data_mode": "synthetic",
+      "source_owner": "bank_side_source_system_only",
+      "cross_bank_data_enabled": false,
+      "legal_gate": "unverified_bank_internal_lawful_purpose_required",
+      "required_features": [
+        "digital_to_atm_seconds",
+        "atm_cashout_to_digital_inflow_ratio"
+      ],
+      "all_of": [
+        {
+          "field": "digital_to_atm_seconds",
+          "op": "gte",
+          "value": 0
+        },
+        {
+          "field": "digital_to_atm_seconds",
+          "op": "lte",
+          "value": 3600
+        },
+        {
+          "field": "atm_cashout_to_digital_inflow_ratio",
+          "op": "gte",
+          "value": 0.8
+        }
+      ],
+      "any_of": [],
+      "benign_if": [
+        {
+          "field": "customer_declared_planned_cash_withdrawal",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "missing_data_policy": "insufficient_data_not_detected",
+      "counter_evidence_policy": "suppress_detection_and_record_reason",
+      "note": "Mijoz pulni naqd olishni oldindan rejalagan bo‘lishi mumkin."
+    },
+    {
+      "signal_id": "SIG-031",
+      "name": "Many small outbound transfers to related nodes",
+      "rule_version": "1.0.0-candidate",
+      "detector_version": "synthetic-feature-engine-v1",
+      "status": "synthetic_test_only",
+      "scope": "bank_internal",
+      "data_mode": "synthetic",
+      "source_owner": "bank_side_source_system_only",
+      "cross_bank_data_enabled": false,
+      "legal_gate": "unverified_bank_internal_lawful_purpose_required",
+      "required_features": [
+        "small_outbound_transfer_count_1h",
+        "distinct_related_recipient_count"
+      ],
+      "all_of": [
+        {
+          "field": "small_outbound_transfer_count_1h",
+          "op": "gte",
+          "value": 5
+        },
+        {
+          "field": "distinct_related_recipient_count",
+          "op": "gte",
+          "value": 3
+        }
+      ],
+      "any_of": [],
+      "benign_if": [
+        {
+          "field": "known_bill_payments_or_family_support",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "missing_data_policy": "insufficient_data_not_detected",
+      "counter_evidence_policy": "suppress_detection_and_record_reason",
+      "note": "Kommunal to‘lovlar va oilaviy yordam benign bo‘lishi mumkin."
+    },
+    {
+      "signal_id": "SIG-032",
+      "name": "Unusual inflow / outflow ratio shift",
+      "rule_version": "1.0.0-candidate",
+      "detector_version": "synthetic-feature-engine-v1",
+      "status": "synthetic_test_only",
+      "scope": "bank_internal",
+      "data_mode": "synthetic",
+      "source_owner": "bank_side_source_system_only",
+      "cross_bank_data_enabled": false,
+      "legal_gate": "unverified_bank_internal_lawful_purpose_required",
+      "required_features": [
+        "inflow_outflow_ratio_vs_baseline",
+        "flow_baseline_sample_count"
+      ],
+      "all_of": [
+        {
+          "field": "inflow_outflow_ratio_vs_baseline",
+          "op": "gte",
+          "value": 5
+        },
+        {
+          "field": "flow_baseline_sample_count",
+          "op": "gte",
+          "value": 20
+        }
+      ],
+      "any_of": [],
+      "benign_if": [
+        {
+          "field": "known_seasonal_business_activity",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "missing_data_policy": "insufficient_data_not_detected",
+      "counter_evidence_policy": "suppress_detection_and_record_reason",
+      "note": "Mavsumiy savdo, bonus yoki katta xarid hisobga olinadi."
+    },
+    {
+      "signal_id": "SIG-033",
+      "name": "Fan-in / fan-out graph topology",
+      "rule_version": "1.0.0-candidate",
+      "detector_version": "synthetic-feature-engine-v1",
+      "status": "synthetic_test_only",
+      "scope": "bank_internal",
+      "data_mode": "synthetic",
+      "source_owner": "bank_side_source_system_only",
+      "cross_bank_data_enabled": false,
+      "legal_gate": "unverified_bank_internal_lawful_purpose_required",
+      "required_features": [
+        "graph_fan_in_distinct_nodes",
+        "graph_fan_out_distinct_nodes"
+      ],
+      "all_of": [
+        {
+          "field": "graph_fan_in_distinct_nodes",
+          "op": "gte",
+          "value": 4
+        },
+        {
+          "field": "graph_fan_out_distinct_nodes",
+          "op": "gte",
+          "value": 4
+        }
+      ],
+      "any_of": [],
+      "benign_if": [
+        {
+          "field": "known_marketplace_or_payment_aggregator",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "missing_data_policy": "insufficient_data_not_detected",
+      "counter_evidence_policy": "suppress_detection_and_record_reason",
+      "note": "Marketplace va aggregatorlar qonuniy ko‘p tomonlama oqimlarga ega."
+    },
+    {
+      "signal_id": "SIG-034",
+      "name": "Contact detail change followed by transfer",
+      "rule_version": "1.0.0-candidate",
+      "detector_version": "synthetic-feature-engine-v1",
+      "status": "synthetic_test_only",
+      "scope": "bank_internal",
+      "data_mode": "synthetic",
+      "source_owner": "bank_side_source_system_only",
+      "cross_bank_data_enabled": false,
+      "legal_gate": "unverified_bank_internal_lawful_purpose_required",
+      "required_features": [
+        "contact_detail_changed",
+        "contact_change_to_transfer_seconds"
+      ],
+      "all_of": [
+        {
+          "field": "contact_detail_changed",
+          "op": "eq",
+          "value": true
+        },
+        {
+          "field": "contact_change_to_transfer_seconds",
+          "op": "gte",
+          "value": 0
+        },
+        {
+          "field": "contact_change_to_transfer_seconds",
+          "op": "lte",
+          "value": 86400
+        }
+      ],
+      "any_of": [],
+      "benign_if": [
+        {
+          "field": "customer_verified_contact_update",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "missing_data_policy": "insufficient_data_not_detected",
+      "counter_evidence_policy": "suppress_detection_and_record_reason",
+      "note": "Mijoz telefon yoki emailini qonuniy yangilagan bo‘lishi mumkin."
+    },
+    {
+      "signal_id": "SIG-035",
+      "name": "New app registration followed by transfer",
+      "rule_version": "1.0.0-candidate",
+      "detector_version": "synthetic-feature-engine-v1",
+      "status": "synthetic_test_only",
+      "scope": "bank_internal",
+      "data_mode": "synthetic",
+      "source_owner": "bank_side_source_system_only",
+      "cross_bank_data_enabled": false,
+      "legal_gate": "unverified_bank_internal_lawful_purpose_required",
+      "required_features": [
+        "new_app_registration",
+        "app_registration_to_transfer_seconds"
+      ],
+      "all_of": [
+        {
+          "field": "new_app_registration",
+          "op": "eq",
+          "value": true
+        },
+        {
+          "field": "app_registration_to_transfer_seconds",
+          "op": "gte",
+          "value": 0
+        },
+        {
+          "field": "app_registration_to_transfer_seconds",
+          "op": "lte",
+          "value": 86400
+        }
+      ],
+      "any_of": [],
+      "benign_if": [
+        {
+          "field": "known_device_reinstall_or_os_migration",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "missing_data_policy": "insufficient_data_not_detected",
+      "counter_evidence_policy": "suppress_detection_and_record_reason",
+      "note": "App reinstall va OS yangilanishi yangi ro‘yxatdan o‘tishga o‘xshashi mumkin."
+    },
+    {
+      "signal_id": "SIG-036",
+      "name": "Micro-transaction card test",
+      "rule_version": "1.0.0-candidate",
+      "detector_version": "synthetic-feature-engine-v1",
+      "status": "synthetic_test_only",
+      "scope": "bank_internal",
+      "data_mode": "synthetic",
+      "source_owner": "bank_side_source_system_only",
+      "cross_bank_data_enabled": false,
+      "legal_gate": "unverified_bank_internal_lawful_purpose_required",
+      "required_features": [
+        "micro_transaction_count_10m",
+        "micro_transaction_followup_seconds"
+      ],
+      "all_of": [
+        {
+          "field": "micro_transaction_count_10m",
+          "op": "gte",
+          "value": 3
+        },
+        {
+          "field": "micro_transaction_followup_seconds",
+          "op": "gte",
+          "value": 0
+        },
+        {
+          "field": "micro_transaction_followup_seconds",
+          "op": "lte",
+          "value": 1800
+        }
+      ],
+      "any_of": [],
+      "benign_if": [
+        {
+          "field": "known_merchant_card_verification",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "missing_data_policy": "insufficient_data_not_detected",
+      "counter_evidence_policy": "suppress_detection_and_record_reason",
+      "note": "Mikro tranzaksiya faqat mustaqil boshqa dalil bilan tasdiqlansa ball oladi."
+    },
+    {
+      "signal_id": "SIG-037",
+      "name": "New beneficiary account age",
+      "rule_version": "1.0.0-candidate",
+      "detector_version": "synthetic-feature-engine-v1",
+      "status": "synthetic_test_only",
+      "scope": "bank_internal",
+      "data_mode": "synthetic",
+      "source_owner": "bank_side_source_system_only",
+      "cross_bank_data_enabled": false,
+      "legal_gate": "unverified_bank_internal_lawful_purpose_required",
+      "required_features": [
+        "beneficiary_account_age_days"
+      ],
+      "all_of": [
+        {
+          "field": "beneficiary_account_age_days",
+          "op": "lte",
+          "value": 7
+        }
+      ],
+      "any_of": [],
+      "benign_if": [
+        {
+          "field": "known_new_recipient_or_verified_opening",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "missing_data_policy": "insufficient_data_not_detected",
+      "counter_evidence_policy": "suppress_detection_and_record_reason",
+      "note": "Yangi ochilgan qonuniy hisobning o‘zi shubhali emas; qo‘shimcha signal talab qilinadi."
+    },
+    {
+      "signal_id": "SIG-038",
+      "name": "Application language changed",
+      "rule_version": "1.0.0-candidate",
+      "detector_version": "synthetic-feature-engine-v1",
+      "status": "synthetic_test_only",
+      "scope": "bank_internal",
+      "data_mode": "synthetic",
+      "source_owner": "bank_side_source_system_only",
+      "cross_bank_data_enabled": false,
+      "legal_gate": "unverified_bank_internal_lawful_purpose_required",
+      "required_features": [
+        "app_language_changed"
+      ],
+      "all_of": [
+        {
+          "field": "app_language_changed",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "any_of": [],
+      "benign_if": [],
+      "missing_data_policy": "insufficient_data_not_detected",
+      "counter_evidence_policy": "suppress_detection_and_record_reason",
+      "note": "Faqat kontekst; 0 ball."
+    },
+    {
+      "signal_id": "SIG-039",
+      "name": "Shared IP across multiple accounts",
+      "rule_version": "1.0.0-candidate",
+      "detector_version": "synthetic-feature-engine-v1",
+      "status": "synthetic_test_only",
+      "scope": "bank_internal",
+      "data_mode": "synthetic",
+      "source_owner": "bank_side_source_system_only",
+      "cross_bank_data_enabled": false,
+      "legal_gate": "unverified_bank_internal_lawful_purpose_required",
+      "required_features": [
+        "shared_network_account_count_24h"
+      ],
+      "all_of": [
+        {
+          "field": "shared_network_account_count_24h",
+          "op": "gte",
+          "value": 3
+        }
+      ],
+      "any_of": [],
+      "benign_if": [
+        {
+          "field": "known_shared_household_office_or_public_wifi",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "missing_data_policy": "insufficient_data_not_detected",
+      "counter_evidence_policy": "suppress_detection_and_record_reason",
+      "note": "Uy, ofis va public Wi-Fi umumiy IP ishlatishi mumkin; qo‘shimcha dalil talab qilinadi."
+    },
+    {
+      "signal_id": "SIG-040",
+      "name": "Copy-paste beneficiary entry context",
+      "rule_version": "1.0.0-candidate",
+      "detector_version": "synthetic-feature-engine-v1",
+      "status": "synthetic_test_only",
+      "scope": "bank_internal",
+      "data_mode": "synthetic",
+      "source_owner": "bank_side_source_system_only",
+      "cross_bank_data_enabled": false,
+      "legal_gate": "unverified_bank_internal_lawful_purpose_required",
+      "required_features": [
+        "beneficiary_paste_action"
+      ],
+      "all_of": [
+        {
+          "field": "beneficiary_paste_action",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "any_of": [],
+      "benign_if": [],
+      "missing_data_policy": "insufficient_data_not_detected",
+      "counter_evidence_policy": "suppress_detection_and_record_reason",
+      "note": "Faqat kontekst; 0 ball; clipboard mazmuni hech qachon olinmaydi."
+    }
+  ]
+}
