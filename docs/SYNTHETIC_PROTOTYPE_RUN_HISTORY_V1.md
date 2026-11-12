@@ -42,3 +42,8 @@ A container host with an ephemeral filesystem can lose this history during redep
 ## Safety boundary
 
 This is synthetic prototype history, not the authoritative FINZANJIR case/audit ledger. It does not store real customer data and must not be enabled for real transaction data without a separate legal basis, data protection assessment, authentication/RBAC, key management, retention approval and bank integration controls.
+
+
+## Runtime visibility
+
+The history API returns a `persistence_note` and the frontend displays it. A successful SQLite write does not prove durable hosted persistence: an ephemeral service filesystem can lose the history after restart or redeploy. A persistent disk or managed database must be verified before describing hosted run history as durable.
