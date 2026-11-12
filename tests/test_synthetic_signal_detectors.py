@@ -419,3 +419,54 @@ def test_all_benign_counterevidence_requires_the_declared_value_type(rule, benig
 
     assert outcome["status"] == "DETECTED"
     assert outcome["reason_code"] != "benign_counter_evidence"
+
+
+
+def _condition_violation_value(condition):
+    operator, expected = condition["op"], condition["value"]
+    if operator == "eq":
+        if isinstance(expected, bool):
+            return not expected
+        if isinstance(expected, str):
+            return "__not_equal__"
+        return expected + 1
+    if operator == "gte":
+        return expected - 1
+    if operator == "lte":
+        return expected + 1
+    if operator == "in":
+        first = expected[0]
+        if isinstance(first, str):
+            return "__not_in_set__"
+        return max(expected) + 1
+    raise AssertionError(f"Unsupported detector operator in contract: {operator}")
+
+
+@pytest.mark.parametrize(
+    "rule,condition",
+    [
+        (rule, condition)
+        for rule in CONTRACT["detectors"]
+        for condition in rule["all_of"]
+    ],
+    ids=[
+        f"{rule['signal_id']}-{condition['field']}-{condition['op']}"
+        for rule in CONTRACT["detectors"]
+        for condition in rule["all_of"]
+    ],
+)
+def test_each_declared_detector_condition_has_a_non_detection_path(rule, condition):
+    features = _fixture(rule)
+    field = condition["field"]
+    features[field] = _condition_violation_value(condition)
+
+    result = SyntheticSignalDetector().evaluate(
+        scenario_id=f"condition-negative-{rule['signal_id']}-{field}",
+        observed_at="2026-11-12T09:00:00Z",
+        features=features,
+    )
+    outcome = next(item for item in result["detections"] if item["signal_id"] == rule["signal_id"])
+
+    assert outcome["status"] in {"NOT_DETECTED", "INSUFFICIENT_DATA"}
+    if outcome["status"] == "INSUFFICIENT_DATA":
+        assert outcome["reason_code"] == "invalid_feature_values"
