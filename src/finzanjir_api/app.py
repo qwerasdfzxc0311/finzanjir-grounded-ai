@@ -240,7 +240,7 @@ def run_prototype(transaction: PrototypeTransaction) -> dict[str, Any]:
         "data_mode": "synthetic",
         "risk_score": risk.get("score", 0),
         "risk_level": risk.get("level", "OBSERVE"),
-        "threshold": risk.get("threshold", 75),
+        "threshold": risk.get("escalation_threshold", (risk.get("threshold") or {}).get("value", 75) if isinstance(risk.get("threshold"), dict) else risk.get("threshold", 75)),
         "signal_count": len(pipeline.signals),
         "evidence_count": risk.get("evidence_count", len(pipeline.evidences)),
         "independent_families": risk.get("independent_families", 0),
