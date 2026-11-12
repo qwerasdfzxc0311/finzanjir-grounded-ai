@@ -194,14 +194,19 @@ def process_transaction(
     risk = {
         "id": f"risk-{transaction['transaction_id']}",
         "signal_id": signal["id"],
+        "signal_ids": [signal["id"]],
         "score": evaluation.signal_score,
         "level": evaluation.risk_level,
         "calculated_at": transaction["occurred_at"],
         "engine_version": "risk-v1-legacy-demo",
         "threshold_met": evaluation.threshold_met,
+        "case_eligible": evaluation.case_should_open,
+        "independent_families": 1,
         "evidence_count": evaluation.evidence_count,
         "escalation_threshold": escalation_threshold,
         "scoring_mode": "legacy_demo_compatibility",
+        "score_semantics": "legacy_demo_score_not_probability",
+        "shadow_mode": False,
         "data_mode": "synthetic",
     }
 
