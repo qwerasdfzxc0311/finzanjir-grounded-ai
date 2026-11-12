@@ -39,6 +39,8 @@ function renderList(target, items, renderItem) {
 let currentManifest = null;
 let lastExecution = null;
 let activeWindowId = "dashboard";
+let executionStatus = "demo";
+let executionError = "";
 
 function windowSummaryLines(windowId) {
   const snapshot = lastExecution || {};
@@ -124,6 +126,58 @@ function windowSummaryLines(windowId) {
   }
 }
 
+
+function windowExecutionStatus(windowId) {
+  if (executionStatus === "running") return "Yagona oqim bajarilmoqda · natija kutilmoqda";
+  if (executionStatus === "failed") return "Sinov xato bilan tugadi · oldingi natija saqlangan";
+  if (executionStatus === "demo") return "Demo ko‘rinishi · to‘liq sinov hali ishga tushmagan";
+
+  const snapshot = lastExecution || {};
+  switch (windowId) {
+    case "dashboard":
+      return snapshot.pipeline ? "Yagona runtime natijasi yangilandi" : "Umumiy demo holati";
+    case "synthetic_bank":
+      return snapshot.transaction ? "Sintetik tranzaksiya qabul qilindi" : "Tranzaksiya natijasi yo‘q";
+    case "signal_risk":
+      return snapshot.pipeline?.risk ? "Signal va risk hisoblandi" : "Risk natijasi mavjud emas";
+    case "cross_bank_fraud":
+      if (!snapshot.cross_bank) return "Cross-bank natijasi mavjud emas";
+      return snapshot.cross_bank.matches?.length ? "Ruxsatli scope ichida moslik bor" : "Scope tekshirildi · moslik topilmadi";
+    case "human_case":
+      if (snapshot.case) return "Sintetik Case va inson ko‘rigi qayd etildi";
+      if (snapshot.pipeline?.risk?.shadow_mode === true) return "Shadow Mode · Case ochilmadi";
+      return "Case ochilmadi";
+    case "audit_kpi":
+      return Array.isArray(snapshot.audit) && snapshot.kpi ? "Audit va KPI natijasi tayyor" : "Audit/KPI tafsiloti yo‘q";
+    case "finzanjir_ai":
+      if (!snapshot.ai) return "AI runtime izohi mavjud emas";
+      return snapshot.ai.answer?.abstained ? "AI dalil yetishmasligini bildirdi" : "AI izohi tayyor";
+    case "citizen":
+      return snapshot.citizen_status ? "Fuqaro statusi tayyor" : "Fuqaro statusi mavjud emas";
+    case "layers_16":
+      return Array.isArray(snapshot.layers_16) && snapshot.layers_16.length === 16
+        ? "16 qatlam izi tayyor"
+        : "16 qatlam izi to‘liq emas";
+    default:
+      return "Holat aniqlanmagan";
+  }
+}
+
+function refreshWindowStatuses() {
+  document.querySelectorAll("#windows .window-card").forEach(button => {
+    const status = button.querySelector(".window-status");
+    if (status) {
+      status.textContent = windowExecutionStatus(button.dataset.windowId);
+      status.dataset.state = executionStatus;
+    }
+  });
+  const activeStatus = document.querySelector("#activeWindowStatus");
+  if (activeStatus) {
+    activeStatus.textContent = windowExecutionStatus(activeWindowId);
+    activeStatus.dataset.state = executionStatus;
+  }
+}
+
 function selectWindow(windowId) {
   if (!currentManifest || !currentManifest.window_roles[windowId]) return;
   activeWindowId = windowId;
@@ -140,6 +194,7 @@ function selectWindow(windowId) {
     item.textContent = line;
     return item;
   }));
+  refreshWindowStatuses();
 }
 
 async function loadShell() {
@@ -155,6 +210,8 @@ async function loadShell() {
 
   currentManifest = manifest;
   lastExecution = demo;
+  executionStatus = "demo";
+  executionError = "";
   renderList(document.querySelector("#windows"), manifest.windows, ([id, label]) => {
     const role = manifest.window_roles[id];
     const button = element("button", "window-card");
@@ -164,9 +221,13 @@ async function loadShell() {
     button.append(
       element("strong", "", label),
       element("p", "muted", role.output),
-      element("small", "", role.input)
+      element("small", "", role.input),
+      element("small", "window-status", windowExecutionStatus(id))
     );
-    button.addEventListener("click", () => selectWindow(id));
+    button.addEventListener("click", () => {
+      selectWindow(id);
+      if (id === "synthetic_bank") runSyntheticScenario();
+    });
     return button;
   });
   selectWindow("dashboard");
@@ -332,11 +393,15 @@ async function loadRunHistory() {
 
 async function runSyntheticScenario() {
   const button = document.querySelector("#runSyntheticScenario");
+  if (button.disabled) return;
   const selector = document.querySelector("#scenarioSelector");
   const openCase = document.querySelector("#openSyntheticCase").checked;
   const scenario = selector.value;
   const features = scenarioTemplates[scenario];
   button.disabled = true;
+  executionStatus = "running";
+  executionError = "";
+  refreshWindowStatuses();
   button.textContent = "Sinov bajarilmoqda...";
   document.querySelector("#scenarioResult").replaceChildren(element("p", "muted", "Sintetik feature’lar tekshirilmoqda..."));
 
@@ -364,13 +429,19 @@ async function runSyntheticScenario() {
     const body = await response.json();
     if (!response.ok) throw new Error(body.detail || "Sinov bajarilmadi");
     lastExecution = body;
+    executionStatus = "success";
+    refreshWindowStatuses();
     selectWindow(activeWindowId);
     renderScenarioResult(body);
     await loadRunHistory();
   } catch (error) {
+    executionStatus = "failed";
+    executionError = error.message;
+    refreshWindowStatuses();
     document.querySelector("#scenarioResult").replaceChildren(element("p", "status-muted", error.message));
   } finally {
     button.disabled = false;
+    refreshWindowStatuses();
     button.textContent = "Sintetik sinovni ishga tushirish";
   }
 }
