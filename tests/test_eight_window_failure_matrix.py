@@ -40,7 +40,7 @@ def _payload(transaction_id: str, *, shadow_mode: bool = False) -> dict:
 
 def _frames(response):
     parsed = []
-    for frame in response.text.strip().split("\\n\\n"):
+    for frame in response.text.strip().split("\n\n"):
         lines = frame.splitlines()
         if len(lines) >= 2 and lines[0].startswith("event: ") and lines[1].startswith("data: "):
             parsed.append((lines[0][7:], json.loads(lines[1][6:])))
@@ -53,13 +53,18 @@ def _assert_stopped_at(response, failed_window: str, expected_status_code: int =
     errors = [data for name, data in frames if name == "error"]
     results = [data for name, data in frames if name == "result"]
     index = WINDOWS.index(failed_window)
+    expected_windows = [
+        window
+        for position, window in enumerate(WINDOWS)
+        for _ in range(2 if position <= index else 1)
+    ]
 
     assert response.status_code == 200
-    assert [item["window_id"] for item in stages] == [
-        window for window in WINDOWS for _ in (0, 1)
-    ][: len(stages)]
-    assert stages[-(len(WINDOWS) - index + 1)]["window_id"] == failed_window
-    assert stages[-(len(WINDOWS) - index + 1)]["status"] == "FAILED"
+    assert [item["window_id"] for item in stages] == expected_windows
+    failed = [item for item in stages if item["status"] == "FAILED"]
+    assert len(failed) == 1
+    assert failed[0]["window_id"] == failed_window
+    assert failed[0]["sequence"] == index + 1
     assert [item["status"] for item in stages if item["sequence"] > index + 1] == [
         "NOT_RUN"
     ] * (len(WINDOWS) - index - 1)
