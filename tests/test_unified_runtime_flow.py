@@ -44,6 +44,9 @@ def test_system_flow_keeps_synthetic_decision_non_authoritative():
     assert result["citizen_status"]["status"] == "SYNTHETIC_REVIEW_ONLY"
     assert result["bank_status"] is None
     assert len(result["layers_16"]) == 16
+    assert {item["status"] for item in result["layers_16"]} == {"PARTIAL", "PLANNED"}
+    assert result["layers_16"][0]["evidence_refs"]
+    assert flow.layer_status_summary() == {"total": 16, "complete": 0, "partial": 12, "planned": 4}
 
 
 def test_system_flow_rejects_synthetic_cross_bank_authorization():

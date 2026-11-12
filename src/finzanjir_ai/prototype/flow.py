@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
+from finzanjir_ai.architecture.layers import build_layer_trace, get_layer_status_summary
 from finzanjir_ai.audit.service import AuditLog, calculate_kpis
 from finzanjir_ai.case.manager import CaseManager
 from finzanjir_ai.cross_bank.matcher import CrossBankMatcher
@@ -243,7 +244,8 @@ class SystemFlow:
                 "threshold_version": pipeline.risk.get("threshold_version") if pipeline.risk else None,
                 "case_opened": result["case"] is not None,
                 "cross_bank_matches": len(result["cross_bank"].matches),
-                "layers_covered": len(result["layers_16"]),
+                "layers_traced": len(result["layers_16"]),
+                "layer_status_summary": get_layer_status_summary(),
             },
             "explanation": {
                 "signal_is_not_fraud_proof": True,
@@ -267,14 +269,14 @@ class SystemFlow:
         ]
 
     def _layer_trace(self, *, transaction_id: str) -> tuple[dict[str, Any], ...]:
-        return tuple(
-            {
-                "layer_id": f"layer_{index:02d}",
-                "transaction_id": transaction_id,
-                "status": "covered",
-            }
-            for index in range(1, self.architecture_layers + 1)
-        )
+        trace = build_layer_trace(transaction_id)
+        if len(trace) != self.architecture_layers:
+            raise RuntimeError("layer registry count does not match SystemFlow architecture")
+        return trace
+
+    @staticmethod
+    def layer_status_summary() -> dict[str, int]:
+        return get_layer_status_summary()
 
     @staticmethod
     def demo_knowledge_index() -> KnowledgeIndex:
