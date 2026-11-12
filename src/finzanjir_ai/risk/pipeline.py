@@ -103,6 +103,9 @@ def _process_multi_signal_transaction(
     if evaluation["case_eligible"] and not shadow_mode:
         case = {
             "id": f"case-{transaction['transaction_id']}",
+            "bank_id": transaction["bank_id"],
+            "citizen_id": transaction.get("citizen_id", "synthetic-subject"),
+            "transaction_id": transaction["transaction_id"],
             "signal_ids": [item["id"] for item in signals],
             "risk_id": risk["id"],
             "threshold_id": "multi-signal-escalation-v1",
@@ -214,6 +217,9 @@ def process_transaction(
     if evaluation.case_should_open:
         case = {
             "id": f"case-{transaction['transaction_id']}",
+            "bank_id": transaction["bank_id"],
+            "citizen_id": transaction.get("citizen_id", "synthetic-subject"),
+            "transaction_id": transaction["transaction_id"],
             "signal_ids": [signal["id"]],
             "risk_id": risk["id"],
             "threshold_id": "case-escalation-v1",
