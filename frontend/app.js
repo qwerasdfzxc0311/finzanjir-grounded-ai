@@ -36,6 +36,112 @@ function renderList(target, items, renderItem) {
   items.forEach((item, index) => target.appendChild(renderItem(item, index)));
 }
 
+let currentManifest = null;
+let lastExecution = null;
+let activeWindowId = "dashboard";
+
+function windowSummaryLines(windowId) {
+  const snapshot = lastExecution || {};
+  const runtime = snapshot.runtime || {};
+  const pipeline = snapshot.pipeline || {};
+  const risk = pipeline.risk || {};
+  const transaction = snapshot.transaction || {};
+  const caseRecord = snapshot.case || {};
+  const human = snapshot.decision?.human_decision || {};
+  const citizen = snapshot.citizen_status || {};
+  const crossBank = snapshot.cross_bank || {};
+  const audit = snapshot.audit || [];
+  const kpi = snapshot.kpi || {};
+  const ai = snapshot.ai || {};
+  const layers = snapshot.layers_16 || [];
+  const value = item => item === undefined || item === null || item === "" ? "—" : String(item);
+
+  switch (windowId) {
+    case "dashboard":
+      return [
+        "Data mode: " + value(snapshot.data_mode || "synthetic"),
+        "Transaction: " + value(runtime.transaction_id || snapshot.transaction_id || transaction.transaction_id),
+        "Risk: " + value(runtime.risk_level || risk.level) + " · " + value(runtime.risk_score ?? risk.score) + " ball",
+        "Case: " + value(runtime.case_id || caseRecord.case_id || caseRecord.id),
+        "Qatlamlar: " + value(runtime.layers_traced ?? layers.length ?? 0) + " / 16"
+      ];
+    case "citizen":
+      return [
+        "Status: " + value(citizen.status || "Sinov natijasidan keyin ko‘rsatiladi"),
+        "Xabar: " + value(citizen.message),
+        "Case ID: " + value(citizen.case_id)
+      ];
+    case "human_case":
+      return [
+        "Case ID: " + value(caseRecord.case_id || caseRecord.id || runtime.case_id),
+        "Case status: " + value(caseRecord.status),
+        "Human review: " + value(human.decision),
+        "Rasmiy qaror: " + (human.is_authoritative === true ? "Ha" : "Yo‘q — sintetik namuna")
+      ];
+    case "synthetic_bank":
+      return [
+        "Transaction: " + value(transaction.transaction_id || runtime.transaction_id || snapshot.transaction_id),
+        "Bank: " + value(transaction.bank_id),
+        "Amount: " + value(transaction.amount),
+        "Synthetic: " + (transaction.synthetic === true || snapshot.data_mode === "synthetic" ? "Ha" : "Tasdiqlanmagan")
+      ];
+    case "signal_risk":
+      return [
+        "Signals: " + value(pipeline.signals?.length ?? runtime.signal_ids?.length ?? 0),
+        "Evidence: " + value(pipeline.evidences?.length ?? runtime.evidence_ids?.length ?? 0),
+        "Risk score: " + value(risk.score ?? runtime.risk_score),
+        "Risk level: " + value(risk.level ?? runtime.risk_level),
+        "Threshold: " + value(risk.escalation_threshold ?? risk.threshold ?? runtime.threshold),
+        "Case eligibility: " + value(risk.case_eligible)
+      ];
+    case "cross_bank_fraud":
+      return [
+        "Scope: " + value(crossBank.scope || "cross_bank"),
+        "Matches: " + value(crossBank.matches?.length ?? runtime.cross_bank_matches ?? 0),
+        "Cross-bank ruxsati: " + (runtime.cross_bank_authorized === true ? "Ha" : "Yo‘q")
+      ];
+    case "audit_kpi":
+      return [
+        "Audit events: " + value(audit.length || runtime.audit_events || 0),
+        "Signal → Case: " + value(kpi.signal_to_case_rate),
+        "Case action rate: " + value(kpi.case_action_rate),
+        "Data mode: synthetic"
+      ];
+    case "finzanjir_ai":
+      return [
+        "AI izohi: " + value(ai.answer?.answer || snapshot.explanation?.summary || "Sinov natijasidan keyin ko‘rsatiladi"),
+        "Confidence: " + value(ai.answer?.confidence),
+        "Abstained: " + value(ai.answer?.abstained),
+        "Knowledge refs: " + value(ai.answer?.citations?.length ?? 0)
+      ];
+    case "layers_16":
+      return [
+        "Layer traces: " + value(layers.length || runtime.layers_traced || 0) + " / 16",
+        "Holat: " + value(runtime.layer_status_summary?.partial) + " qisman, " + value(runtime.layer_status_summary?.planned) + " rejalashtirilgan"
+      ];
+    default:
+      return ["Bu oyna uchun runtime ma’lumoti mavjud emas."];
+  }
+}
+
+function selectWindow(windowId) {
+  if (!currentManifest || !currentManifest.window_roles[windowId]) return;
+  activeWindowId = windowId;
+  const labels = Object.fromEntries(currentManifest.windows.map(([id, label]) => [id, label]));
+  document.querySelectorAll("#windows .window-card").forEach(button => {
+    button.setAttribute("aria-pressed", String(button.dataset.windowId === windowId));
+  });
+  document.querySelector("#activeWindowTitle").textContent = labels[windowId] || windowId;
+  document.querySelector("#activeWindowPurpose").textContent = currentManifest.window_roles[windowId].output;
+  document.querySelector("#activeWindowInput").textContent = "Kirish: " + currentManifest.window_roles[windowId].input;
+  const list = document.querySelector("#activeWindowData");
+  list.replaceChildren(...windowSummaryLines(windowId).map(line => {
+    const item = document.createElement("li");
+    item.textContent = line;
+    return item;
+  }));
+}
+
 async function loadShell() {
   const [manifestResponse, demoResponse] = await Promise.all([
     fetch("./prototype_manifest.json"),
@@ -47,15 +153,23 @@ async function loadShell() {
   document.querySelector("#mode").textContent = manifest.data_mode;
   const labels = Object.fromEntries(manifest.windows.map(([id, label]) => [id, label]));
 
+  currentManifest = manifest;
+  lastExecution = demo;
   renderList(document.querySelector("#windows"), manifest.windows, ([id, label]) => {
     const role = manifest.window_roles[id];
-    const article = element("article", "card");
-    const title = element("strong", "", label);
-    const purpose = element("p", "muted", role.output);
-    const input = element("small", "", role.input);
-    article.append(title, purpose, input);
-    return article;
+    const button = element("button", "window-card");
+    button.type = "button";
+    button.dataset.windowId = id;
+    button.setAttribute("aria-pressed", "false");
+    button.append(
+      element("strong", "", label),
+      element("p", "muted", role.output),
+      element("small", "", role.input)
+    );
+    button.addEventListener("click", () => selectWindow(id));
+    return button;
   });
+  selectWindow("dashboard");
 
   renderList(document.querySelector("#flow"), manifest.system_flow.transitions, ([from, to], index) => {
     const step = element("div", "flow-step");
@@ -245,6 +359,8 @@ async function runSyntheticScenario() {
     });
     const body = await response.json();
     if (!response.ok) throw new Error(body.detail || "Sinov bajarilmadi");
+    lastExecution = body;
+    selectWindow(activeWindowId);
     renderScenarioResult(body);
     await loadRunHistory();
   } catch (error) {
