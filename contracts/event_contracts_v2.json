@@ -1,0 +1,294 @@
+{
+  "schema_version": "2.0",
+  "status": "canonical-contract-target",
+  "objects": [
+    "Transaction",
+    "Signal",
+    "Evidence",
+    "Risk",
+    "Threshold",
+    "Case",
+    "HumanDecision",
+    "BankStatus",
+    "CitizenStatus",
+    "AuditEvent"
+  ],
+  "relationships": [
+    [
+      "Transaction",
+      "Signal"
+    ],
+    [
+      "Signal",
+      "Evidence"
+    ],
+    [
+      "Signal",
+      "Risk"
+    ],
+    [
+      "Risk",
+      "Threshold"
+    ],
+    [
+      "Threshold",
+      "Case"
+    ],
+    [
+      "Case",
+      "HumanDecision"
+    ],
+    [
+      "HumanDecision",
+      "BankStatus"
+    ],
+    [
+      "HumanDecision",
+      "CitizenStatus"
+    ],
+    [
+      "Risk",
+      "AuditEvent"
+    ],
+    [
+      "Case",
+      "AuditEvent"
+    ]
+  ],
+  "schemas": {
+    "Transaction": {
+      "required": [
+        "id",
+        "bank_id",
+        "actor_id",
+        "occurred_at",
+        "amount",
+        "synthetic"
+      ],
+      "aliases": {
+        "id": [
+          "transaction_id"
+        ]
+      },
+      "optional": [
+        "currency",
+        "channel",
+        "data_mode"
+      ]
+    },
+    "Signal": {
+      "required": [
+        "id",
+        "transaction_id",
+        "type",
+        "source",
+        "occurred_at",
+        "status",
+        "data_mode"
+      ],
+      "optional": [
+        "signal_id",
+        "family",
+        "source_status"
+      ]
+    },
+    "Evidence": {
+      "required": [
+        "id",
+        "signal_id",
+        "type",
+        "status",
+        "observed_at",
+        "provenance"
+      ],
+      "optional": [
+        "evidence_quality",
+        "recency_factor",
+        "data_mode"
+      ]
+    },
+    "Risk": {
+      "required": [
+        "id",
+        "signal_ids",
+        "score",
+        "level",
+        "calculated_at",
+        "engine_version",
+        "threshold_met",
+        "case_eligible",
+        "data_mode",
+        "shadow_mode"
+      ],
+      "optional": [
+        "signal_id",
+        "evidence_confidence",
+        "registry_version",
+        "evidence_count",
+        "independent_families",
+        "family_contributions",
+        "deduplicated_evidence_ids",
+        "score_semantics"
+      ],
+      "constraints": [
+        "score is a 0..100 prioritization score, not probability or guilt",
+        "Case eligibility requires threshold plus independent evidence policy",
+        "shadow_mode=true creates no Case or bank action"
+      ]
+    },
+    "Threshold": {
+      "required": [
+        "id",
+        "type",
+        "value",
+        "version",
+        "effective_at",
+        "changed_by"
+      ],
+      "status": "configuration_object_planned"
+    },
+    "Case": {
+      "required": [
+        "id",
+        "signal_ids",
+        "risk_id",
+        "threshold_id",
+        "status",
+        "opened_at",
+        "transaction_id"
+      ],
+      "aliases": {
+        "id": [
+          "case_id"
+        ],
+        "signal_ids": [
+          "source_signal_ids"
+        ]
+      },
+      "constraints": [
+        "Case is not a final guilt judgment"
+      ]
+    },
+    "HumanDecision": {
+      "required": [
+        "id",
+        "case_id",
+        "actor_id",
+        "decision",
+        "decided_at",
+        "reason",
+        "decision_origin",
+        "actor_type",
+        "is_authoritative"
+      ],
+      "aliases": {
+        "id": [
+          "decision_id"
+        ]
+      }
+    },
+    "BankStatus": {
+      "required": [
+        "id",
+        "case_id",
+        "bank_id",
+        "status",
+        "updated_at"
+      ],
+      "aliases": {
+        "id": [
+          "status_id"
+        ]
+      }
+    },
+    "CitizenStatus": {
+      "required": [
+        "id",
+        "case_id",
+        "citizen_id",
+        "status",
+        "updated_at"
+      ],
+      "aliases": {
+        "id": [
+          "status_id"
+        ],
+        "citizen_id": [
+          "actor_id"
+        ]
+      }
+    },
+    "AuditEvent": {
+      "required": [
+        "event_id",
+        "event_type",
+        "occurred_at",
+        "actor_id",
+        "source",
+        "scope",
+        "object_type",
+        "object_id",
+        "correlation_id",
+        "causation_id",
+        "payload",
+        "data_mode"
+      ],
+      "aliases": {
+        "event_id": [
+          "audit_id"
+        ],
+        "payload": [
+          "details"
+        ]
+      }
+    }
+  },
+  "event_envelope": "event_envelope_v2.json",
+  "constraints": {
+    "synthetic_transaction_must_be_explicit": true,
+    "case_is_not_final_guilt_judgment": true,
+    "cross_bank_scope_requires_explicit_server_side_authorization": true,
+    "shadow_mode_has_no_case_or_bank_action": true,
+    "ai_runtime_context_is_not_authoritative_knowledge": true,
+    "one_signal_is_not_proof": true
+  },
+  "lifecycle": {
+    "Signal": [
+      "OBSERVED",
+      "ACTIVE",
+      "RESOLVED",
+      "DISMISSED"
+    ],
+    "Risk": [
+      "CALCULATED",
+      "ESCALATED",
+      "CLEARED"
+    ],
+    "Case": [
+      "OPEN",
+      "IN_REVIEW",
+      "ACTIONED",
+      "CLOSED",
+      "DISMISSED"
+    ],
+    "HumanDecision": [
+      "APPROVE_ACTION",
+      "REQUEST_MORE_EVIDENCE",
+      "DISMISS",
+      "ESCALATE"
+    ],
+    "BankStatus": [
+      "MONITORING",
+      "REVIEW_REQUIRED",
+      "RESTRICTED",
+      "RESTORED"
+    ],
+    "CitizenStatus": [
+      "INFORMED",
+      "UNDER_REVIEW",
+      "RESOLVED",
+      "SHADOW_ONLY",
+      "SYNTHETIC_REVIEW_ONLY"
+    ]
+  }
+}
