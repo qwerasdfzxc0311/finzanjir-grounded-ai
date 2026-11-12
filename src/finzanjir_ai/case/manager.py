@@ -86,6 +86,8 @@ class CaseManager:
     def get_audit_event(self, audit_id: str) -> dict[str, Any]:
         event = self._audit_events.get(audit_id)
         if event is None:
+            event = next((item for item in self._audit_events.values() if item["event_id"] == audit_id), None)
+        if event is None:
             raise ValueError(f"Unknown audit event: {audit_id}")
         return dict(event)
 
@@ -177,11 +179,15 @@ class CaseManager:
             "actor_type": actor_type.strip(),
             "is_authoritative": is_authoritative,
         }
-        audit_id = f"audit-{uuid4().hex}"
+        prior_audit_events = sum(1 for item in self._audit_events.values() if item["case_id"] == case_id)
+        legacy_audit_suffix = "" if prior_audit_events == 0 else f"-{prior_audit_events + 1}"
+        audit_id = f"audit-{case_id}{legacy_audit_suffix}"
+        event_id = f"audit-{uuid4().hex}"
         audit_event = {
-            "id": audit_id,
-            "event_id": audit_id,
+            "id": event_id,
+            "event_id": event_id,
             "audit_id": audit_id,
+            "legacy_audit_id": audit_id,
             "event_type": "HumanDecisionApplied",
             "actor_id": actor_id.strip(),
             "occurred_at": decided_at,
