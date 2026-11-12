@@ -76,7 +76,8 @@
         "purpose_and_retention_approval",
         "bank_contract_and_cbu_requirements_check"
       ],
-      "notes": "Yirik qonuniy xarid, ish haqi yoki biznes tushumi baseline bilan izohlanishi mumkin."
+      "notes": "Yirik qonuniy xarid, ish haqi yoki biznes tushumi baseline bilan izohlanishi mumkin.",
+      "cross_bank_data_enabled": false
     },
     {
       "signal_id": "SIG-002",
@@ -139,7 +140,8 @@
         "purpose_and_retention_approval",
         "bank_contract_and_cbu_requirements_check"
       ],
-      "notes": "Faol savdogar va batch to‘lovlar benign bo‘lishi mumkin."
+      "notes": "Faol savdogar va batch to‘lovlar benign bo‘lishi mumkin.",
+      "cross_bank_data_enabled": false
     },
     {
       "signal_id": "SIG-003",
@@ -202,7 +204,8 @@
         "purpose_and_retention_approval",
         "bank_contract_and_cbu_requirements_check"
       ],
-      "notes": "Biznes settlement va oila ichidagi pul aylanishi tekshirilishi kerak."
+      "notes": "Biznes settlement va oila ichidagi pul aylanishi tekshirilishi kerak.",
+      "cross_bank_data_enabled": false
     },
     {
       "signal_id": "SIG-004",
@@ -263,7 +266,8 @@
         "purpose_and_retention_approval",
         "bank_contract_and_cbu_requirements_check"
       ],
-      "notes": "Yangi qabul qiluvchi yakka holda firibgarlik belgisi emas."
+      "notes": "Yangi qabul qiluvchi yakka holda firibgarlik belgisi emas.",
+      "cross_bank_data_enabled": false
     },
     {
       "signal_id": "SIG-005",
@@ -326,7 +330,8 @@
         "purpose_and_retention_approval",
         "bank_contract_and_cbu_requirements_check"
       ],
-      "notes": "Bo‘lib to‘lash, payroll va qonuniy limitlar sabab bo‘lishi mumkin."
+      "notes": "Bo‘lib to‘lash, payroll va qonuniy limitlar sabab bo‘lishi mumkin.",
+      "cross_bank_data_enabled": false
     },
     {
       "signal_id": "SIG-006",
@@ -387,7 +392,8 @@
         "purpose_and_retention_approval",
         "bank_contract_and_cbu_requirements_check"
       ],
-      "notes": "Yangi telefon, app reinstall yoki telefon ta’miri benign izoh bo‘lishi mumkin."
+      "notes": "Yangi telefon, app reinstall yoki telefon ta’miri benign izoh bo‘lishi mumkin.",
+      "cross_bank_data_enabled": false
     },
     {
       "signal_id": "SIG-007",
@@ -450,7 +456,8 @@
         "purpose_and_retention_approval",
         "bank_contract_and_cbu_requirements_check"
       ],
-      "notes": "VPN, roaming, safar va geo aniqligi hisobga olinadi."
+      "notes": "VPN, roaming, safar va geo aniqligi hisobga olinadi.",
+      "cross_bank_data_enabled": false
     },
     {
       "signal_id": "SIG-008",
@@ -510,7 +517,8 @@
         "purpose_and_retention_approval",
         "bank_contract_and_cbu_requirements_check"
       ],
-      "notes": "Oilaviy yoki ish qurilmasi bir nechta instrumentga xizmat qilishi mumkin."
+      "notes": "Oilaviy yoki ish qurilmasi bir nechta instrumentga xizmat qilishi mumkin.",
+      "cross_bank_data_enabled": false
     },
     {
       "signal_id": "SIG-009",
@@ -571,7 +579,8 @@
         "purpose_and_retention_approval",
         "bank_contract_and_cbu_requirements_check"
       ],
-      "notes": "VPN va proxy ishlatish qonuniy bo‘lishi mumkin; past vaznli kontekst."
+      "notes": "VPN va proxy ishlatish qonuniy bo‘lishi mumkin; past vaznli kontekst.",
+      "cross_bank_data_enabled": false
     },
     {
       "signal_id": "SIG-010",
@@ -632,7 +641,8 @@
         "purpose_and_retention_approval",
         "bank_contract_and_cbu_requirements_check"
       ],
-      "notes": "Tungi smena va safar vaqt profilini o‘zgartiradi."
+      "notes": "Tungi smena va safar vaqt profilini o‘zgartiradi.",
+      "cross_bank_data_enabled": false
     },
     {
       "signal_id": "SIG-011",
@@ -695,7 +705,8 @@
         "purpose_and_retention_approval",
         "bank_contract_and_cbu_requirements_check"
       ],
-      "notes": "Accessibility shortcuts yoki odatiy tezkor to‘lovlar false positive bo‘lishi mumkin."
+      "notes": "Accessibility shortcuts yoki odatiy tezkor to‘lovlar false positive bo‘lishi mumkin.",
+      "cross_bank_data_enabled": false
     },
     {
       "signal_id": "SIG-012",
@@ -756,7 +767,8 @@
         "purpose_and_retention_approval",
         "bank_contract_and_cbu_requirements_check"
       ],
-      "notes": "Mijozning o‘zi parolni tiklagan bo‘lishi mumkin; auth secretlari olinmaydi."
+      "notes": "Mijozning o‘zi parolni tiklagan bo‘lishi mumkin; auth secretlari olinmaydi.",
+      "cross_bank_data_enabled": false
     },
     {
       "signal_id": "SIG-013",
@@ -819,7 +831,8 @@
         "purpose_and_retention_approval",
         "bank_contract_and_cbu_requirements_check"
       ],
-      "notes": "Faqat vakolatli, yangilangan va tuzatish mexanizmi bor ro‘yxat; ism o‘xshashligi yetarli emas."
+      "notes": "Faqat vakolatli, yangilangan va tuzatish mexanizmi bor ro‘yxat; ism o‘xshashligi yetarli emas.",
+      "cross_bank_data_enabled": false
     },
     {
       "signal_id": "SIG-014",
@@ -882,7 +895,8 @@
         "purpose_and_retention_approval",
         "bank_contract_and_cbu_requirements_check"
       ],
-      "notes": "Oila va korxona qurilmalarini alohida hisobga olish zarur."
+      "notes": "Oila va korxona qurilmalarini alohida hisobga olish zarur.",
+      "cross_bank_data_enabled": false
     },
     {
       "signal_id": "SIG-015",
@@ -945,7 +959,8 @@
         "purpose_and_retention_approval",
         "bank_contract_and_cbu_requirements_check"
       ],
-      "notes": "Qonuniy biznes settlement sikllari false positive bo‘lishi mumkin."
+      "notes": "Qonuniy biznes settlement sikllari false positive bo‘lishi mumkin.",
+      "cross_bank_data_enabled": false
     },
     {
       "signal_id": "SIG-016",
@@ -1006,7 +1021,8 @@
         "purpose_and_retention_approval",
         "bank_contract_and_cbu_requirements_check"
       ],
-      "notes": "Mijoz xatosi va klaviatura/autofill muammolari hisobga olinadi."
+      "notes": "Mijoz xatosi va klaviatura/autofill muammolari hisobga olinadi.",
+      "cross_bank_data_enabled": false
     },
     {
       "signal_id": "SIG-017",
@@ -1067,7 +1083,8 @@
         "purpose_and_retention_approval",
         "bank_contract_and_cbu_requirements_check"
       ],
-      "notes": "SMS kechikishi yoki aloqa sifati sabab bo‘lishi mumkin."
+      "notes": "SMS kechikishi yoki aloqa sifati sabab bo‘lishi mumkin.",
+      "cross_bank_data_enabled": false
     },
     {
       "signal_id": "SIG-018",
@@ -1129,7 +1146,8 @@
         "purpose_and_retention_approval",
         "bank_contract_and_cbu_requirements_check"
       ],
-      "notes": "Mijozning xavfsizlik sozlamasini qonuniy o‘zgartirishi mumkin."
+      "notes": "Mijozning xavfsizlik sozlamasini qonuniy o‘zgartirishi mumkin.",
+      "cross_bank_data_enabled": false
     },
     {
       "signal_id": "SIG-019",
@@ -1190,7 +1208,8 @@
         "purpose_and_retention_approval",
         "bank_contract_and_cbu_requirements_check"
       ],
-      "notes": "Telefon almashtirish yoki zavod sozlamasi benign bo‘lishi mumkin."
+      "notes": "Telefon almashtirish yoki zavod sozlamasi benign bo‘lishi mumkin.",
+      "cross_bank_data_enabled": false
     },
     {
       "signal_id": "SIG-020",
@@ -1251,7 +1270,8 @@
         "purpose_and_retention_approval",
         "bank_contract_and_cbu_requirements_check"
       ],
-      "notes": "Qabul qiluvchi rekvizitlari qonuniy yangilangan bo‘lishi mumkin."
+      "notes": "Qabul qiluvchi rekvizitlari qonuniy yangilangan bo‘lishi mumkin.",
+      "cross_bank_data_enabled": false
     },
     {
       "signal_id": "SIG-021",
@@ -1314,7 +1334,8 @@
         "purpose_and_retention_approval",
         "bank_contract_and_cbu_requirements_check"
       ],
-      "notes": "Transliteratsiya, qisqartma va imlo farqlari alohida tekshiriladi."
+      "notes": "Transliteratsiya, qisqartma va imlo farqlari alohida tekshiriladi.",
+      "cross_bank_data_enabled": false
     },
     {
       "signal_id": "SIG-022",
@@ -1376,7 +1397,8 @@
         "purpose_and_retention_approval",
         "bank_contract_and_cbu_requirements_check"
       ],
-      "notes": "Mavsumiy yoki jamg‘arma hisoblari uzoq muddat faol bo‘lmasligi mumkin."
+      "notes": "Mavsumiy yoki jamg‘arma hisoblari uzoq muddat faol bo‘lmasligi mumkin.",
+      "cross_bank_data_enabled": false
     },
     {
       "signal_id": "SIG-023",
@@ -1439,7 +1461,8 @@
         "purpose_and_retention_approval",
         "bank_contract_and_cbu_requirements_check"
       ],
-      "notes": "Crowdfunding, payroll yoki umumiy to‘lov yig‘imi benign bo‘lishi mumkin."
+      "notes": "Crowdfunding, payroll yoki umumiy to‘lov yig‘imi benign bo‘lishi mumkin.",
+      "cross_bank_data_enabled": false
     },
     {
       "signal_id": "SIG-024",
@@ -1500,7 +1523,8 @@
         "purpose_and_retention_approval",
         "bank_contract_and_cbu_requirements_check"
       ],
-      "notes": "Payment aggregator va biznes settlement tarmoqlari alohida baholanadi."
+      "notes": "Payment aggregator va biznes settlement tarmoqlari alohida baholanadi.",
+      "cross_bank_data_enabled": false
     },
     {
       "signal_id": "SIG-025",
@@ -1562,7 +1586,8 @@
         "purpose_and_retention_approval",
         "bank_contract_and_cbu_requirements_check"
       ],
-      "notes": "Ijara, kredit, soliq yoki yirik qonuniy to‘lovlar bo‘lishi mumkin."
+      "notes": "Ijara, kredit, soliq yoki yirik qonuniy to‘lovlar bo‘lishi mumkin.",
+      "cross_bank_data_enabled": false
     },
     {
       "signal_id": "SIG-026",
@@ -1623,7 +1648,8 @@
         "purpose_and_retention_approval",
         "bank_contract_and_cbu_requirements_check"
       ],
-      "notes": "Merchant refund yoki texnik reversal benign bo‘lishi mumkin."
+      "notes": "Merchant refund yoki texnik reversal benign bo‘lishi mumkin.",
+      "cross_bank_data_enabled": false
     },
     {
       "signal_id": "SIG-027",
@@ -1684,7 +1710,8 @@
         "purpose_and_retention_approval",
         "bank_contract_and_cbu_requirements_check"
       ],
-      "notes": "Internet uzilishi va timeout qayta urinishlarni keltirib chiqarishi mumkin."
+      "notes": "Internet uzilishi va timeout qayta urinishlarni keltirib chiqarishi mumkin.",
+      "cross_bank_data_enabled": false
     },
     {
       "signal_id": "SIG-028",
@@ -1746,7 +1773,8 @@
         "purpose_and_retention_approval",
         "bank_contract_and_cbu_requirements_check"
       ],
-      "notes": "Mijoz web va mobile o‘rtasida qonuniy o‘tishi mumkin."
+      "notes": "Mijoz web va mobile o‘rtasida qonuniy o‘tishi mumkin.",
+      "cross_bank_data_enabled": false
     },
     {
       "signal_id": "SIG-029",
@@ -1808,7 +1836,8 @@
         "purpose_and_retention_approval",
         "bank_contract_and_cbu_requirements_check"
       ],
-      "notes": "Bir mijozning ikki qurilmadagi seansi bo‘lishi mumkin."
+      "notes": "Bir mijozning ikki qurilmadagi seansi bo‘lishi mumkin.",
+      "cross_bank_data_enabled": false
     },
     {
       "signal_id": "SIG-030",
@@ -1870,7 +1899,8 @@
         "purpose_and_retention_approval",
         "bank_contract_and_cbu_requirements_check"
       ],
-      "notes": "Mijoz pulni naqd olishni oldindan rejalagan bo‘lishi mumkin."
+      "notes": "Mijoz pulni naqd olishni oldindan rejalagan bo‘lishi mumkin.",
+      "cross_bank_data_enabled": false
     },
     {
       "signal_id": "SIG-031",
@@ -1932,7 +1962,8 @@
         "purpose_and_retention_approval",
         "bank_contract_and_cbu_requirements_check"
       ],
-      "notes": "Kommunal to‘lovlar va oilaviy yordam benign bo‘lishi mumkin."
+      "notes": "Kommunal to‘lovlar va oilaviy yordam benign bo‘lishi mumkin.",
+      "cross_bank_data_enabled": false
     },
     {
       "signal_id": "SIG-032",
@@ -1994,7 +2025,8 @@
         "purpose_and_retention_approval",
         "bank_contract_and_cbu_requirements_check"
       ],
-      "notes": "Mavsumiy savdo, bonus yoki katta xarid hisobga olinadi."
+      "notes": "Mavsumiy savdo, bonus yoki katta xarid hisobga olinadi.",
+      "cross_bank_data_enabled": false
     },
     {
       "signal_id": "SIG-033",
@@ -2056,7 +2088,8 @@
         "purpose_and_retention_approval",
         "bank_contract_and_cbu_requirements_check"
       ],
-      "notes": "Marketplace va aggregatorlar qonuniy ko‘p tomonlama oqimlarga ega."
+      "notes": "Marketplace va aggregatorlar qonuniy ko‘p tomonlama oqimlarga ega.",
+      "cross_bank_data_enabled": false
     },
     {
       "signal_id": "SIG-034",
@@ -2117,7 +2150,8 @@
         "purpose_and_retention_approval",
         "bank_contract_and_cbu_requirements_check"
       ],
-      "notes": "Mijoz telefon yoki emailini qonuniy yangilagan bo‘lishi mumkin."
+      "notes": "Mijoz telefon yoki emailini qonuniy yangilagan bo‘lishi mumkin.",
+      "cross_bank_data_enabled": false
     },
     {
       "signal_id": "SIG-035",
@@ -2178,7 +2212,8 @@
         "purpose_and_retention_approval",
         "bank_contract_and_cbu_requirements_check"
       ],
-      "notes": "App reinstall va OS yangilanishi yangi ro‘yxatdan o‘tishga o‘xshashi mumkin."
+      "notes": "App reinstall va OS yangilanishi yangi ro‘yxatdan o‘tishga o‘xshashi mumkin.",
+      "cross_bank_data_enabled": false
     },
     {
       "signal_id": "SIG-036",
@@ -2239,7 +2274,8 @@
         "purpose_and_retention_approval",
         "bank_contract_and_cbu_requirements_check"
       ],
-      "notes": "Mikro tranzaksiya faqat mustaqil boshqa dalil bilan tasdiqlansa ball oladi."
+      "notes": "Mikro tranzaksiya faqat mustaqil boshqa dalil bilan tasdiqlansa ball oladi.",
+      "cross_bank_data_enabled": false
     },
     {
       "signal_id": "SIG-037",
@@ -2300,7 +2336,8 @@
         "purpose_and_retention_approval",
         "bank_contract_and_cbu_requirements_check"
       ],
-      "notes": "Yangi ochilgan qonuniy hisobning o‘zi shubhali emas; qo‘shimcha signal talab qilinadi."
+      "notes": "Yangi ochilgan qonuniy hisobning o‘zi shubhali emas; qo‘shimcha signal talab qilinadi.",
+      "cross_bank_data_enabled": false
     },
     {
       "signal_id": "SIG-038",
@@ -2352,7 +2389,8 @@
         "purpose_and_retention_approval",
         "bank_contract_and_cbu_requirements_check"
       ],
-      "notes": "Faqat kontekst; 0 ball."
+      "notes": "Faqat kontekst; 0 ball.",
+      "cross_bank_data_enabled": false
     },
     {
       "signal_id": "SIG-039",
@@ -2413,7 +2451,8 @@
         "purpose_and_retention_approval",
         "bank_contract_and_cbu_requirements_check"
       ],
-      "notes": "Uy, ofis va public Wi-Fi umumiy IP ishlatishi mumkin; qo‘shimcha dalil talab qilinadi."
+      "notes": "Uy, ofis va public Wi-Fi umumiy IP ishlatishi mumkin; qo‘shimcha dalil talab qilinadi.",
+      "cross_bank_data_enabled": false
     },
     {
       "signal_id": "SIG-040",
@@ -2465,7 +2504,8 @@
         "purpose_and_retention_approval",
         "bank_contract_and_cbu_requirements_check"
       ],
-      "notes": "Faqat kontekst; 0 ball; clipboard mazmuni hech qachon olinmaydi."
+      "notes": "Faqat kontekst; 0 ball; clipboard mazmuni hech qachon olinmaydi.",
+      "cross_bank_data_enabled": false
     }
   ]
 }
