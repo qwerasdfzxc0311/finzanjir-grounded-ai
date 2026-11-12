@@ -14,7 +14,7 @@ def test_layer_registry_has_16_evidence_based_statuses_and_acceptance_criteria()
 
     assert len(layers) == 16
     assert len({layer["id"] for layer in layers}) == 16
-    assert summary == {"total": 16, "complete": 0, "partial": 12, "planned": 4}
+    assert summary == {"total": 16, "complete": 0, "partial": 13, "planned": 3}
     assert all(layer["status"] in {"PARTIAL", "PLANNED", "COMPLETE"} for layer in layers)
     assert all(layer["acceptance_criteria"] for layer in layers)
     assert all(layer["remaining_work"] for layer in layers)
