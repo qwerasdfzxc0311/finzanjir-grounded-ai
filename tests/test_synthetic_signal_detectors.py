@@ -5,6 +5,7 @@ import pytest
 
 from finzanjir_ai.risk.detectors import SyntheticSignalDetector, _matches
 from finzanjir_ai.risk.registry import SIGNAL_REGISTRY
+from finzanjir_ai.risk.pipeline import process_transaction
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -352,3 +353,37 @@ def test_every_detector_required_feature_type_mismatch_abstains(rule, field):
     assert outcome["status"] == "INSUFFICIENT_DATA"
     assert outcome["reason_code"] == "invalid_feature_values"
     assert field in outcome["invalid_features"]
+
+
+
+@pytest.mark.parametrize("rule", CONTRACT["detectors"], ids=lambda item: item["signal_id"])
+def test_every_signal_zero_recency_factor_contributes_zero_priority(rule):
+    detection = SyntheticSignalDetector().evaluate(
+        scenario_id=f"zero-recency-{rule['signal_id']}",
+        observed_at="2026-11-12T09:00:00Z",
+        features=_fixture(rule),
+        recency_factor=0,
+    )
+    outcome = next(item for item in detection["detections"] if item["signal_id"] == rule["signal_id"])
+    assert outcome["status"] == "DETECTED"
+    assert detection["signal_observations"]
+    assert all(item["recency_factor"] == 0 for item in detection["signal_observations"])
+
+    pipeline = process_transaction(
+        {
+            "transaction_id": f"TX-ZERO-RECENCY-{rule['signal_id']}",
+            "bank_id": "bank-synthetic",
+            "actor_id": "actor-synthetic",
+            "amount": 2500,
+            "occurred_at": "2026-11-12T09:00:00Z",
+            "synthetic": True,
+            "signal_observations": detection["signal_observations"],
+            "shadow_mode": True,
+        },
+        signal_amount_threshold=1000,
+        escalation_threshold=0.75,
+    )
+
+    assert pipeline.risk["score"] == 0
+    assert pipeline.risk["case_eligible"] is False
+    assert pipeline.case is None
