@@ -49,6 +49,10 @@ def test_audit_log_emits_v2_envelope_and_keeps_v1_aliases():
     assert event["payload"] == event["details"] == {"score": 80}
     assert event["correlation_id"] == "transaction-1"
     assert event["scope"] == "bank_internal"
+    event["payload"]["score"] = 0
+    assert audit.events()[0]["payload"]["score"] == 80
+    another = AuditLog().append(actor_id="actor", event_type="Test", object_type="Risk", object_id="risk-2", details={})
+    assert another["event_id"] != event["event_id"]
 
 
 def test_audit_log_rejects_invalid_scope_and_data_mode():
