@@ -130,7 +130,12 @@
         "independent_families",
         "family_contributions",
         "deduplicated_evidence_ids",
-        "score_semantics"
+        "score_semantics",
+        "threshold_id",
+        "threshold_version",
+        "threshold_changed_by",
+        "threshold_effective_at",
+        "threshold"
       ],
       "constraints": [
         "score is a 0..100 prioritization score, not probability or guilt",
@@ -144,11 +149,15 @@
         "id",
         "type",
         "value",
+        "score_scale",
         "version",
+        "status",
         "effective_at",
-        "changed_by"
+        "changed_by",
+        "reason",
+        "data_mode"
       ],
-      "status": "configuration_object_planned"
+      "status": "implemented-in-memory-versioned-manager"
     },
     "Case": {
       "required": [
