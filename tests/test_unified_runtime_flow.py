@@ -240,6 +240,7 @@ def test_all_window_references_form_one_consistent_synthetic_transaction_chain()
     assert {transaction_id, risk_id} | signal_ids | evidence_ids <= ai_refs
 
     assert decision_id in by_id["citizen"]["input_refs"]
-    assert result["citizen_status"]["status_id"] in by_id["citizen"]["output_refs"]
+    assert result["citizen_status"]["status"] == "SYNTHETIC_REVIEW_ONLY"
+    assert case_id in by_id["citizen"]["output_refs"]
     assert transaction_id in by_id["layers_16"]["input_refs"]
     assert layer_ids <= set(by_id["layers_16"]["output_refs"])
