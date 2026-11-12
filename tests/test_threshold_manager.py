@@ -57,13 +57,16 @@ def test_threshold_manager_rejects_stale_version_and_invalid_proposals():
             value=80, proposed_by="analyst", reason="stale", expected_version=2
         )
 
-    proposal = manager.propose_threshold(
-        value=80, proposed_by="analyst", reason="first", expected_version=1
+    stale = manager.propose_threshold(
+        value=82, proposed_by="analyst-a", reason="stale proposal", expected_version=1
     )["proposal"]
-    manager.approve_proposal(proposal["proposal_id"], approved_by="reviewer")
+    fresh = manager.propose_threshold(
+        value=80, proposed_by="analyst-b", reason="approved proposal", expected_version=1
+    )["proposal"]
+    manager.approve_proposal(fresh["proposal_id"], approved_by="reviewer")
 
-    with pytest.raises(ValueError, match="must be re-created"):
-        manager.approve_proposal(proposal["proposal_id"], approved_by="second-reviewer")
+    with pytest.raises(ValueError, match="version conflict"):
+        manager.approve_proposal(stale["proposal_id"], approved_by="second-reviewer")
     with pytest.raises(ValueError, match="direct threshold updates are disabled"):
         manager.update_threshold(
             value=85, changed_by="analyst", reason="bypass", expected_version=2
