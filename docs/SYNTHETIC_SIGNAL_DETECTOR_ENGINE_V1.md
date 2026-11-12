@@ -60,3 +60,16 @@ No real-bank connector or cross-bank data path is enabled by this release.
 - SQLite WAL concurrency limitations: https://www.sqlite.org/wal.html
 
 These are engineering references only, not FINZANJIR regulatory approval.
+
+
+## Detector-level Shadow Mode evaluation
+
+The prototype also exposes:
+
+- `POST /api/prototype/detector-shadow-evaluate`
+
+Each scenario supplies `synthetic=true`, an expected synthetic QA label, a timezone-aware observation timestamp, a set of target signal IDs and a synthetic feature bundle. The endpoint runs the 40 candidate feature rules, converts detections into evidence-backed observations, and sends those observations through the multi-signal Risk Engine.
+
+A key distinction is preserved: if any target signal lacks required feature fields, the scenario is reported as `abstained_insufficient_data`. Missing fields are not silently classified as benign. The response reports decisive coverage and abstention rate separately from TP/FP/TN/FN and precision/recall-style fixture metrics.
+
+The metrics remain synthetic QA measurements only. They do not validate the availability, legality, completeness or predictive accuracy of any real bank source. The endpoint creates no Case, payment action, bank status change, customer block or authoritative decision.
