@@ -320,3 +320,39 @@ def test_progress_callback_failure_does_not_change_flow_result():
 
     assert result["transaction_id"] == transaction_id
     assert result["pipeline"].risk is not None
+
+
+
+@pytest.mark.parametrize("shadow_mode", [False, True])
+def test_window_trace_inputs_only_reference_outputs_from_prior_windows(shadow_mode):
+    flow = build_system_flow()
+    transaction_id = f"TX-TRACE-CLOSURE-{'SHADOW' if shadow_mode else 'CASE'}"
+    transaction = {
+        "transaction_id": transaction_id,
+        "bank_id": "bank-synthetic-a",
+        "actor_id": "actor-trace-closure",
+        "amount": 2500,
+        "occurred_at": "2026-11-12T09:00:00Z",
+        "synthetic": True,
+        "signal_events": build_synthetic_case_signal_events(
+            transaction_id=transaction_id,
+            observed_at="2026-11-12T09:00:00Z",
+        ),
+        "shadow_mode": shadow_mode,
+    }
+
+    result = flow.execute(transaction, knowledge_index=flow.demo_knowledge_index())
+    trace = flow.build_window_trace(result)
+    available_refs = set()
+
+    assert len(trace) == len(flow.window_ids) == 8
+    for stage in trace:
+        inputs = stage["input_refs"]
+        outputs = stage["output_refs"]
+        assert all(isinstance(ref, str) and ref for ref in inputs + outputs)
+        assert set(inputs) <= available_refs, (
+            f"{stage['window_id']} references data not emitted by an earlier window: "
+            f"{sorted(set(inputs) - available_refs)}"
+        )
+        assert len(outputs) == len(set(outputs)), f"{stage['window_id']} emits duplicate refs"
+        available_refs.update(outputs)
