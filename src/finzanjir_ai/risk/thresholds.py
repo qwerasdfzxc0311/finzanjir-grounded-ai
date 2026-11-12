@@ -4,12 +4,17 @@ from copy import deepcopy
 from datetime import datetime, timezone
 import math
 from typing import Any
+from uuid import uuid4
 
 from finzanjir_ai.audit.service import AuditLog
 
 
 class ThresholdManager:
-    """In-memory, versioned threshold configuration for synthetic prototype flows."""
+    """In-memory, versioned threshold governance for synthetic prototype flows.
+
+    Threshold changes require a proposal and a distinct approver. This is not
+    production RBAC or durable governance storage.
+    """
 
     def __init__(
         self,
@@ -33,6 +38,7 @@ class ThresholdManager:
             "reason": "Initial synthetic prototype threshold.",
             "data_mode": "synthetic",
         }]
+        self._proposals: dict[str, dict[str, Any]] = {}
         self._audit = AuditLog()
 
     @staticmethod
@@ -40,11 +46,22 @@ class ThresholdManager:
         return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
     @staticmethod
+    def _required_text(value: Any, field: str) -> str:
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError(f"{field} must be a non-empty string")
+        return value.strip()
+
+    @staticmethod
     def _validate_value(value: Any) -> None:
         if not isinstance(value, (int, float)) or isinstance(value, bool) or not math.isfinite(value):
             raise ValueError("threshold value must be a finite number")
         if not 0 <= value <= 100:
             raise ValueError("threshold value must be between 0 and 100")
+
+    @staticmethod
+    def _validate_version(value: Any) -> None:
+        if not isinstance(value, int) or isinstance(value, bool) or value < 1:
+            raise ValueError("expected_version must be a positive integer")
 
     def get_active(self) -> dict[str, Any]:
         active = [item for item in self._history if item["status"] == "ACTIVE"]
@@ -55,44 +72,92 @@ class ThresholdManager:
     def get_history(self) -> tuple[dict[str, Any], ...]:
         return tuple(deepcopy(item) for item in self._history)
 
-    def update_threshold(
+    def get_proposals(self) -> tuple[dict[str, Any], ...]:
+        return tuple(deepcopy(item) for item in self._proposals.values())
+
+    def propose_threshold(
         self,
         *,
         value: float,
-        changed_by: str,
+        proposed_by: str,
         reason: str,
         expected_version: int,
     ) -> dict[str, Any]:
         self._validate_value(value)
-        if not isinstance(changed_by, str) or not changed_by.strip():
-            raise ValueError("changed_by must be a non-empty string")
-        if not isinstance(reason, str) or not reason.strip():
-            raise ValueError("reason must be a non-empty string")
-        if not isinstance(expected_version, int) or isinstance(expected_version, bool) or expected_version < 1:
-            raise ValueError("expected_version must be a positive integer")
-
+        proposed_by = self._required_text(proposed_by, "proposed_by")
+        reason = self._required_text(reason, "reason")
+        self._validate_version(expected_version)
         current = self.get_active()
         if expected_version != current["version"]:
-            raise ValueError("threshold version conflict; refresh active version before updating")
+            raise ValueError("threshold version conflict; refresh active version before proposing")
         if float(value) == current["value"]:
             raise ValueError("new threshold value must differ from the active value")
 
-        self._history[-1] = {**current, "status": "SUPERSEDED"}
+        proposal_id = f"threshold-proposal-{uuid4().hex}"
+        now = self._now()
+        audit_event = self._audit.append(
+            actor_id=proposed_by,
+            event_type="THRESHOLD_PROPOSED",
+            object_type="ThresholdProposal",
+            object_id=proposal_id,
+            source="threshold_manager",
+            scope="bank_internal",
+            correlation_id=current["id"],
+            data_mode="synthetic",
+            details={
+                "proposal_id": proposal_id,
+                "proposed_value": float(value),
+                "expected_version": expected_version,
+                "reason": reason,
+                "score_scale": "priority_0_100",
+            },
+        )
+        proposal = {
+            "proposal_id": proposal_id,
+            "threshold_id": current["id"],
+            "proposed_value": float(value),
+            "proposed_by": proposed_by,
+            "reason": reason,
+            "expected_version": expected_version,
+            "status": "PENDING",
+            "created_at": now,
+            "approved_by": None,
+            "approved_at": None,
+            "resulting_version": None,
+            "data_mode": "synthetic",
+            "audit_event_id": audit_event["event_id"],
+        }
+        self._proposals[proposal_id] = proposal
+        return {"proposal": deepcopy(proposal), "audit_event": audit_event}
+
+    def approve_proposal(self, proposal_id: str, *, approved_by: str) -> dict[str, Any]:
+        proposal = self._proposals.get(proposal_id)
+        if proposal is None:
+            raise ValueError(f"unknown threshold proposal: {proposal_id}")
+        if proposal["status"] != "PENDING":
+            raise ValueError(f"threshold proposal is not pending: {proposal['status']}")
+        approved_by = self._required_text(approved_by, "approved_by")
+        if approved_by == proposal["proposed_by"]:
+            raise ValueError("threshold proposal requires a distinct approver")
+
+        current = self.get_active()
+        if current["version"] != proposal["expected_version"]:
+            raise ValueError("threshold version conflict; proposal must be re-created")
         new_threshold = {
             "id": current["id"],
             "type": current["type"],
-            "value": float(value),
+            "value": proposal["proposed_value"],
             "score_scale": "priority_0_100",
             "version": current["version"] + 1,
             "status": "ACTIVE",
             "effective_at": self._now(),
-            "changed_by": changed_by.strip(),
-            "reason": reason.strip(),
+            "changed_by": approved_by,
+            "reason": proposal["reason"],
             "data_mode": "synthetic",
         }
-        self._history.append(new_threshold)
+        # Audit first: if the audit write fails, active threshold and proposal stay unchanged.
         audit_event = self._audit.append(
-            actor_id=changed_by.strip(),
+            actor_id=approved_by,
             event_type="THRESHOLD_UPDATED",
             object_type="Threshold",
             object_id=current["id"],
@@ -101,18 +166,74 @@ class ThresholdManager:
             correlation_id=current["id"],
             data_mode="synthetic",
             details={
+                "proposal_id": proposal_id,
+                "proposed_by": proposal["proposed_by"],
+                "approved_by": approved_by,
                 "previous_value": current["value"],
                 "new_value": new_threshold["value"],
                 "previous_version": current["version"],
                 "new_version": new_threshold["version"],
-                "reason": reason.strip(),
+                "reason": proposal["reason"],
                 "score_scale": "priority_0_100",
             },
         )
+        self._history[-1] = {**current, "status": "SUPERSEDED"}
+        self._history.append(new_threshold)
+        updated_proposal = {
+            **proposal,
+            "status": "APPROVED",
+            "approved_by": approved_by,
+            "approved_at": self._now(),
+            "resulting_version": new_threshold["version"],
+            "approval_audit_event_id": audit_event["event_id"],
+        }
+        self._proposals[proposal_id] = updated_proposal
         return {
             "threshold": deepcopy(new_threshold),
+            "proposal": deepcopy(updated_proposal),
             "audit_event": audit_event,
         }
+
+    def reject_proposal(
+        self,
+        proposal_id: str,
+        *,
+        rejected_by: str,
+        reason: str,
+    ) -> dict[str, Any]:
+        proposal = self._proposals.get(proposal_id)
+        if proposal is None:
+            raise ValueError(f"unknown threshold proposal: {proposal_id}")
+        if proposal["status"] != "PENDING":
+            raise ValueError(f"threshold proposal is not pending: {proposal['status']}")
+        rejected_by = self._required_text(rejected_by, "rejected_by")
+        reason = self._required_text(reason, "reason")
+        if rejected_by == proposal["proposed_by"]:
+            raise ValueError("threshold proposal requires a distinct reviewer")
+        audit_event = self._audit.append(
+            actor_id=rejected_by,
+            event_type="THRESHOLD_PROPOSAL_REJECTED",
+            object_type="ThresholdProposal",
+            object_id=proposal_id,
+            source="threshold_manager",
+            scope="bank_internal",
+            correlation_id=proposal["threshold_id"],
+            data_mode="synthetic",
+            details={"proposal_id": proposal_id, "proposed_by": proposal["proposed_by"], "reason": reason},
+        )
+        updated = {
+            **proposal,
+            "status": "REJECTED",
+            "rejected_by": rejected_by,
+            "rejected_at": self._now(),
+            "rejection_reason": reason,
+            "rejection_audit_event_id": audit_event["event_id"],
+        }
+        self._proposals[proposal_id] = updated
+        return {"proposal": deepcopy(updated), "audit_event": audit_event}
+
+    def update_threshold(self, **_kwargs: Any) -> dict[str, Any]:
+        raise ValueError("direct threshold updates are disabled; use propose_threshold and approve_proposal")
 
     def audit_events(self) -> tuple[dict[str, Any], ...]:
         return self._audit.events()
