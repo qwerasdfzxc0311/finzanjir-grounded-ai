@@ -387,6 +387,9 @@ async def stream_prototype(transaction: PrototypeTransaction) -> StreamingRespon
                     failed_sequence = active["sequence"]
                 elif last_event and last_event.get("sequence", 0) < len(flow.window_ids):
                     failed_sequence = last_event["sequence"] + 1
+                elif not last_event:
+                    # HTTP preflight rejection occurs before the first stage event.
+                    failed_sequence = 1
                 if failed_sequence is not None:
                     failed_window = flow.window_ids[failed_sequence - 1]
                     publish("stage", {
