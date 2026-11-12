@@ -1,0 +1,306 @@
+{
+  "schema_version": "2.0",
+  "status": "implementation_evidence_registry",
+  "note": "Layer trace status reflects demonstrated prototype evidence, not production readiness. V1 remains preserved.",
+  "allowed_statuses": [
+    "PLANNED",
+    "PARTIAL",
+    "COMPLETE"
+  ],
+  "layers": [
+    {
+      "id": "layer_01",
+      "label": "Dalil va ma’lumot kelib chiqishini kuzatish",
+      "status": "PARTIAL",
+      "evidence_refs": [
+        "src/finzanjir_ai/risk/observations.py",
+        "src/finzanjir_ai/risk/scoring.py",
+        "contracts/event_contracts_v2.json"
+      ],
+      "acceptance_criteria": [
+        "Har bir dalil source, rule_version, detector_version, observed_at va data_mode bilan keladi.",
+        "Source identity ishonchli tasdiqlanadi va provenance durable saqlanadi.",
+        "Missing/stale/altered provenance holatlari test qilinadi."
+      ],
+      "remaining_work": [
+        "External source authentication va signature verification.",
+        "Durable evidence store va provenance replay."
+      ],
+      "reviewed_at": "2026-11-12"
+    },
+    {
+      "id": "layer_02",
+      "label": "Ma’lumot sifati va ishonchliligi",
+      "status": "PARTIAL",
+      "evidence_refs": [
+        "src/finzanjir_ai/risk/observations.py",
+        "src/finzanjir_ai/risk/scoring.py"
+      ],
+      "acceptance_criteria": [
+        "Schema, field type, quality va recency tekshiriladi.",
+        "Missing, stale, duplicate, out-of-order va contradictory input sinovdan o‘tadi.",
+        "Quality score source-specific validation bilan asoslanadi."
+      ],
+      "remaining_work": [
+        "Schema drift va source freshness monitoring.",
+        "Independent data-quality evaluation."
+      ],
+      "reviewed_at": "2026-11-12"
+    },
+    {
+      "id": "layer_03",
+      "label": "Xavf va noaniqlikni boshqarish",
+      "status": "PARTIAL",
+      "evidence_refs": [
+        "src/finzanjir_ai/risk/scoring.py",
+        "src/finzanjir_ai/risk/thresholds.py",
+        "contracts/signal_registry_v1.json"
+      ],
+      "acceptance_criteria": [
+        "Risk Score 0–100 va Evidence Confidence alohida.",
+        "Family cap, evidence dedup va mustaqil family talabi ishlaydi.",
+        "Threshold versioned va auditable."
+      ],
+      "remaining_work": [
+        "Real etalon dataset bilan calibration.",
+        "Counter-evidence va uncertainty modelini kengaytirish."
+      ],
+      "reviewed_at": "2026-11-12"
+    },
+    {
+      "id": "layer_04",
+      "label": "Inson nazorati va xatoni tuzatish",
+      "status": "PARTIAL",
+      "evidence_refs": [
+        "src/finzanjir_ai/case/manager.py",
+        "src/finzanjir_ai/prototype/flow.py"
+      ],
+      "acceptance_criteria": [
+        "Synthetic Case inson ko‘rigiga yo‘naltiriladi.",
+        "Demo qarori non-authoritative deb belgilanadi.",
+        "Qaror va audit event bog‘lanadi."
+      ],
+      "remaining_work": [
+        "Haqiqiy identity/RBAC va reviewer authorization.",
+        "Appeal, override, correction va second-review workflow."
+      ],
+      "reviewed_at": "2026-11-12"
+    },
+    {
+      "id": "layer_05",
+      "label": "Qoidalar va modellarni boshqarish",
+      "status": "PARTIAL",
+      "evidence_refs": [
+        "src/finzanjir_ai/risk/registry.py",
+        "src/finzanjir_ai/risk/thresholds.py",
+        "contracts/event_contracts_v2.json"
+      ],
+      "acceptance_criteria": [
+        "Signal registry versionlangan.",
+        "Threshold version, actor, reason va old/new qiymat saqlanadi.",
+        "Score scale farqlari ochiq."
+      ],
+      "remaining_work": [
+        "Approval/segregation-of-duties workflow.",
+        "Staged rollout, rollback va rule impact review."
+      ],
+      "reviewed_at": "2026-11-12"
+    },
+    {
+      "id": "layer_06",
+      "label": "Ma’lumotni oshkor qilish va almashish nazorati",
+      "status": "PARTIAL",
+      "evidence_refs": [
+        "src/finzanjir_ai/prototype/flow.py",
+        "src/finzanjir_ai/risk/observations.py",
+        "src/finzanjir_api/app.py"
+      ],
+      "acceptance_criteria": [
+        "Cross-bank ruxsati bo‘lmasa fail-closed.",
+        "Observation adapter faqat bank_internal scope qabul qiladi.",
+        "Raw identifier maydonlari adapterda rad qilinadi."
+      ],
+      "remaining_work": [
+        "Server-side authenticated bank roles va purpose authorization.",
+        "DLP, data-sharing agreement va legal disclosure workflow."
+      ],
+      "reviewed_at": "2026-11-12"
+    },
+    {
+      "id": "layer_07",
+      "label": "Avtomatik jarayonlar xavfsizligi",
+      "status": "PARTIAL",
+      "evidence_refs": [
+        "src/finzanjir_ai/risk/pipeline.py",
+        "src/finzanjir_ai/prototype/flow.py"
+      ],
+      "acceptance_criteria": [
+        "Shadow Mode default true.",
+        "Single amount context-only; bitta signal Case ochmaydi.",
+        "Shadow Mode bank action qilmaydi."
+      ],
+      "remaining_work": [
+        "Operational kill switch va circuit breaker.",
+        "Production automation guardrails va incident rollback."
+      ],
+      "reviewed_at": "2026-11-12"
+    },
+    {
+      "id": "layer_08",
+      "label": "Tranzaksiya zanjiri va Case bog‘liqligi",
+      "status": "PARTIAL",
+      "evidence_refs": [
+        "src/finzanjir_ai/risk/pipeline.py",
+        "src/finzanjir_ai/case/manager.py",
+        "src/finzanjir_ai/prototype/flow.py"
+      ],
+      "acceptance_criteria": [
+        "Transaction, Signal, Evidence, Risk, Threshold va Case IDlari bog‘langan.",
+        "AI runtime refs barcha signal/evidence refsni oladi.",
+        "Audit correlation_id transaction bilan bog‘langan."
+      ],
+      "remaining_work": [
+        "Ko‘p tranzaksiyali graph chain va replay.",
+        "Banklararo graph uchun legal authorization."
+      ],
+      "reviewed_at": "2026-11-12"
+    },
+    {
+      "id": "layer_09",
+      "label": "Fuqaro shaffofligi va e’tiroz",
+      "status": "PARTIAL",
+      "evidence_refs": [
+        "src/finzanjir_ai/prototype/flow.py",
+        "src/finzanjir_ai/case/manager.py"
+      ],
+      "acceptance_criteria": [
+        "SHADOW_ONLY va SYNTHETIC_REVIEW_ONLY statuslari mavjud.",
+        "Synthetic demo status bank qarori emas."
+      ],
+      "remaining_work": [
+        "Real citizen notification va understandable reasons.",
+        "Appeal, correction, response SLA va privacy-safe access."
+      ],
+      "reviewed_at": "2026-11-12"
+    },
+    {
+      "id": "layer_10",
+      "label": "Maxfiylik va ma’lumotlar hayotiy sikli",
+      "status": "PARTIAL",
+      "evidence_refs": [
+        "src/finzanjir_ai/risk/observations.py",
+        "src/finzanjir_ai/prototype/flow.py",
+        "contracts/event_envelope_v2.json"
+      ],
+      "acceptance_criteria": [
+        "Raw personal identifiers observation adapterda qabul qilinmaydi.",
+        "Bank-internal scope default."
+      ],
+      "remaining_work": [
+        "Retention schedule, deletion, encryption at rest/in transit.",
+        "Purpose limitation, consent/legal basis va data-subject rights."
+      ],
+      "reviewed_at": "2026-11-12"
+    },
+    {
+      "id": "layer_11",
+      "label": "Xavfsizlik hodisasiga javob",
+      "status": "PLANNED",
+      "evidence_refs": [],
+      "acceptance_criteria": [
+        "Incident severity va response owner belgilanadi.",
+        "Containment, recovery, notification va post-incident review test qilinadi."
+      ],
+      "remaining_work": [
+        "Incident detection/response workflow.",
+        "Security drills, runbooks, forensics va recovery tests."
+      ],
+      "reviewed_at": "2026-11-12"
+    },
+    {
+      "id": "layer_12",
+      "label": "Bilimlar bazasi va AI ishonchliligi",
+      "status": "PARTIAL",
+      "evidence_refs": [
+        "src/finzanjir_ai/knowledge/",
+        "src/finzanjir_ai/retrieval/",
+        "src/finzanjir_ai/answer/",
+        "src/finzanjir_ai/orchestration/"
+      ],
+      "acceptance_criteria": [
+        "Grounded retrieval va provenance mavjud.",
+        "Evidence yetishmasa abstention.",
+        "AI authoritative knowledgega to‘g‘ridan-to‘g‘ri yozmaydi."
+      ],
+      "remaining_work": [
+        "Adversarial evaluation va multilingual retrieval evaluation.",
+        "Knowledge approval workflow va drift monitoring."
+      ],
+      "reviewed_at": "2026-11-12"
+    },
+    {
+      "id": "layer_13",
+      "label": "Sinov va mustaqil baholash",
+      "status": "PARTIAL",
+      "evidence_refs": [
+        "tests/",
+        "GitHub Actions run #355",
+        "src/finzanjir_ai/risk/shadow.py"
+      ],
+      "acceptance_criteria": [
+        "293 ta CI test muvaffaqiyatli.",
+        "Synthetic Shadow metrics hisoblanadi."
+      ],
+      "remaining_work": [
+        "Independent evaluator va external review.",
+        "Real labeled data bilan precision/recall va subgroup harm assessment."
+      ],
+      "reviewed_at": "2026-11-12"
+    },
+    {
+      "id": "layer_14",
+      "label": "Bank integratsiyasiga tayyorlik",
+      "status": "PLANNED",
+      "evidence_refs": [],
+      "acceptance_criteria": [
+        "Bank/PSP data owner, legal basis va API spec tasdiqlanadi.",
+        "Sandbox contract va security testlar mavjud bo‘ladi."
+      ],
+      "remaining_work": [
+        "Bank/PSP sandbox adapter.",
+        "MOU/data sharing agreement, security assessment va operational onboarding."
+      ],
+      "reviewed_at": "2026-11-12"
+    },
+    {
+      "id": "layer_15",
+      "label": "Samaradorlik va quvvat",
+      "status": "PLANNED",
+      "evidence_refs": [],
+      "acceptance_criteria": [
+        "Load profile, latency target va throughput o‘lchanadi.",
+        "Resource saturation va recovery sinovdan o‘tadi."
+      ],
+      "remaining_work": [
+        "Load/stress/soak tests.",
+        "SLA/SLO, capacity planning va observability."
+      ],
+      "reviewed_at": "2026-11-12"
+    },
+    {
+      "id": "layer_16",
+      "label": "Ta’sir va zarar kamayishini o‘lchash",
+      "status": "PLANNED",
+      "evidence_refs": [],
+      "acceptance_criteria": [
+        "Baseline va outcome metrics bank bilan kelishiladi.",
+        "False positive, false negative, prevented loss va citizen harm o‘lchanadi."
+      ],
+      "remaining_work": [
+        "Outcome measurement framework.",
+        "Real pilot data, independent impact assessment va fairness review."
+      ],
+      "reviewed_at": "2026-11-12"
+    }
+  ]
+}
