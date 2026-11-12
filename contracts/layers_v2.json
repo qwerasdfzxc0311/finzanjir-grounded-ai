@@ -264,45 +264,59 @@
     {
       "id": "layer_14",
       "label": "Bank integratsiyasiga tayyorlik",
-      "status": "PLANNED",
-      "evidence_refs": [],
+      "status": "PARTIAL",
+      "evidence_refs": [
+        "src/finzanjir_ai/bank_integration_readiness.py",
+        "tests/test_bank_integration_readiness.py"
+      ],
       "acceptance_criteria": [
         "Bank/PSP data owner, legal basis va API spec tasdiqlanadi.",
         "Sandbox contract va security testlar mavjud bo‘ladi."
       ],
       "remaining_work": [
-        "Bank/PSP sandbox adapter.",
-        "MOU/data sharing agreement, security assessment va operational onboarding."
+        "Bank/PSP sandbox adapter and approved API specification.",
+        "Signed MOU/data-sharing agreement, legal purpose approval and partner onboarding.",
+        "Independent security assessment, authentication integration and operational acceptance."
       ],
       "reviewed_at": "2026-11-12"
     },
     {
       "id": "layer_15",
       "label": "Samaradorlik va quvvat",
-      "status": "PLANNED",
-      "evidence_refs": [],
+      "status": "PARTIAL",
+      "evidence_refs": [
+        "src/finzanjir_ai/performance_capacity.py",
+        "tests/test_performance_capacity.py"
+      ],
       "acceptance_criteria": [
         "Load profile, latency target va throughput o‘lchanadi.",
         "Resource saturation va recovery sinovdan o‘tadi."
       ],
       "remaining_work": [
-        "Load/stress/soak tests.",
-        "SLA/SLO, capacity planning va observability."
+        "Run repeatable load, stress and soak tests in the approved deployment environment.",
+        "Approve SLO/SLA targets, capacity plan, scaling policy and observability.",
+        "Measure resource saturation and recovery against real deployment infrastructure."
       ],
       "reviewed_at": "2026-11-12"
     },
     {
       "id": "layer_16",
       "label": "Ta’sir va zarar kamayishini o‘lchash",
-      "status": "PLANNED",
-      "evidence_refs": [],
+      "status": "PARTIAL",
+      "evidence_refs": [
+        "src/finzanjir_ai/impact_harm_reduction.py",
+        "tests/test_impact_harm_reduction.py",
+        "src/finzanjir_ai/independent_evaluation.py",
+        "tests/test_independent_evaluation.py"
+      ],
       "acceptance_criteria": [
         "Baseline va outcome metrics bank bilan kelishiladi.",
         "False positive, false negative, prevented loss va citizen harm o‘lchanadi."
       ],
       "remaining_work": [
-        "Outcome measurement framework.",
-        "Real pilot data, independent impact assessment va fairness review."
+        "Agree baseline/outcome definitions and lawful access to real pilot data with the bank.",
+        "Independent impact and fairness assessment across relevant customer subgroups.",
+        "Causal evaluation design, false-positive/false-negative harm review and verified prevented-loss outcomes."
       ],
       "reviewed_at": "2026-11-12"
     }
