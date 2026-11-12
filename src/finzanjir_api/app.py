@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from functools import lru_cache
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,12 +13,25 @@ from starlette.staticfiles import StaticFiles
 from finzanjir_ai.knowledge.index import KnowledgeIndex
 from finzanjir_ai.prototype.flow import build_system_flow
 from finzanjir_ai.orchestration.engine import FINZANJIRAI
+from finzanjir_ai.risk.shadow import evaluate_shadow_batch
 
 
 class AIAnswerRequest(BaseModel):
     question: str = Field(min_length=1, max_length=4000)
     runtime_refs: list[str] = Field(default_factory=list, max_length=64)
     working_memory_scope: str | None = Field(default=None, max_length=256)
+
+
+class ShadowScenario(BaseModel):
+    scenario_id: str = Field(min_length=1, max_length=128)
+    expected_label: Literal["suspicious", "benign"]
+    synthetic: StrictBool
+    signal_events: list[dict[str, Any]] = Field(default_factory=list, max_length=100)
+
+
+class ShadowEvaluationRequest(BaseModel):
+    scenarios: list[ShadowScenario] = Field(min_length=1, max_length=500)
+    escalation_threshold: float = Field(default=75, ge=0, le=100)
 
 
 class PrototypeTransaction(BaseModel):
@@ -98,6 +111,20 @@ def answer(request: AIAnswerRequest) -> dict[str, Any]:
         ],
         "runtime_refs": list(result.runtime_context.runtime_refs),
     }
+
+
+@app.post("/api/prototype/shadow-evaluate")
+def shadow_evaluate(request: ShadowEvaluationRequest) -> dict[str, Any]:
+    if any(scenario.synthetic is not True for scenario in request.scenarios):
+        raise HTTPException(
+            status_code=400,
+            detail="Shadow evaluation accepts only explicitly synthetic scenarios.",
+        )
+    scenarios = [scenario.model_dump(exclude={"synthetic"}) for scenario in request.scenarios]
+    return evaluate_shadow_batch(
+        scenarios,
+        escalation_threshold=request.escalation_threshold,
+    )
 
 
 @app.get("/api/prototype/demo")
