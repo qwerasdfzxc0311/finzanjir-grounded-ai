@@ -27,11 +27,15 @@ def _events():
 
 def test_unified_flow_uses_active_threshold_version_and_audits_it():
     flow = build_system_flow()
-    updated = flow.threshold_manager.update_threshold(
+    proposal = flow.threshold_manager.propose_threshold(
         value=85,
-        changed_by="threshold-reviewer",
+        proposed_by="threshold-analyst",
         reason="Synthetic shadow calibration",
         expected_version=1,
+    )["proposal"]
+    updated = flow.threshold_manager.approve_proposal(
+        proposal["proposal_id"],
+        approved_by="threshold-reviewer",
     )
 
     result = flow.execute(
