@@ -301,3 +301,54 @@ def test_ne_operator_does_not_treat_type_mismatch_as_inequality():
     assert _matches("false", condition) is False
     assert _matches(False, condition) is False
     assert _matches(True, condition) is True
+
+
+
+def _type_mismatch_value(condition):
+    operator, expected = condition["op"], condition["value"]
+    if operator in {"gt", "gte", "lt", "lte"}:
+        return "not-a-number"
+    if operator in {"eq", "ne"}:
+        if isinstance(expected, bool):
+            return "not-a-boolean"
+        if isinstance(expected, str):
+            return 123
+        return "not-a-number"
+    if operator == "in":
+        first = expected[0]
+        if isinstance(first, bool):
+            return "not-a-boolean"
+        if isinstance(first, str):
+            return 123
+        return "not-a-number"
+    raise AssertionError(f"Unsupported test operator: {operator}")
+
+
+@pytest.mark.parametrize(
+    "rule,field",
+    [
+        (rule, field)
+        for rule in CONTRACT["detectors"]
+        for field in sorted({condition["field"] for condition in rule["all_of"]})
+    ],
+    ids=[
+        f"{rule['signal_id']}-{field}"
+        for rule in CONTRACT["detectors"]
+        for field in sorted({condition["field"] for condition in rule["all_of"]})
+    ],
+)
+def test_every_detector_required_feature_type_mismatch_abstains(rule, field):
+    features = _fixture(rule)
+    condition = next(item for item in rule["all_of"] if item["field"] == field)
+    features[field] = _type_mismatch_value(condition)
+
+    result = SyntheticSignalDetector().evaluate(
+        scenario_id=f"type-mismatch-{rule['signal_id']}-{field}",
+        observed_at="2026-11-12T09:00:00Z",
+        features=features,
+    )
+    outcome = next(item for item in result["detections"] if item["signal_id"] == rule["signal_id"])
+
+    assert outcome["status"] == "INSUFFICIENT_DATA"
+    assert outcome["reason_code"] == "invalid_feature_values"
+    assert field in outcome["invalid_features"]
