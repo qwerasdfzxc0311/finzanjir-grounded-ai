@@ -74,3 +74,15 @@ def test_circuit_breaker_rejects_invalid_threshold_and_gate_types():
         AutomationSafetyPolicy(allowed_actions={"CREATE_CASE"}).authorize(
             action="CREATE_CASE", reason="approved", kill_switch_enabled="false"
         )
+
+
+def test_automation_rejects_non_string_circuit_breaker_and_state():
+    import pytest
+
+    policy = AutomationSafetyPolicy(allowed_actions={"CREATE_CASE"})
+    with pytest.raises(ValueError, match="circuit_breaker_state"):
+        policy.authorize(
+            action="CREATE_CASE", reason="approved", circuit_breaker_state=[]
+        )
+    with pytest.raises(ValueError, match="state must be a string"):
+        policy.authorize(action="CREATE_CASE", reason="approved", state=[])
