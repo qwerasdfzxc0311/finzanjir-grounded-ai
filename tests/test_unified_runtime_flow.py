@@ -185,3 +185,61 @@ def test_window_execution_trace_reports_actual_status_for_shadow_and_review_path
         else:
             assert by_window["human_case"]["status"] == "SYNTHETIC_REVIEW_ONLY"
             assert result["case"]["case_id"] in by_window["human_case"]["output_refs"]
+
+
+
+def test_all_window_references_form_one_consistent_synthetic_transaction_chain():
+    flow = build_system_flow()
+    transaction_id = "TX-CROSS-WINDOW-REFS-001"
+    transaction = {
+        "transaction_id": transaction_id,
+        "bank_id": "bank-synthetic-a",
+        "actor_id": "actor-cross-window-refs",
+        "amount": 2500,
+        "occurred_at": "2026-11-12T09:00:00Z",
+        "synthetic": True,
+        "signal_events": build_synthetic_case_signal_events(
+            transaction_id=transaction_id,
+            observed_at="2026-11-12T09:00:00Z",
+        ),
+        "shadow_mode": False,
+    }
+
+    result = flow.execute(transaction, knowledge_index=flow.demo_knowledge_index())
+    trace = flow.build_window_trace(result)
+    by_id = {item["window_id"]: item for item in trace}
+    pipeline = result["pipeline"]
+    signal_ids = {item["id"] for item in pipeline.signals}
+    evidence_ids = {item["id"] for item in pipeline.evidences}
+    risk_id = pipeline.risk["id"]
+    case_id = result["case"]["case_id"]
+    decision_id = result["decision"]["human_decision"]["decision_id"]
+    audit_ids = {item["event_id"] for item in result["audit"]}
+    layer_ids = {item["layer_id"] for item in result["layers_16"]}
+
+    assert len(trace) == 8
+    assert [item["sequence"] for item in trace] == list(range(1, 9))
+    assert all(item["transaction_id"] == transaction_id for item in trace)
+    assert all(item["data_mode"] == "synthetic" for item in trace)
+
+    assert transaction_id in by_id["synthetic_bank"]["output_refs"]
+    assert transaction_id in by_id["signal_risk"]["input_refs"]
+    assert signal_ids | evidence_ids | {risk_id} <= set(by_id["signal_risk"]["output_refs"])
+
+    # Cross-bank is deliberately disabled in this public synthetic flow.
+    assert by_id["cross_bank_fraud"]["status"] == "DISABLED"
+    assert by_id["cross_bank_fraud"]["input_refs"] == []
+    assert by_id["cross_bank_fraud"]["output_refs"] == []
+
+    assert risk_id in by_id["human_case"]["input_refs"]
+    assert {case_id, decision_id} <= set(by_id["human_case"]["output_refs"])
+    assert transaction_id in by_id["audit_kpi"]["input_refs"]
+    assert audit_ids <= set(by_id["audit_kpi"]["output_refs"])
+
+    ai_refs = set(by_id["finzanjir_ai"]["input_refs"])
+    assert {transaction_id, risk_id} | signal_ids | evidence_ids <= ai_refs
+
+    assert decision_id in by_id["citizen"]["input_refs"]
+    assert result["citizen_status"]["status_id"] in by_id["citizen"]["output_refs"]
+    assert transaction_id in by_id["layers_16"]["input_refs"]
+    assert layer_ids <= set(by_id["layers_16"]["output_refs"])
