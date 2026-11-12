@@ -390,3 +390,36 @@ def test_stream_endpoint_reports_failed_and_not_run_stages_without_success_resul
     assert stages[3]["window_id"] == "signal_risk"
     assert errors == [{"status_code": 400, "detail": "synthetic signal pipeline failure"}]
     assert results == []
+
+
+
+def test_stream_storage_failure_keeps_completed_windows_but_returns_no_success_result(monkeypatch):
+    import sqlite3
+
+    class FailingRunStore:
+        def save(self, _summary):
+            raise sqlite3.OperationalError("synthetic storage unavailable")
+
+    monkeypatch.setattr("finzanjir_api.app.prototype_run_store", lambda: FailingRunStore())
+    response = client.post(
+        "/api/prototype/run/stream",
+        json={
+            "transaction_id": "TX-API-STREAM-STORE-FAIL-001",
+            "bank_id": "bank-synthetic-a",
+            "actor_id": "actor-stream-store-fail",
+            "amount": 2500,
+            "occurred_at": "2026-11-12T09:00:00Z",
+            "synthetic": True,
+            **_multi_signal_fields("TX-API-STREAM-STORE-FAIL-001", "2026-11-12T09:00:00Z"),
+        },
+    )
+
+    frames = _parse_sse_frames(response.text)
+    stages = [data for name, data in frames if name == "stage"]
+    errors = [data for name, data in frames if name == "error"]
+    results = [data for name, data in frames if name == "result"]
+
+    assert len(stages) == 16
+    assert all(item["status"] not in {"FAILED", "NOT_RUN"} for item in stages)
+    assert errors == [{"status_code": 503, "detail": "Prototype run could not be safely saved."}]
+    assert results == []
