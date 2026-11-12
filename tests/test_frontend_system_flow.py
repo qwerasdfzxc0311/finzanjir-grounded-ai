@@ -48,3 +48,21 @@ def test_frontend_connects_synthetic_shadow_evaluation_api():
     assert "abstention rate" in script.lower()
     assert "real fraud precision/recall" in script
     assert "Shadow Mode: Case ochilmaydi" in script
+
+
+def test_frontend_displays_all_connected_system_module_outputs():
+    script = Path("frontend/app.js").read_text(encoding="utf-8")
+    for module in [
+        "Synthetic Bank → Signal / Evidence / Risk",
+        "Human + Case",
+        "Cross-Bank Fraud",
+        "Audit / KPI",
+        "FINZANJIR AI",
+        "Citizen",
+        "16 Layers",
+    ]:
+        assert module in script
+    assert "body.decision" in script
+    assert "body.cross_bank" in script
+    assert "body.citizen_status" in script
+    assert "body.layers_16" in script
