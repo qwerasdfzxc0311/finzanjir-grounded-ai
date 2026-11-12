@@ -30,7 +30,7 @@ def test_prototype_demo_executes_connected_runtime_flow():
     assert body["runtime"]["cross_bank_matches"] == 0
     assert body["runtime"]["cross_bank_authorized"] is False
     assert body["runtime"]["layers_traced"] == 16
-    assert body["runtime"]["layer_status_summary"] == {"total": 16, "complete": 0, "partial": 13, "planned": 3}
+    assert body["runtime"]["layer_status_summary"] == {"total": 16, "complete": 0, "partial": 16, "planned": 0}
     assert body["explanation"]["synthetic_data_only"] is True
 
 
