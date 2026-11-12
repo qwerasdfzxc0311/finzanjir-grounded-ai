@@ -166,3 +166,51 @@ def test_optional_provenance_features_are_allowed_but_not_required():
     outcome = next(item for item in result["detections"] if item["signal_id"] == "SIG-013")
     assert outcome["status"] == "DETECTED"
     assert outcome["observed_optional_features"] == ["watchlist_list_version"]
+
+
+@pytest.mark.parametrize(
+    "rule,missing_field",
+    [
+        (rule, field)
+        for rule in CONTRACT["detectors"]
+        for field in rule["required_features"]
+    ],
+    ids=lambda value: value if isinstance(value, str) else value["signal_id"],
+)
+def test_each_signal_abstains_when_any_required_feature_is_missing(rule, missing_field):
+    features = _fixture(rule)
+    features.pop(missing_field)
+    result = SyntheticSignalDetector().evaluate(
+        scenario_id=f"missing-{rule['signal_id']}-{missing_field}",
+        observed_at="2026-11-12T09:00:00Z",
+        features=features,
+    )
+    outcome = next(item for item in result["detections"] if item["signal_id"] == rule["signal_id"])
+    assert outcome["status"] == "INSUFFICIENT_DATA"
+    assert missing_field in outcome["missing_required_features"]
+
+
+@pytest.mark.parametrize(
+    "rule,condition",
+    [
+        (rule, condition)
+        for rule in CONTRACT["detectors"]
+        for condition in rule["all_of"]
+    ],
+    ids=lambda value: value if isinstance(value, str) else value["signal_id"],
+)
+def test_each_signal_threshold_boundary_is_inclusive_or_exact_as_declared(rule, condition):
+    features = _fixture(rule)
+    field, op, threshold = condition["field"], condition["op"], condition["value"]
+    if op == "in":
+        features[field] = threshold[0]
+    else:
+        features[field] = threshold
+
+    result = SyntheticSignalDetector().evaluate(
+        scenario_id=f"boundary-{rule['signal_id']}-{field}",
+        observed_at="2026-11-12T09:00:00Z",
+        features=features,
+    )
+    outcome = next(item for item in result["detections"] if item["signal_id"] == rule["signal_id"])
+    assert outcome["status"] == "DETECTED", (rule["signal_id"], condition, outcome)
