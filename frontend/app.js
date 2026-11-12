@@ -175,9 +175,10 @@ function windowSummaryLines(windowId) {
 
 
 function windowTraceFor(windowId) {
-  if (executionStatus === "running") {
+  if (executionStatus === "running" || (executionStatus === "failed" && liveWindowTrace.length)) {
     const live = liveWindowTrace.find(item => item.window_id === windowId);
     if (live) return live;
+    if (executionStatus === "failed") return null;
     const flowIds = currentManifest?.system_flow?.transitions?.length
       ? [currentManifest.system_flow.transitions[0][0], ...currentManifest.system_flow.transitions.map(item => item[1])]
       : [];
@@ -215,9 +216,13 @@ function windowTraceLines(windowId) {
 }
 
 function windowExecutionStatus(windowId) {
-  if (executionStatus === "failed") return "Sinov xato bilan tugadi · oldingi natija saqlangan";
-
   const trace = windowTraceFor(windowId);
+  if (executionStatus === "failed") {
+    if (trace?.status === "FAILED") return "Xato · bosqich xavfsiz to‘xtadi";
+    if (trace?.status === "NOT_RUN") return "Bajarilmadi · oldingi bosqich to‘xtadi";
+    if (trace) return trace.status_label || trace.status;
+    return "Sinov xato bilan tugadi · oldingi natija saqlangan";
+  }
   if (executionStatus === "running" && trace) {
     if (trace.status === "RUNNING") return "Hozir bajarilmoqda";
     if (trace.status === "PENDING") return "Navbatda";
@@ -587,7 +592,6 @@ async function runSyntheticScenario() {
     renderScenarioResult(body);
     await loadRunHistory();
   } catch (error) {
-    liveWindowTrace = [];
     executionStatus = "failed";
     executionError = error.message;
     refreshWindowStatuses();
