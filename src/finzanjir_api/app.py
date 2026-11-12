@@ -31,6 +31,8 @@ class PrototypeTransaction(BaseModel):
     device_id: str = Field(default="", max_length=128)
     network_id: str = Field(default="", max_length=128)
     cross_bank_authorized: StrictBool = False
+    signal_events: list[dict[str, Any]] | None = Field(default=None, max_length=100)
+    shadow_mode: StrictBool = True
 
 
 app = FastAPI(
