@@ -5,7 +5,7 @@ import pytest
 from finzanjir_ai.risk.pipeline import process_transaction
 
 
-def test_transaction_above_signal_threshold_flows_to_risk_and_case():
+def test_legacy_large_transaction_is_context_only_and_does_not_open_case():
     result = process_transaction(
         {
             "transaction_id": "syn-tx-100",
@@ -25,8 +25,13 @@ def test_transaction_above_signal_threshold_flows_to_risk_and_case():
     assert result.signal is not None
     assert result.evidence is not None
     assert result.risk is not None
-    assert result.case is not None
-    assert result.case["status"] == "OPEN"
+    assert result.case is None
+    assert result.signal["status"] == "CONTEXT_ONLY"
+    assert result.evidence["status"] == "CONTEXT_ONLY"
+    assert result.risk["score"] == 0.0
+    assert result.risk["case_eligible"] is False
+    assert result.risk["case_block_reason"] == "single_amount_context_not_sufficient"
+    assert result.risk["shadow_mode"] is True
 
 
 def test_transaction_below_signal_threshold_stops_before_case():
