@@ -36,9 +36,9 @@ class AuditLog:
         ):
             if not isinstance(value, str) or not value.strip():
                 raise ValueError(f"{field} must be a non-empty string")
-        if scope not in self.ALLOWED_SCOPES:
+        if not isinstance(scope, str) or scope not in self.ALLOWED_SCOPES:
             raise ValueError("scope must be bank_internal or cross_bank")
-        if data_mode not in self.ALLOWED_DATA_MODES:
+        if not isinstance(data_mode, str) or data_mode not in self.ALLOWED_DATA_MODES:
             raise ValueError("data_mode must be synthetic, real, or unknown")
         if correlation_id is None:
             correlation_id = object_id
