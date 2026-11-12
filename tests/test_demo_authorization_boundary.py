@@ -8,6 +8,7 @@ def test_system_flow_rejects_non_boolean_cross_bank_authorization():
     transaction = {
         "transaction_id": "TX-AUTH-TYPE-001",
         "bank_id": "bank-a",
+        "actor_id": "actor-demo-boundary",
         "amount": 2500,
         "occurred_at": "2026-11-11T00:00:00Z",
         "synthetic": True,
@@ -25,6 +26,7 @@ def test_synthetic_transactions_cannot_authorize_cross_bank_exchange():
     transaction = {
         "transaction_id": "TX-SYNTHETIC-CROSS-BANK-001",
         "bank_id": "bank-a",
+        "actor_id": "actor-demo-boundary",
         "amount": 2500,
         "occurred_at": "2026-11-11T00:00:00Z",
         "synthetic": True,
@@ -42,6 +44,7 @@ def test_demo_decision_is_explicitly_marked_as_synthetic_demo():
     transaction = {
         "transaction_id": "TX-DEMO-BOUNDARY-001",
         "bank_id": "bank-a",
+        "actor_id": "actor-demo-boundary",
         "amount": 2500,
         "occurred_at": "2026-11-11T00:00:00Z",
         "synthetic": True,
