@@ -33,7 +33,7 @@ function element(tag, className, text) {
 
 function renderList(target, items, renderItem) {
   target.replaceChildren();
-  items.forEach(item => target.appendChild(renderItem(item)));
+  items.forEach((item, index) => target.appendChild(renderItem(item, index)));
 }
 
 async function loadShell() {
