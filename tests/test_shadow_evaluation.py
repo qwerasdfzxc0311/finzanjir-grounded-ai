@@ -154,7 +154,7 @@ def test_detector_shadow_evaluates_source_features_and_reports_decisive_metrics(
     assert result["abstention_rate"] == 0.0
     assert result["metrics"]["precision"] == 0.8
     assert result["metrics"]["recall"] == 0.8
-    assert result["results"][0]["detected_signal_ids"] == high_ids
+    assert result["results"][0]["detected_signal_ids"] == ["SIG-002", "SIG-004", "SIG-006", "SIG-012", "SIG-018"]
     assert result["results"][0]["score"] == 80
     assert result["results"][0]["case_eligible"] is True
 
