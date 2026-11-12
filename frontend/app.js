@@ -117,6 +117,61 @@ function renderScenarioResult(body) {
     if (!list.children.length) list.appendChild(element("li", "muted", "Hech qanday signal aniqlanmadi."));
     target.append(title, list);
   }
+  const human = body.decision?.human_decision;
+  const ai = body.ai;
+  const aiAnswer = ai?.answer?.answer ?? "AI izohi mavjud emas.";
+  const aiRefs = ai?.runtime_context?.runtime_refs ?? [];
+  const layerRows = Array.isArray(body.layers_16) ? body.layers_16 : [];
+  const crossMatches = body.cross_bank?.matches ?? [];
+  const auditRows = Array.isArray(body.audit) ? body.audit : [];
+
+  const modules = element("div", "module-results");
+  const addModule = (heading, lines) => {
+    const section = element("section", "module-card");
+    section.appendChild(element("h3", "", heading));
+    const list = element("ul", "layers");
+    lines.forEach(line => list.appendChild(element("li", "", line)));
+    section.appendChild(list);
+    modules.appendChild(section);
+  };
+
+  addModule("Synthetic Bank → Signal / Evidence / Risk", [
+    "Transaction: " + (body.transaction_id ?? "—"),
+    "Signal: " + (body.pipeline?.signals?.length ?? 0),
+    "Evidence: " + (body.pipeline?.evidences?.length ?? 0),
+    "Threshold: " + (risk?.threshold ?? risk?.escalation_threshold ?? "—")
+  ]);
+  addModule("Human + Case", [
+    "Case: " + (body.case?.case_id ?? body.case?.id ?? "ochilmadi"),
+    "Review decision: " + (human?.decision ?? "yo‘q"),
+    "Authoritative: " + (human?.is_authoritative === true ? "Ha" : "Yo‘q — synthetic demo")
+  ]);
+  addModule("Cross-Bank Fraud", [
+    "Scope: " + (body.cross_bank?.scope ?? "cross_bank"),
+    "Matches: " + crossMatches.length,
+    "Real interbank exchange: o‘chiq"
+  ]);
+  addModule("Audit / KPI", [
+    "Audit events: " + auditRows.length,
+    "Signal → Case rate: " + (body.kpi?.signal_to_case_rate ?? 0),
+    "Case action rate: " + (body.kpi?.case_action_rate ?? 0)
+  ]);
+  addModule("FINZANJIR AI", [
+    aiAnswer,
+    "Knowledge refs: " + (ai?.answer?.citations?.length ?? 0),
+    "Runtime refs: " + aiRefs.length
+  ]);
+  addModule("Citizen", [
+    "Status: " + (body.citizen_status?.status ?? "—"),
+    "Message: " + (body.citizen_status?.message ?? "—"),
+    "Case ID: " + (body.citizen_status?.case_id ?? "yo‘q")
+  ]);
+  addModule("16 Layers", [
+    "Layer traces: " + layerRows.length + " / 16",
+    "Data mode: synthetic",
+    ...layerRows.slice(0, 16).map(item => item.layer_id + " — " + (item.status ?? "traced"))
+  ]);
+  target.appendChild(modules);
   target.appendChild(element("p", "muted", "Bu sintetik sinov. Ball ehtimollik emas; hech qanday real to‘lov yoki bank qarori o‘zgartirilmagan."));
 }
 
