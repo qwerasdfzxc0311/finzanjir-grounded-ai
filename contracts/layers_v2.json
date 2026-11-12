@@ -205,15 +205,19 @@
     {
       "id": "layer_11",
       "label": "Xavfsizlik hodisasiga javob",
-      "status": "PLANNED",
-      "evidence_refs": [],
+      "status": "PARTIAL",
+      "evidence_refs": [
+        "src/finzanjir_ai/incident_response.py",
+        "tests/test_incident_response.py"
+      ],
       "acceptance_criteria": [
         "Incident severity va response owner belgilanadi.",
         "Containment, recovery, notification va post-incident review test qilinadi."
       ],
       "remaining_work": [
-        "Incident detection/response workflow.",
-        "Security drills, runbooks, forensics va recovery tests."
+        "Durable incident record storage and tamper-evident audit integration.",
+        "Approved operational runbooks, named on-call ownership and escalation/notification channels.",
+        "Forensic evidence retention, security drills, recovery exercises and independent operational review."
       ],
       "reviewed_at": "2026-11-12"
     },
