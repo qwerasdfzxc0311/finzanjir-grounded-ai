@@ -76,6 +76,7 @@ class SystemFlow:
                 [item["id"] for item in pipeline.signals]
                 + [item["id"] for item in pipeline.evidences]
                 + ([pipeline.risk["id"]] if pipeline.risk and pipeline.risk.get("id") else [])
+                + ([pipeline.risk["threshold_id"]] if pipeline.risk and pipeline.risk.get("threshold_id") else [])
             ),
         )
 
@@ -402,7 +403,12 @@ class SystemFlow:
                 "status_label": "Bajarildi · signal va risk natijasi tayyor" if risk else "Bajarilmadi · risk natijasi yo‘q",
                 "summary": "Signal, dalil, ustuvorlik balli va threshold natijasi.",
                 "input_refs": [transaction_id],
-                "output_refs": [*signal_ids, *evidence_ids, *([risk["id"]] if risk.get("id") else [])],
+                "output_refs": [
+                    *signal_ids,
+                    *evidence_ids,
+                    *([risk["id"]] if risk.get("id") else []),
+                    *([risk["threshold_id"]] if risk.get("threshold_id") else []),
+                ],
             },
             {
                 "window_id": "cross_bank_fraud",
