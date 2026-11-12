@@ -502,7 +502,7 @@ async function readPrototypeProgress(response) {
   let streamError = null;
 
   function handleFrame(frame) {
-    const lines = frame.split(/\\r?\\n/);
+    const lines = frame.split(/\r?\n/);
     const eventLine = lines.find(line => line.startsWith("event: "));
     const dataLine = lines.find(line => line.startsWith("data: "));
     if (!eventLine || !dataLine) return;
@@ -525,11 +525,11 @@ async function readPrototypeProgress(response) {
   while (true) {
     const chunk = await reader.read();
     buffer += decoder.decode(chunk.value || new Uint8Array(), {stream: !chunk.done});
-    let boundary = buffer.indexOf("\\n\\n");
+    let boundary = buffer.indexOf("\n\n");
     while (boundary >= 0) {
       handleFrame(buffer.slice(0, boundary));
       buffer = buffer.slice(boundary + 2);
-      boundary = buffer.indexOf("\\n\\n");
+      boundary = buffer.indexOf("\n\n");
     }
     if (chunk.done) break;
   }
