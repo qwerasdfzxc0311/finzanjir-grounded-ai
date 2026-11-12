@@ -4,10 +4,11 @@ from finzanjir_ai.cross_bank.matcher import CrossBankMatcher
 from finzanjir_ai.knowledge.index import build_knowledge_index
 from finzanjir_ai.orchestration.engine import FINZANJIRAI
 from finzanjir_ai.risk.pipeline import process_transaction
+from finzanjir_ai.risk.scenarios import build_synthetic_case_signal_events
 
 
 def test_full_demo_chain_connects_transaction_to_case_audit_cross_bank_and_ai():
-    tx = {"transaction_id": "syn-full-1", "bank_id": "bank-a", "actor_id": "actor-1", "amount": 2500, "currency": "UZS", "occurred_at": "2026-11-11T00:00:01Z", "channel": "mobile", "status": "AUTHORIZED", "synthetic": True}
+    tx = {"transaction_id": "syn-full-1", "bank_id": "bank-a", "actor_id": "actor-1", "amount": 2500, "currency": "UZS", "occurred_at": "2026-11-11T00:00:01Z", "channel": "mobile", "status": "AUTHORIZED", "synthetic": True, "signal_events": build_synthetic_case_signal_events(transaction_id="syn-full-1", observed_at="2026-11-11T00:00:01Z"), "shadow_mode": False}
     pipeline = process_transaction(tx, signal_amount_threshold=1000, escalation_threshold=0.75)
     assert pipeline.case is not None
 
@@ -30,6 +31,6 @@ def test_full_demo_chain_connects_transaction_to_case_audit_cross_bank_and_ai():
     assert ai.answer.abstained is False
     assert ai.answer.citations == ("ck-full",)
 
-    kpi = calculate_kpis(signals_detected=1, cases_opened=1, cases_actioned=1, review_seconds_total=120, data_mode="synthetic")
-    assert kpi["signal_to_case_rate"] == 1.0
+    kpi = calculate_kpis(signals_detected=5, cases_opened=1, cases_actioned=1, review_seconds_total=120, data_mode="synthetic")
+    assert kpi["signal_to_case_rate"] == 0.2
     assert len(audit.events()) == 1
