@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 from finzanjir_ai.audit.service import AuditLog, calculate_kpis
@@ -10,6 +10,7 @@ from finzanjir_ai.knowledge.index import KnowledgeIndex, build_index_from_docume
 from finzanjir_ai.knowledge.loader import load_canonical_knowledge
 from finzanjir_ai.orchestration.engine import FINZANJIRAI
 from finzanjir_ai.risk.pipeline import process_transaction
+from finzanjir_ai.risk.thresholds import ThresholdManager
 
 
 @dataclass(frozen=True)
@@ -19,6 +20,7 @@ class SystemFlow:
     window_ids: tuple[str, ...]
     transitions: tuple[tuple[str, str], ...]
     architecture_layers: int = 16
+    threshold_manager: ThresholdManager = field(default_factory=ThresholdManager, compare=False, repr=False)
 
     def execute(self, transaction: dict[str, Any], *, knowledge_index: KnowledgeIndex) -> dict[str, Any]:
         if not isinstance(transaction, dict):
@@ -26,10 +28,12 @@ class SystemFlow:
         if transaction.get("synthetic") is not True:
             raise ValueError("Unified prototype flow accepts only explicitly synthetic transactions")
 
+        threshold_config = self.threshold_manager.get_active()
         pipeline = process_transaction(
             transaction,
             signal_amount_threshold=1000,
             escalation_threshold=0.75,
+            threshold_config=threshold_config,
         )
 
         cross_bank_authorized = transaction.get("cross_bank_authorized", False)
@@ -56,6 +60,7 @@ class SystemFlow:
                     *(item["id"] for item in pipeline.signals),
                     *(item["id"] for item in pipeline.evidences),
                     pipeline.risk["id"] if pipeline.risk else None,
+                    pipeline.risk.get("threshold_id") if pipeline.risk else None,
                 )
                 if value
             )
@@ -83,6 +88,8 @@ class SystemFlow:
                         "evidence_count": pipeline.risk["evidence_count"],
                         "engine_version": pipeline.risk["engine_version"],
                         "registry_version": pipeline.risk.get("registry_version"),
+                        "threshold_id": pipeline.risk.get("threshold_id"),
+                        "threshold_version": pipeline.risk.get("threshold_version"),
                         "data_mode": "synthetic",
                         "no_bank_action": True,
                     },
@@ -90,6 +97,7 @@ class SystemFlow:
             return {
                 "transaction_id": transaction["transaction_id"],
                 "pipeline": pipeline,
+                "threshold": pipeline.risk.get("threshold") if pipeline.risk else None,
                 "case": None,
                 "decision": None,
                 "bank_status": None,
@@ -166,6 +174,7 @@ class SystemFlow:
                 *(item["id"] for item in pipeline.signals),
                 *(item["id"] for item in pipeline.evidences),
                 pipeline.risk["id"],
+                pipeline.risk.get("threshold_id"),
                 case["case_id"],
                 decision["human_decision"]["decision_id"],
                 decision["audit_event"]["audit_id"],
@@ -182,6 +191,7 @@ class SystemFlow:
         return {
             "transaction_id": transaction["transaction_id"],
             "pipeline": pipeline,
+            "threshold": pipeline.risk.get("threshold") if pipeline.risk else None,
             "case": case,
             "decision": decision,
             "bank_status": decision["bank_status"],
@@ -229,6 +239,8 @@ class SystemFlow:
                 "risk_level": pipeline.risk["level"] if pipeline.risk else None,
                 "risk_score": pipeline.risk.get("score") if pipeline.risk else None,
                 "evidence_confidence": pipeline.risk.get("evidence_confidence") if pipeline.risk else None,
+                "threshold_id": pipeline.risk.get("threshold_id") if pipeline.risk else None,
+                "threshold_version": pipeline.risk.get("threshold_version") if pipeline.risk else None,
                 "case_opened": result["case"] is not None,
                 "cross_bank_matches": len(result["cross_bank"].matches),
                 "layers_covered": len(result["layers_16"]),
