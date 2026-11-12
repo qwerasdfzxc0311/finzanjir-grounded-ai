@@ -15,6 +15,8 @@ def test_machine_readable_signal_contract_matches_runtime_registry():
     assert contract["registry_version"] == REGISTRY_VERSION
     assert contract["family_caps"] == FAMILY_CAPS
     assert len(contract["small_signal_mappings"]) == 10
+    for mapping in contract["small_signal_mappings"]:
+        assert set(mapping["canonical_ids"]).issubset(SIGNAL_REGISTRY)
 
     contract_signals = {item["signal_id"]: item for item in contract["signals"]}
     assert set(contract_signals) == set(SIGNAL_REGISTRY)
