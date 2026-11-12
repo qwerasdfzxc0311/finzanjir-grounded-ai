@@ -46,7 +46,7 @@ class SystemFlow:
             for key in ("device_id", "network_id")
         )
         shadow_only_multi_signal = (
-            transaction.get("signal_events") is not None
+            (transaction.get("signal_events") is not None or transaction.get("signal_observations") is not None)
             and transaction.get("shadow_mode", True) is True
         )
         if has_cross_bank_keys and not cross_bank_authorized and not shadow_only_multi_signal:

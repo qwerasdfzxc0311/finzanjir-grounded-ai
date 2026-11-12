@@ -11,7 +11,8 @@
     "HumanDecision",
     "BankStatus",
     "CitizenStatus",
-    "AuditEvent"
+    "AuditEvent",
+    "SignalObservation"
   ],
   "relationships": [
     [
@@ -53,6 +54,10 @@
     [
       "Case",
       "AuditEvent"
+    ],
+    [
+      "SignalObservation",
+      "Signal"
     ]
   ],
   "schemas": {
@@ -90,7 +95,9 @@
         "signal_id",
         "family",
         "source_status",
-        "scoring_mode"
+        "scoring_mode",
+        "rule_version",
+        "detector_version"
       ]
     },
     "Evidence": {
@@ -105,7 +112,9 @@
       "optional": [
         "evidence_quality",
         "recency_factor",
-        "data_mode"
+        "data_mode",
+        "rule_version",
+        "detector_version"
       ]
     },
     "Risk": {
@@ -282,6 +291,31 @@
         "case_id",
         "schema_version"
       ]
+    },
+    "SignalObservation": {
+      "required": [
+        "signal_id",
+        "condition_met",
+        "scope",
+        "data_mode"
+      ],
+      "optional": [
+        "evidence_id",
+        "source",
+        "observed_at",
+        "evidence_quality",
+        "recency_factor",
+        "corroborating_signal_ids",
+        "rule_version",
+        "detector_version"
+      ],
+      "constraints": [
+        "Prototype adapter accepts synthetic data only.",
+        "scope must be bank_internal; cross-bank observations are disabled until legal/security approval.",
+        "Only normalized detector facts are accepted; raw card/account/phone/IP/GPS/OTP/password values are not accepted.",
+        "condition_met is produced by a source-side detector; this adapter validates and normalizes, it does not infer fraud from raw bank records."
+      ],
+      "status": "implemented-synthetic-adapter-only"
     }
   },
   "event_envelope": "event_envelope_v2.json",

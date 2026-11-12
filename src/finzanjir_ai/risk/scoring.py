@@ -61,6 +61,12 @@ def evaluate_signal_set(
         corroborating_ids = event.get("corroborating_signal_ids", [])
         if not isinstance(corroborating_ids, list) or any(not isinstance(value, str) for value in corroborating_ids):
             raise ValueError("corroborating_signal_ids must be a list of signal IDs")
+        rule_version = event.get("rule_version", "unspecified")
+        detector_version = event.get("detector_version", "unspecified")
+        if not isinstance(rule_version, str) or not rule_version.strip():
+            raise ValueError("rule_version must be a non-empty string")
+        if not isinstance(detector_version, str) or not detector_version.strip():
+            raise ValueError("detector_version must be a non-empty string")
         item = {
             "definition": definition,
             "signal_id": signal_id,
@@ -70,6 +76,8 @@ def evaluate_signal_set(
             "evidence_quality": _unit_interval(event.get("evidence_quality"), "evidence_quality"),
             "recency_factor": _unit_interval(event.get("recency_factor"), "recency_factor"),
             "corroborating_signal_ids": set(corroborating_ids),
+            "rule_version": rule_version.strip(),
+            "detector_version": detector_version.strip(),
         }
         normalized.append(item)
         evidence_groups[item["evidence_id"]].append(item)
@@ -119,6 +127,8 @@ def evaluate_signal_set(
             "evidence_id": evidence_id,
             "source": chosen["source"],
             "observed_at": chosen["observed_at"],
+            "rule_version": chosen["rule_version"],
+            "detector_version": chosen["detector_version"],
             "base_weight": definition.weight,
             "evidence_quality": chosen["evidence_quality"],
             "recency_factor": chosen["recency_factor"],

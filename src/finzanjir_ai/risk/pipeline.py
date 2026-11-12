@@ -4,6 +4,7 @@ from dataclasses import dataclass
 import math
 from typing import Any
 
+from .observations import normalize_signal_observations
 from .scoring import evaluate_signal_set
 
 
@@ -76,6 +77,8 @@ def _process_multi_signal_transaction(
             "type": item["signal_id"],
             "family": item["family"],
             "source": item["source"],
+            "rule_version": item["rule_version"],
+            "detector_version": item["detector_version"],
             "occurred_at": item["observed_at"],
             "status": "ACTIVE",
             "data_mode": "synthetic",
@@ -93,6 +96,8 @@ def _process_multi_signal_transaction(
             "recency_factor": item["recency_factor"],
             "provenance": {
                 "source": item["source"],
+                "rule_version": item["rule_version"],
+                "detector_version": item["detector_version"],
                 "transaction_id": transaction["transaction_id"],
                 "data_mode": "synthetic",
             },
@@ -196,7 +201,22 @@ def process_transaction(
     if not 0 <= escalation_threshold <= 1:
         raise ValueError("escalation_threshold must be between 0 and 1")
 
-    if "signal_events" in transaction and transaction["signal_events"] is not None:
+    has_signal_events = transaction.get("signal_events") is not None
+    has_signal_observations = transaction.get("signal_observations") is not None
+    if has_signal_events and has_signal_observations:
+        raise ValueError("provide signal_events or signal_observations, not both")
+    if has_signal_observations:
+        signal_events = normalize_signal_observations(
+            transaction["signal_observations"],
+            data_mode="synthetic",
+        )
+        return _process_multi_signal_transaction(
+            transaction,
+            signal_events=signal_events,
+            escalation_threshold=float(escalation_threshold),
+            threshold_config=threshold_config,
+        )
+    if has_signal_events:
         return _process_multi_signal_transaction(
             transaction,
             signal_events=transaction["signal_events"],
