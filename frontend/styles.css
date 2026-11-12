@@ -34,3 +34,9 @@
 .window-workspace h2{margin-top:0}
 .window-data{padding-left:20px;margin-bottom:0}
 .window-data li{margin:6px 0;overflow-wrap:anywhere}
+
+.window-status{display:block;margin-top:10px;font-size:12px;font-weight:700;color:#475569;overflow-wrap:anywhere}
+.window-status[data-state="running"]{color:#92400e}
+.window-status[data-state="success"]{color:#166534}
+.window-status[data-state="failed"]{color:#b91c1c}
+#activeWindowStatus{margin:8px 0}
