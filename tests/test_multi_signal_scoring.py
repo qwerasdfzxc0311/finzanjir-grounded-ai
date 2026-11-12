@@ -136,3 +136,35 @@ def test_context_only_small_signals_never_add_risk_points(signal_id):
     assert result["score"] == 0
     assert result["independent_families"] == 0
     assert result["case_eligible"] is False
+
+
+
+def test_evidence_deduplication_is_order_independent():
+    first = evaluate_signal_set([
+        _event("SIG-035", "shared-device-evidence"),
+        _event("SIG-006", "shared-device-evidence"),
+    ])
+    second = evaluate_signal_set([
+        _event("SIG-006", "shared-device-evidence"),
+        _event("SIG-035", "shared-device-evidence"),
+    ])
+
+    assert first["score"] == second["score"] == 15
+    assert first["contributions"][0]["signal_id"] == "SIG-006"
+    assert second["contributions"][0]["signal_id"] == "SIG-006"
+
+
+def test_corroboration_must_use_a_different_evidence_item():
+    result = evaluate_signal_set([
+        _event("SIG-036", "same-event", corroborating_signal_ids=["SIG-002"]),
+        _event("SIG-002", "same-event"),
+    ])
+
+    assert result["score"] == 15
+    assert result["evidence_count"] == 1
+    assert result["contributions"][0]["signal_id"] == "SIG-002"
+
+
+def test_signal_event_count_is_bounded():
+    with pytest.raises(ValueError, match="100 items"):
+        evaluate_signal_set([_event("SIG-006", f"ev-{index}") for index in range(101)])
