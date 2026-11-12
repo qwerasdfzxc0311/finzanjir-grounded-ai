@@ -1,0 +1,504 @@
+{
+  "schema_version": "1.0",
+  "registry_version": "signal-registry-v1",
+  "status": "engineering_candidate_registry_not_production_approved",
+  "data_mode": "synthetic_and_shadow_only",
+  "score_semantics": "priority_score_not_probability_or_guilt",
+  "signals": [
+    {
+      "signal_id": "SIG-001",
+      "name": "Unusual transaction amount",
+      "family": "TRANSACTION_AMOUNT",
+      "base_weight": 10,
+      "source_status": "legacy",
+      "requires_corroboration": false,
+      "score_eligible": true
+    },
+    {
+      "signal_id": "SIG-002",
+      "name": "High transaction velocity",
+      "family": "TRANSACTION_VELOCITY",
+      "base_weight": 15,
+      "source_status": "legacy",
+      "requires_corroboration": false,
+      "score_eligible": true
+    },
+    {
+      "signal_id": "SIG-003",
+      "name": "Rapid pass-through flow",
+      "family": "FLOW_CHAIN",
+      "base_weight": 20,
+      "source_status": "legacy",
+      "requires_corroboration": false,
+      "score_eligible": true
+    },
+    {
+      "signal_id": "SIG-004",
+      "name": "New beneficiary",
+      "family": "BENEFICIARY",
+      "base_weight": 10,
+      "source_status": "legacy",
+      "requires_corroboration": false,
+      "score_eligible": true
+    },
+    {
+      "signal_id": "SIG-005",
+      "name": "Structuring / limit avoidance",
+      "family": "STRUCTURING",
+      "base_weight": 15,
+      "source_status": "legacy",
+      "requires_corroboration": false,
+      "score_eligible": true
+    },
+    {
+      "signal_id": "SIG-006",
+      "name": "New device",
+      "family": "DEVICE",
+      "base_weight": 15,
+      "source_status": "legacy",
+      "requires_corroboration": false,
+      "score_eligible": true
+    },
+    {
+      "signal_id": "SIG-007",
+      "name": "Geographic anomaly",
+      "family": "GEO",
+      "base_weight": 15,
+      "source_status": "legacy",
+      "requires_corroboration": false,
+      "score_eligible": true
+    },
+    {
+      "signal_id": "SIG-008",
+      "name": "Multiple cards on one device",
+      "family": "DEVICE_NETWORK",
+      "base_weight": 20,
+      "source_status": "legacy",
+      "requires_corroboration": false,
+      "score_eligible": true
+    },
+    {
+      "signal_id": "SIG-009",
+      "name": "VPN / proxy / Tor context",
+      "family": "NETWORK_REPUTATION",
+      "base_weight": 5,
+      "source_status": "legacy",
+      "requires_corroboration": false,
+      "score_eligible": true
+    },
+    {
+      "signal_id": "SIG-010",
+      "name": "Unusual activity time",
+      "family": "TIME_BEHAVIOR",
+      "base_weight": 5,
+      "source_status": "legacy",
+      "requires_corroboration": false,
+      "score_eligible": true
+    },
+    {
+      "signal_id": "SIG-011",
+      "name": "Rushed session",
+      "family": "SESSION",
+      "base_weight": 10,
+      "source_status": "legacy",
+      "requires_corroboration": false,
+      "score_eligible": true
+    },
+    {
+      "signal_id": "SIG-012",
+      "name": "Password reset followed by transfer",
+      "family": "ACCOUNT_SECURITY",
+      "base_weight": 20,
+      "source_status": "legacy",
+      "requires_corroboration": false,
+      "score_eligible": true
+    },
+    {
+      "signal_id": "SIG-013",
+      "name": "Known suspicious beneficiary",
+      "family": "BENEFICIARY_REPUTATION",
+      "base_weight": 20,
+      "source_status": "legacy",
+      "requires_corroboration": false,
+      "score_eligible": true
+    },
+    {
+      "signal_id": "SIG-014",
+      "name": "Shared device / phone attributes",
+      "family": "GRAPH_ATTRIBUTES",
+      "base_weight": 15,
+      "source_status": "legacy",
+      "requires_corroboration": false,
+      "score_eligible": true
+    },
+    {
+      "signal_id": "SIG-015",
+      "name": "Circular transaction flow",
+      "family": "FLOW_GRAPH",
+      "base_weight": 25,
+      "source_status": "legacy",
+      "requires_corroboration": false,
+      "score_eligible": true
+    },
+    {
+      "signal_id": "SIG-016",
+      "name": "Repeated failed authentication",
+      "family": "AUTH",
+      "base_weight": 15,
+      "source_status": "candidate",
+      "requires_corroboration": false,
+      "score_eligible": true
+    },
+    {
+      "signal_id": "SIG-017",
+      "name": "Unusual OTP challenge retry cycle",
+      "family": "AUTH",
+      "base_weight": 10,
+      "source_status": "candidate",
+      "requires_corroboration": false,
+      "score_eligible": true
+    },
+    {
+      "signal_id": "SIG-018",
+      "name": "MFA protection downgrade",
+      "family": "AUTH",
+      "base_weight": 20,
+      "source_status": "candidate",
+      "requires_corroboration": false,
+      "score_eligible": true
+    },
+    {
+      "signal_id": "SIG-019",
+      "name": "Trusted-device binding removed",
+      "family": "DEVICE",
+      "base_weight": 15,
+      "source_status": "candidate",
+      "requires_corroboration": false,
+      "score_eligible": true
+    },
+    {
+      "signal_id": "SIG-020",
+      "name": "Existing beneficiary details changed",
+      "family": "BENEFICIARY",
+      "base_weight": 15,
+      "source_status": "candidate",
+      "requires_corroboration": false,
+      "score_eligible": true
+    },
+    {
+      "signal_id": "SIG-021",
+      "name": "Beneficiary name-match discrepancy",
+      "family": "BENEFICIARY",
+      "base_weight": 15,
+      "source_status": "candidate",
+      "requires_corroboration": false,
+      "score_eligible": true
+    },
+    {
+      "signal_id": "SIG-022",
+      "name": "Dormant account reactivated",
+      "family": "ACCOUNT_BEHAVIOR",
+      "base_weight": 10,
+      "source_status": "candidate",
+      "requires_corroboration": false,
+      "score_eligible": true
+    },
+    {
+      "signal_id": "SIG-023",
+      "name": "Multiple independent senders then outflow",
+      "family": "FLOW_GRAPH",
+      "base_weight": 20,
+      "source_status": "candidate",
+      "requires_corroboration": false,
+      "score_eligible": true
+    },
+    {
+      "signal_id": "SIG-024",
+      "name": "Rapid multi-hop transfer chain",
+      "family": "FLOW_GRAPH",
+      "base_weight": 20,
+      "source_status": "candidate",
+      "requires_corroboration": false,
+      "score_eligible": true
+    },
+    {
+      "signal_id": "SIG-025",
+      "name": "Near-total balance drained after inflow",
+      "family": "FLOW_BEHAVIOR",
+      "base_weight": 15,
+      "source_status": "candidate",
+      "requires_corroboration": false,
+      "score_eligible": true
+    },
+    {
+      "signal_id": "SIG-026",
+      "name": "Unusual reversal / refund pattern",
+      "family": "PAYMENT_LIFECYCLE",
+      "base_weight": 10,
+      "source_status": "candidate",
+      "requires_corroboration": false,
+      "score_eligible": true
+    },
+    {
+      "signal_id": "SIG-027",
+      "name": "Repeated cancel-and-retry payment pattern",
+      "family": "PAYMENT_LIFECYCLE",
+      "base_weight": 10,
+      "source_status": "candidate",
+      "requires_corroboration": false,
+      "score_eligible": true
+    },
+    {
+      "signal_id": "SIG-028",
+      "name": "Channel switch after security event",
+      "family": "SESSION",
+      "base_weight": 10,
+      "source_status": "candidate",
+      "requires_corroboration": false,
+      "score_eligible": true
+    },
+    {
+      "signal_id": "SIG-029",
+      "name": "Conflicting parallel active sessions",
+      "family": "SESSION",
+      "base_weight": 15,
+      "source_status": "candidate",
+      "requires_corroboration": false,
+      "score_eligible": true
+    },
+    {
+      "signal_id": "SIG-030",
+      "name": "Digital-to-ATM cash-out sequence",
+      "family": "CASH_OUT",
+      "base_weight": 15,
+      "source_status": "candidate",
+      "requires_corroboration": false,
+      "score_eligible": true
+    },
+    {
+      "signal_id": "SIG-031",
+      "name": "Many small outbound transfers to related nodes",
+      "family": "OUTBOUND_PATTERN",
+      "base_weight": 10,
+      "source_status": "candidate",
+      "requires_corroboration": false,
+      "score_eligible": true
+    },
+    {
+      "signal_id": "SIG-032",
+      "name": "Unusual inflow / outflow ratio shift",
+      "family": "FLOW_BEHAVIOR",
+      "base_weight": 10,
+      "source_status": "candidate",
+      "requires_corroboration": false,
+      "score_eligible": true
+    },
+    {
+      "signal_id": "SIG-033",
+      "name": "Fan-in / fan-out graph topology",
+      "family": "FLOW_GRAPH",
+      "base_weight": 20,
+      "source_status": "candidate",
+      "requires_corroboration": false,
+      "score_eligible": true
+    },
+    {
+      "signal_id": "SIG-034",
+      "name": "Contact detail change followed by transfer",
+      "family": "PROFILE_SECURITY",
+      "base_weight": 15,
+      "source_status": "candidate",
+      "requires_corroboration": false,
+      "score_eligible": true
+    },
+    {
+      "signal_id": "SIG-035",
+      "name": "New app registration followed by transfer",
+      "family": "DEVICE",
+      "base_weight": 10,
+      "source_status": "candidate",
+      "requires_corroboration": false,
+      "score_eligible": true
+    },
+    {
+      "signal_id": "SIG-036",
+      "name": "Micro-transaction card test",
+      "family": "TRANSACTION_VELOCITY",
+      "base_weight": 5,
+      "source_status": "candidate",
+      "requires_corroboration": true,
+      "score_eligible": true
+    },
+    {
+      "signal_id": "SIG-037",
+      "name": "New beneficiary account age",
+      "family": "BENEFICIARY",
+      "base_weight": 5,
+      "source_status": "candidate",
+      "requires_corroboration": true,
+      "score_eligible": true
+    },
+    {
+      "signal_id": "SIG-038",
+      "name": "Application language changed",
+      "family": "DEVICE",
+      "base_weight": 0,
+      "source_status": "candidate",
+      "requires_corroboration": false,
+      "score_eligible": false
+    },
+    {
+      "signal_id": "SIG-039",
+      "name": "Shared IP across multiple accounts",
+      "family": "GRAPH_ATTRIBUTES",
+      "base_weight": 5,
+      "source_status": "candidate",
+      "requires_corroboration": true,
+      "score_eligible": true
+    },
+    {
+      "signal_id": "SIG-040",
+      "name": "Copy-paste beneficiary entry context",
+      "family": "SESSION",
+      "base_weight": 0,
+      "source_status": "candidate",
+      "requires_corroboration": false,
+      "score_eligible": false
+    }
+  ],
+  "family_caps": {
+    "TRANSACTION_AMOUNT": 20,
+    "TRANSACTION_VELOCITY": 25,
+    "FLOW_CHAIN": 35,
+    "BENEFICIARY": 25,
+    "STRUCTURING": 20,
+    "DEVICE": 25,
+    "GEO": 20,
+    "DEVICE_NETWORK": 25,
+    "NETWORK_REPUTATION": 10,
+    "TIME_BEHAVIOR": 10,
+    "SESSION": 20,
+    "ACCOUNT_SECURITY": 30,
+    "BENEFICIARY_REPUTATION": 25,
+    "GRAPH_ATTRIBUTES": 30,
+    "FLOW_GRAPH": 35,
+    "AUTH": 30,
+    "ACCOUNT_BEHAVIOR": 15,
+    "FLOW_BEHAVIOR": 20,
+    "PAYMENT_LIFECYCLE": 15,
+    "CASH_OUT": 15,
+    "OUTBOUND_PATTERN": 20,
+    "PROFILE_SECURITY": 20
+  },
+  "scoring": {
+    "contribution": "base_weight * evidence_quality * recency_factor",
+    "evidence_quality_range": [
+      0,
+      1
+    ],
+    "recency_factor_range": [
+      0,
+      1
+    ],
+    "deduplicate_by": "evidence_id",
+    "deduplication": "For a repeated evidence_id, retain only the highest eligible contribution; ties are resolved by signal_id.",
+    "family_caps_applied_before_total": true,
+    "maximum_score": 100,
+    "default_escalation_threshold": 75,
+    "minimum_independent_families": 2,
+    "minimum_unique_evidence_items": 2,
+    "shadow_mode_default": true,
+    "shadow_mode_effect": "No Case, payment, bank status, or authoritative citizen decision is changed."
+  },
+  "small_signal_mappings": [
+    {
+      "source_id": "SMALL-001",
+      "name": "Micro-transaction card test",
+      "canonical_ids": [
+        "SIG-036",
+        "SIG-002"
+      ],
+      "rule": "SIG-036 contributes only when corroborated by a distinct evidence item from another signal."
+    },
+    {
+      "source_id": "SMALL-002",
+      "name": "Very short session",
+      "canonical_ids": [
+        "SIG-011"
+      ],
+      "rule": "Subcondition of the existing rushed-session signal; no duplicate score."
+    },
+    {
+      "source_id": "SMALL-003",
+      "name": "First transfer after password reset",
+      "canonical_ids": [
+        "SIG-012"
+      ],
+      "rule": "Subcondition of the existing password-reset-plus-transfer signal."
+    },
+    {
+      "source_id": "SMALL-004",
+      "name": "Beneficiary account age",
+      "canonical_ids": [
+        "SIG-037",
+        "SIG-004",
+        "SIG-013"
+      ],
+      "rule": "SIG-037 requires corroboration; account age alone is not suspicious."
+    },
+    {
+      "source_id": "SMALL-005",
+      "name": "Repeated amounts below a limit",
+      "canonical_ids": [
+        "SIG-005"
+      ],
+      "rule": "Subcondition of structuring; no duplicate score."
+    },
+    {
+      "source_id": "SMALL-006",
+      "name": "Application language change",
+      "canonical_ids": [
+        "SIG-038",
+        "SIG-006"
+      ],
+      "rule": "Context-only; zero risk points."
+    },
+    {
+      "source_id": "SMALL-007",
+      "name": "Many accounts using one IP",
+      "canonical_ids": [
+        "SIG-039",
+        "SIG-014",
+        "SIG-008"
+      ],
+      "rule": "Requires distinct corroborating evidence; shared household/work IP is a benign explanation."
+    },
+    {
+      "source_id": "SMALL-008",
+      "name": "Copy-paste beneficiary entry",
+      "canonical_ids": [
+        "SIG-040",
+        "SIG-011"
+      ],
+      "rule": "Context-only; zero risk points."
+    },
+    {
+      "source_id": "SMALL-009",
+      "name": "Activity outside usual time profile",
+      "canonical_ids": [
+        "SIG-010"
+      ],
+      "rule": "Subcondition of unusual-time behavior; no duplicate score."
+    },
+    {
+      "source_id": "SMALL-010",
+      "name": "Phone number change / SIM-swap context",
+      "canonical_ids": [
+        "SIG-034",
+        "SIG-012",
+        "SIG-006"
+      ],
+      "rule": "Link distinct contact-change, account-security and device evidence; do not double-count the same event."
+    }
+  ]
+}
