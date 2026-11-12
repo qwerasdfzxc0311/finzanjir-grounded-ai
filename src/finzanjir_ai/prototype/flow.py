@@ -156,8 +156,8 @@ class SystemFlow:
             value
             for value in (
                 transaction["transaction_id"],
-                pipeline.signal["id"],
-                pipeline.evidence["id"] if pipeline.evidence else None,
+                *(item["id"] for item in pipeline.signals),
+                *(item["id"] for item in pipeline.evidences),
                 pipeline.risk["id"],
                 case["case_id"],
                 decision["human_decision"]["decision_id"],
@@ -181,9 +181,13 @@ class SystemFlow:
             "cross_bank": cross_bank,
             "audit": (decision["audit_event"],),
             "ai": ai,
-            "citizen_status": decision["citizen_status"],
+            "citizen_status": decision["citizen_status"] or {
+                "case_id": case["case_id"],
+                "status": "SYNTHETIC_REVIEW_ONLY",
+                "message": "Sintetik sinov natijasi; bankning rasmiy qarori yoki mijozga qo‘llangan chora emas.",
+            },
             "kpi": calculate_kpis(
-                signals_detected=1,
+                signals_detected=len(pipeline.signals),
                 cases_opened=1,
                 cases_actioned=0,
                 review_seconds_total=0,
@@ -210,10 +214,14 @@ class SystemFlow:
             "runtime": {
                 "transaction_id": result["transaction_id"],
                 "signal_id": pipeline.signal["id"] if pipeline.signal else None,
+                "signal_ids": [item["id"] for item in pipeline.signals],
                 "evidence_id": pipeline.evidence["id"] if pipeline.evidence else None,
+                "evidence_ids": [item["id"] for item in pipeline.evidences],
                 "risk_id": pipeline.risk["id"] if pipeline.risk else None,
                 "case_id": result["case"]["case_id"] if result["case"] else None,
                 "risk_level": pipeline.risk["level"] if pipeline.risk else None,
+                "risk_score": pipeline.risk.get("score") if pipeline.risk else None,
+                "evidence_confidence": pipeline.risk.get("evidence_confidence") if pipeline.risk else None,
                 "case_opened": result["case"] is not None,
                 "cross_bank_matches": len(result["cross_bank"].matches),
                 "layers_covered": len(result["layers_16"]),
