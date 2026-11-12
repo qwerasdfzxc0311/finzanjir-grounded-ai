@@ -301,3 +301,92 @@ def test_prototype_run_history_failure_returns_unavailable_without_success_trace
     assert response.json()["detail"] == "Prototype run could not be safely saved."
     assert "window_trace" not in response.json()
     assert "prototype_run_id" not in response.json()
+
+
+
+def _parse_sse_frames(payload: str) -> list[tuple[str, dict]]:
+    import json
+
+    parsed = []
+    for frame in payload.strip().split("\n\n"):
+        lines = frame.splitlines()
+        if len(lines) >= 2 and lines[0].startswith("event: ") and lines[1].startswith("data: "):
+            parsed.append((lines[0][7:], json.loads(lines[1][6:])))
+    return parsed
+
+
+def test_stream_endpoint_emits_actual_ordered_window_progress_and_final_result(monkeypatch):
+    class InMemoryRunStore:
+        def save(self, _summary):
+            return {"run_id": "run-stream-progress-test"}
+
+    monkeypatch.setattr("finzanjir_api.app.prototype_run_store", lambda: InMemoryRunStore())
+    response = client.post(
+        "/api/prototype/run/stream",
+        json={
+            "transaction_id": "TX-API-STREAM-001",
+            "bank_id": "bank-synthetic-a",
+            "actor_id": "actor-stream",
+            "amount": 2500,
+            "occurred_at": "2026-11-12T09:00:00Z",
+            "synthetic": True,
+            **_multi_signal_fields("TX-API-STREAM-001", "2026-11-12T09:00:00Z"),
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/event-stream")
+    frames = _parse_sse_frames(response.text)
+    stages = [data for name, data in frames if name == "stage"]
+    results = [data for name, data in frames if name == "result"]
+    errors = [data for name, data in frames if name == "error"]
+
+    assert len(stages) == 16
+    assert [item["window_id"] for item in stages] == [
+        window_id
+        for window_id in (
+            "synthetic_bank", "signal_risk", "cross_bank_fraud", "human_case",
+            "audit_kpi", "finzanjir_ai", "citizen", "layers_16",
+        )
+        for _ in range(2)
+    ]
+    assert [item["status"] for item in stages[::2]] == ["RUNNING"] * 8
+    assert stages[-1]["status"] == "PARTIAL"
+    assert len(results) == 1
+    assert results[0]["prototype_run_id"] == "run-stream-progress-test"
+    assert len(results[0]["window_trace"]) == 8
+    assert errors == []
+
+
+def test_stream_endpoint_reports_failed_and_not_run_stages_without_success_result(monkeypatch):
+    def fail_signal_pipeline(*_args, **_kwargs):
+        raise ValueError("synthetic signal pipeline failure")
+
+    monkeypatch.setattr("finzanjir_ai.prototype.flow.process_transaction", fail_signal_pipeline)
+    response = client.post(
+        "/api/prototype/run/stream",
+        json={
+            "transaction_id": "TX-API-STREAM-FAIL-001",
+            "bank_id": "bank-synthetic-a",
+            "actor_id": "actor-stream-fail",
+            "amount": 2500,
+            "occurred_at": "2026-11-12T09:00:00Z",
+            "synthetic": True,
+            **_multi_signal_fields("TX-API-STREAM-FAIL-001", "2026-11-12T09:00:00Z"),
+        },
+    )
+
+    assert response.status_code == 200
+    frames = _parse_sse_frames(response.text)
+    stages = [data for name, data in frames if name == "stage"]
+    errors = [data for name, data in frames if name == "error"]
+    results = [data for name, data in frames if name == "result"]
+
+    assert [item["status"] for item in stages] == [
+        "RUNNING", "COMPLETED", "RUNNING", "FAILED",
+        "NOT_RUN", "NOT_RUN", "NOT_RUN", "NOT_RUN",
+        "NOT_RUN", "NOT_RUN", "NOT_RUN", "NOT_RUN",
+    ]
+    assert stages[3]["window_id"] == "signal_risk"
+    assert errors == [{"status_code": 400, "detail": "synthetic signal pipeline failure"}]
+    assert results == []
