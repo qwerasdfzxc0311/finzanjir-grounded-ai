@@ -41,6 +41,7 @@ def test_multi_signal_score_requires_independent_families_and_evidence():
     assert result["evidence_count"] == 5
     assert result["case_eligible"] is True
     assert result["score_semantics"] == "priority_score_not_probability_or_guilt"
+    assert result["registry_version"] == "signal-registry-v1"
 
 
 def test_related_auth_signals_are_limited_by_family_cap():
