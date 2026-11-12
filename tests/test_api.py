@@ -453,3 +453,102 @@ def test_stream_endpoint_marks_unauthorized_cross_bank_stage_failed_and_stops_la
     assert [item["status"] for item in stages[-5:]] == ["NOT_RUN"] * 5
     assert errors == [{"status_code": 403, "detail": "authorized cross-bank exchange is required"}]
     assert results == []
+
+
+
+def _module_failure_stream_payload(transaction_id: str, *, shadow_mode: bool = False) -> dict:
+    return {
+        "transaction_id": transaction_id,
+        "bank_id": "bank-synthetic-a",
+        "actor_id": "actor-module-failure-matrix",
+        "amount": 2500,
+        "occurred_at": "2026-11-12T09:00:00Z",
+        "synthetic": True,
+        "shadow_mode": shadow_mode,
+        **_multi_signal_fields(transaction_id, "2026-11-12T09:00:00Z"),
+    }
+
+
+def _stream_events(response):
+    frames = _parse_sse_frames(response.text)
+    return (
+        [data for name, data in frames if name == "stage"],
+        [data for name, data in frames if name == "error"],
+        [data for name, data in frames if name == "result"],
+    )
+
+
+def test_stream_case_module_failure_stops_before_audit_ai_citizen_and_layers(monkeypatch):
+    def fail_case(*_args, **_kwargs):
+        raise RuntimeError("synthetic case module failure")
+
+    monkeypatch.setattr("finzanjir_ai.prototype.flow.CaseManager.apply_human_decision", fail_case)
+    response = client.post(
+        "/api/prototype/run/stream",
+        json=_module_failure_stream_payload("TX-STREAM-CASE-FAIL-001"),
+    )
+    stages, errors, results = _stream_events(response)
+
+    assert [item["status"] for item in stages] == [
+        "RUNNING", "COMPLETED", "RUNNING", "COMPLETED",
+        "RUNNING", "DISABLED", "RUNNING", "FAILED",
+        "NOT_RUN", "NOT_RUN", "NOT_RUN", "NOT_RUN",
+    ]
+    assert stages[7]["window_id"] == "human_case"
+    assert errors == [{"status_code": 500, "detail": "Prototype flow failed safely."}]
+    assert results == []
+
+
+def test_stream_ai_module_failure_stops_before_citizen_and_layers(monkeypatch):
+    def fail_ai(*_args, **_kwargs):
+        raise RuntimeError("synthetic AI module failure")
+
+    monkeypatch.setattr("finzanjir_ai.prototype.flow.FINZANJIRAI.answer", fail_ai)
+    response = client.post(
+        "/api/prototype/run/stream",
+        json=_module_failure_stream_payload("TX-STREAM-AI-FAIL-001"),
+    )
+    stages, errors, results = _stream_events(response)
+
+    assert stages[-4]["window_id"] == "finzanjir_ai"
+    assert [item["status"] for item in stages[-4:]] == [
+        "RUNNING", "FAILED", "NOT_RUN", "NOT_RUN"
+    ]
+    assert errors == [{"status_code": 500, "detail": "Prototype flow failed safely."}]
+    assert results == []
+
+
+def test_stream_audit_module_failure_stops_shadow_flow_before_ai(monkeypatch):
+    def fail_audit(*_args, **_kwargs):
+        raise RuntimeError("synthetic audit module failure")
+
+    monkeypatch.setattr("finzanjir_ai.prototype.flow.AuditLog.append", fail_audit)
+    response = client.post(
+        "/api/prototype/run/stream",
+        json=_module_failure_stream_payload("TX-STREAM-AUDIT-FAIL-001", shadow_mode=True),
+    )
+    stages, errors, results = _stream_events(response)
+
+    assert stages[-4]["window_id"] == "audit_kpi"
+    assert [item["status"] for item in stages[-4:]] == [
+        "RUNNING", "FAILED", "NOT_RUN", "NOT_RUN"
+    ]
+    assert errors == [{"status_code": 500, "detail": "Prototype flow failed safely."}]
+    assert results == []
+
+
+def test_stream_layer_registry_failure_is_reported_without_success_result(monkeypatch):
+    def fail_layers(*_args, **_kwargs):
+        raise RuntimeError("synthetic layer registry failure")
+
+    monkeypatch.setattr("finzanjir_ai.prototype.flow.SystemFlow._layer_trace", fail_layers)
+    response = client.post(
+        "/api/prototype/run/stream",
+        json=_module_failure_stream_payload("TX-STREAM-LAYERS-FAIL-001"),
+    )
+    stages, errors, results = _stream_events(response)
+
+    assert stages[-2]["window_id"] == "layers_16"
+    assert [item["status"] for item in stages[-2:]] == ["RUNNING", "FAILED"]
+    assert errors == [{"status_code": 500, "detail": "Prototype flow failed safely."}]
+    assert results == []
