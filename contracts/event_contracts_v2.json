@@ -150,12 +150,15 @@
     "Case": {
       "required": [
         "id",
+        "bank_id",
+        "citizen_id",
         "signal_ids",
         "risk_id",
         "threshold_id",
         "status",
         "opened_at",
-        "transaction_id"
+        "transaction_id",
+        "data_mode"
       ],
       "aliases": {
         "id": [
@@ -167,6 +170,9 @@
       },
       "constraints": [
         "Case is not a final guilt judgment"
+      ],
+      "optional": [
+        "created_at"
       ]
     },
     "HumanDecision": {
@@ -179,13 +185,15 @@
         "reason",
         "decision_origin",
         "actor_type",
-        "is_authoritative"
+        "is_authoritative",
+        "data_mode"
       ],
       "aliases": {
         "id": [
           "decision_id"
         ]
-      }
+      },
+      "optional": []
     },
     "BankStatus": {
       "required": [
@@ -193,13 +201,17 @@
         "case_id",
         "bank_id",
         "status",
-        "updated_at"
+        "updated_at",
+        "data_mode"
       ],
       "aliases": {
         "id": [
           "status_id"
         ]
-      }
+      },
+      "optional": [
+        "transaction_id"
+      ]
     },
     "CitizenStatus": {
       "required": [
@@ -207,7 +219,8 @@
         "case_id",
         "citizen_id",
         "status",
-        "updated_at"
+        "updated_at",
+        "data_mode"
       ],
       "aliases": {
         "id": [
@@ -216,7 +229,11 @@
         "citizen_id": [
           "actor_id"
         ]
-      }
+      },
+      "optional": [
+        "message",
+        "actor_id"
+      ]
     },
     "AuditEvent": {
       "required": [
@@ -239,6 +256,9 @@
         ],
         "payload": [
           "details"
+        ],
+        "details": [
+          "payload"
         ]
       }
     }
