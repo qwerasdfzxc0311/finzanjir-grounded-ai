@@ -168,8 +168,12 @@ def test_legacy_and_multi_signal_pipeline_objects_match_v2_required_fields():
         for evidence in result.evidences:
             assert set(schemas["Evidence"]["required"]).issubset(evidence)
         assert set(schemas["Risk"]["required"]).issubset(result.risk)
-        assert result.risk["score_scale"] == ("legacy_0_1" if index == 0 else "priority_0_100")
-        assert set(schemas["Case"]["required"]).issubset(result.case)
+        assert result.risk["score_scale"] == "priority_0_100"
+        if index == 0:
+            assert result.case is None
+            assert result.risk["case_eligible"] is False
+        else:
+            assert set(schemas["Case"]["required"]).issubset(result.case)
 
 
 
