@@ -44,7 +44,7 @@ class SystemFlow:
         if has_cross_bank_keys and not cross_bank_authorized:
             raise ValueError("authorized cross-bank exchange is required")
 
-        if pipeline.signal is None or pipeline.risk is None:
+        if pipeline.signal is None or pipeline.risk is None or pipeline.case is None:
             ai = FINZANJIRAI(knowledge_index).answer(
                 "Why was no case opened?",
                 runtime_refs=(transaction["transaction_id"],),
@@ -65,11 +65,11 @@ class SystemFlow:
                 "ai": ai,
                 "citizen_status": {
                     "case_id": None,
-                    "status": "NO_CASE",
-                    "message": "Hodisa bo‘yicha Case ochilmadi.",
+                    "status": "SHADOW_ONLY" if pipeline.risk and pipeline.risk.get("shadow_mode") else "NO_CASE",
+                    "message": "Shadow Mode: natija qayd etildi, real to‘lov yoki bank qaroriga ta’sir qilmaydi." if pipeline.risk and pipeline.risk.get("shadow_mode") else "Hodisa bo‘yicha Case ochilmadi.",
                 },
                 "kpi": calculate_kpis(
-                    signals_detected=0,
+                    signals_detected=len(pipeline.signals),
                     cases_opened=0,
                     cases_actioned=0,
                     review_seconds_total=0,
