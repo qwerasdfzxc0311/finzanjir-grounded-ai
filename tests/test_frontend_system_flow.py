@@ -28,3 +28,12 @@ def test_frontend_bootstraps_from_real_runtime_demo_endpoint():
     assert "/api/prototype/demo" in script
     assert "prototypeResult" in script
     assert "transaction_id" in script
+
+
+def test_frontend_runs_synthetic_detector_and_reads_persisted_history():
+    script = Path("frontend/app.js").read_text(encoding="utf-8")
+    assert "/api/prototype/run" in script
+    assert "/api/prototype/runs?limit=10" in script
+    assert "signal_features" in script
+    assert "synthetic: true" in script
+    assert "clipboard" not in script.lower()
