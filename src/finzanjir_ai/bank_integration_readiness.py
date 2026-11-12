@@ -1,5 +1,14 @@
 class BankIntegrationReadiness:
-    """Keep bank integration claims behind explicit readiness gates."""
+    """Keep bank integration claims behind explicit, typed readiness gates."""
+
+    GATES = (
+        "legal_approval",
+        "partner_approval",
+        "specification",
+        "security_approval",
+        "authentication",
+        "sandbox",
+    )
 
     def assess(
         self,
@@ -19,11 +28,16 @@ class BankIntegrationReadiness:
             "authentication": authentication_ready,
             "sandbox": sandbox_ready,
         }
-        blockers = [name for name, passed in gates.items() if not passed]
+        invalid = [name for name, value in gates.items() if not isinstance(value, bool)]
+        if invalid:
+            raise ValueError("readiness gates must be strict booleans: " + ", ".join(invalid))
+
+        blockers = [name for name, passed in gates.items() if passed is False]
         ready = not blockers
         return {
             "ready": ready,
             "status": "READY_FOR_CONTROLLED_INTEGRATION" if ready else "BLOCKED",
             "blockers": blockers,
+            "gates": dict(gates),
             "real_bank_connected": False,
         }
