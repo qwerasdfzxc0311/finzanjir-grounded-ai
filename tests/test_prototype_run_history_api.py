@@ -42,6 +42,8 @@ def test_prototype_run_endpoint_persists_only_sanitized_aggregate_history(monkey
     assert "bank-synthetic-a" not in history.text
     assert "synthetic-person-001" not in history.text
     assert "privacy_note" in body
+    assert "persistence_note" in body
+    assert "may be lost" in body["persistence_note"]
 
 
 def test_prototype_run_history_endpoint_bounds_requested_limit():
