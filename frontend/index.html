@@ -5,7 +5,14 @@
 <header><strong>FINZANJIR</strong><span class="badge">Prototype</span><p>Unified fraud/risk knowledge platform · data mode: <span id="mode">synthetic</span></p></header>
 <main>
 <section><h2>Bir tizim, alohida oynalar</h2><p class="muted">Har bir oyna mustaqil ko‘rinadi, lekin bir xil tranzaksiya izi va umumiy tizim oqimi bilan bog‘langan.</p><div id="flow" class="flow"></div></section>
-<section><h2>Work windows</h2><div id="windows" class="grid"></div></section>
+<section><h2>Work windows</h2><p class="muted">Oynani tanlang — tanlangan modulning so‘nggi umumiy runtime natijasi ko‘rsatiladi.</p><div id="windows" class="grid"></div>
+  <div id="windowWorkspace" class="card window-workspace" aria-live="polite">
+    <h2 id="activeWindowTitle">Dashboard</h2>
+    <p id="activeWindowPurpose" class="muted">Yagona tizim holati</p>
+    <p id="activeWindowInput"></p>
+    <ul id="activeWindowData" class="window-data"></ul>
+  </div>
+</section>
 <section><h2>Live prototype execution</h2><div id="prototypeResult" class="card"><p class="muted">Runtime demo yuklanmoqda...</p></div></section>
 <section>
   <h2>Sintetik detector sinovi</h2>

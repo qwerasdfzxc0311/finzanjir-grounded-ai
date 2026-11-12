@@ -22,3 +22,15 @@
 .module-card h3{font-size:1rem;margin:0 0 8px}
 .module-card .layers{margin:0;padding-left:18px}
 .module-card li{overflow-wrap:anywhere}
+
+
+.window-card{display:block;width:100%;min-height:132px;padding:16px;text-align:left;font:inherit;color:inherit;background:#fff;border:1px solid #dfe4ec;border-radius:12px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.window-card strong{display:block;margin-bottom:8px}
+.window-card p{margin:0 0 8px}
+.window-card small{display:block;color:#667085}
+.window-card[aria-pressed="true"]{border-color:#123b63;box-shadow:0 0 0 2px rgba(18,59,99,.14)}
+.window-card:focus-visible{outline:3px solid #2563eb;outline-offset:2px}
+.window-workspace{margin-top:16px}
+.window-workspace h2{margin-top:0}
+.window-data{padding-left:20px;margin-bottom:0}
+.window-data li{margin:6px 0;overflow-wrap:anywhere}
