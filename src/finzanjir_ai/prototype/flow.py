@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Callable
 
 from finzanjir_ai.architecture.layers import build_layer_trace, get_layer_status_summary
 from finzanjir_ai.audit.service import AuditLog, calculate_kpis
@@ -23,18 +23,60 @@ class SystemFlow:
     architecture_layers: int = 16
     threshold_manager: ThresholdManager = field(default_factory=ThresholdManager, compare=False, repr=False)
 
-    def execute(self, transaction: dict[str, Any], *, knowledge_index: KnowledgeIndex) -> dict[str, Any]:
+    def execute(
+        self,
+        transaction: dict[str, Any],
+        *,
+        knowledge_index: KnowledgeIndex,
+        on_stage: Callable[[dict[str, Any]], None] | None = None,
+    ) -> dict[str, Any]:
         if not isinstance(transaction, dict):
             raise ValueError("transaction must be an object")
         if transaction.get("synthetic") is not True:
             raise ValueError("Unified prototype flow accepts only explicitly synthetic transactions")
 
+        transaction_id = transaction.get("transaction_id", "")
+        def emit(window_id: str, status: str, summary: str, input_refs: tuple[str, ...] = (), output_refs: tuple[str, ...] = ()) -> None:
+            if on_stage is None:
+                return
+            event = {
+                "sequence": self.window_ids.index(window_id) + 1,
+                "window_id": window_id,
+                "transaction_id": transaction_id,
+                "data_mode": "synthetic",
+                "status": status,
+                "summary": summary,
+                "input_refs": list(input_refs),
+                "output_refs": list(output_refs),
+            }
+            try:
+                on_stage(event)
+            except Exception:
+                # Progress transport must never change the underlying risk-flow result.
+                return
+
+        emit("synthetic_bank", "RUNNING", "Sintetik tranzaksiya tekshirilmoqda.")
+        emit("synthetic_bank", "COMPLETED", "Sintetik tranzaksiya yagona oqimga qabul qilindi.", output_refs=(transaction_id,))
+
+        emit("signal_risk", "RUNNING", "Signal va risk tahlili bajarilmoqda.", input_refs=(transaction_id,))
         threshold_config = self.threshold_manager.get_active()
         pipeline = process_transaction(
             transaction,
             signal_amount_threshold=1000,
             escalation_threshold=0.75,
             threshold_config=threshold_config,
+        )
+
+        emit(
+            "signal_risk",
+            "COMPLETED" if pipeline.risk else "NOT_RUN",
+            "Signal, dalil va risk natijasi tayyor." if pipeline.risk else "Risk natijasi hosil bo‘lmadi.",
+            input_refs=(transaction_id,),
+            output_refs=tuple(
+                [item["id"] for item in pipeline.signals]
+                + [item["id"] for item in pipeline.evidences]
+                + ([pipeline.risk["id"]] if pipeline.risk and pipeline.risk.get("id") else [])
+            ),
         )
 
         cross_bank_authorized = transaction.get("cross_bank_authorized", False)
@@ -54,6 +96,12 @@ class SystemFlow:
             raise ValueError("authorized cross-bank exchange is required")
 
         if pipeline.signal is None or pipeline.risk is None or pipeline.case is None:
+            emit("cross_bank_fraud", "RUNNING", "Cross-Bank ruxsat chegarasi tekshirilmoqda.")
+            shadow_cross_bank = CrossBankMatcher().match([], scope="cross_bank", authorized_exchange=True)
+            emit("cross_bank_fraud", "DISABLED", "Banklararo almashinuv o‘chiq; bu moslik topilmadi degani emas.")
+            emit("human_case", "RUNNING", "Case ochish mezonlari va Shadow Mode tekshirilmoqda.", input_refs=(pipeline.risk["id"],) if pipeline.risk else ())
+            human_status = "SHADOW_ONLY" if pipeline.risk and pipeline.risk.get("shadow_mode") else "NOT_ELIGIBLE"
+            emit("human_case", human_status, "Shadow Mode yoki Case mezonlari sabab Case ochilmadi.")
             shadow_runtime_refs = tuple(
                 value
                 for value in (
@@ -64,11 +112,6 @@ class SystemFlow:
                     pipeline.risk.get("threshold_id") if pipeline.risk else None,
                 )
                 if value
-            )
-            ai = FINZANJIRAI(knowledge_index).answer(
-                "Why was this risk result kept in Shadow Mode?",
-                runtime_refs=shadow_runtime_refs,
-                working_memory_scope=transaction["transaction_id"],
             )
             shadow_audit = None
             if pipeline.risk is not None:
@@ -95,6 +138,45 @@ class SystemFlow:
                         "no_bank_action": True,
                     },
                 )
+            shadow_kpi = calculate_kpis(
+                signals_detected=len(pipeline.signals),
+                cases_opened=0,
+                cases_actioned=0,
+                review_seconds_total=0,
+                data_mode="synthetic",
+            )
+            emit(
+                "audit_kpi",
+                "COMPLETED",
+                "Sintetik audit hodisasi va KPI tayyor.",
+                input_refs=(transaction_id,),
+                output_refs=(shadow_audit["event_id"],) if shadow_audit else (),
+            )
+            emit("finzanjir_ai", "RUNNING", "Canonical knowledge va runtime dalillari bilan izoh tayyorlanmoqda.", input_refs=shadow_runtime_refs)
+            ai = FINZANJIRAI(knowledge_index).answer(
+                "Why was this risk result kept in Shadow Mode?",
+                runtime_refs=shadow_runtime_refs,
+                working_memory_scope=transaction["transaction_id"],
+            )
+            ai_answer = getattr(ai, "answer", None)
+            emit(
+                "finzanjir_ai",
+                "ABSTAINED" if getattr(ai_answer, "abstained", False) else "COMPLETED",
+                "AI dalil yetishmasligi sabab javobdan tiyildi." if getattr(ai_answer, "abstained", False) else "AI izohi tayyor.",
+                input_refs=shadow_runtime_refs,
+                output_refs=tuple(getattr(ai_answer, "citations", ()) or ()),
+            )
+            shadow_citizen_status = {
+                "case_id": None,
+                "status": "SHADOW_ONLY" if pipeline.risk and pipeline.risk.get("shadow_mode") else "NO_CASE",
+                "message": "Shadow Mode: natija qayd etildi, real to‘lov yoki bank qaroriga ta’sir qilmaydi." if pipeline.risk and pipeline.risk.get("shadow_mode") else "Hodisa bo‘yicha Case ochilmadi.",
+                "risk_score": pipeline.risk.get("score") if pipeline.risk else None,
+                "risk_level": pipeline.risk.get("level") if pipeline.risk else None,
+                "case_eligible": pipeline.risk.get("case_eligible", False) if pipeline.risk else False,
+            }
+            emit("citizen", "SYNTHETIC_STATUS_ONLY", "Faqaro statusi faqat sintetik namuna.")
+            shadow_layers = self._layer_trace(transaction_id=transaction_id)
+            emit("layers_16", "PARTIAL", "16 qatlam izi tayyor; statuslar qisman/rejalashtirilgan.", input_refs=(transaction_id,), output_refs=tuple(item["layer_id"] for item in shadow_layers))
             return {
                 "transaction_id": transaction["transaction_id"],
                 "cross_bank_authorized": cross_bank_authorized,
@@ -103,31 +185,15 @@ class SystemFlow:
                 "case": None,
                 "decision": None,
                 "bank_status": None,
-                "cross_bank": CrossBankMatcher().match(
-                    [],
-                    scope="cross_bank",
-                    authorized_exchange=True,
-                ),
+                "cross_bank": shadow_cross_bank,
                 "audit": (shadow_audit,) if shadow_audit else (),
                 "ai": ai,
-                "citizen_status": {
-                    "case_id": None,
-                    "status": "SHADOW_ONLY" if pipeline.risk and pipeline.risk.get("shadow_mode") else "NO_CASE",
-                    "message": "Shadow Mode: natija qayd etildi, real to‘lov yoki bank qaroriga ta’sir qilmaydi." if pipeline.risk and pipeline.risk.get("shadow_mode") else "Hodisa bo‘yicha Case ochilmadi.",
-                    "risk_score": pipeline.risk.get("score") if pipeline.risk else None,
-                    "risk_level": pipeline.risk.get("level") if pipeline.risk else None,
-                    "case_eligible": pipeline.risk.get("case_eligible", False) if pipeline.risk else False,
-                },
-                "kpi": calculate_kpis(
-                    signals_detected=len(pipeline.signals),
-                    cases_opened=0,
-                    cases_actioned=0,
-                    review_seconds_total=0,
-                    data_mode="synthetic",
-                ),
-                "layers_16": self._layer_trace(transaction_id=transaction["transaction_id"]),
+                "citizen_status": shadow_citizen_status,
+                "kpi": shadow_kpi,
+                "layers_16": shadow_layers,
             }
 
+        emit("cross_bank_fraud", "RUNNING", "Cross-Bank ruxsat chegarasi va moslik tekshirilmoqda.")
         cross_bank = CrossBankMatcher().match(
             [
                 {
@@ -146,7 +212,15 @@ class SystemFlow:
             scope="cross_bank",
             authorized_exchange=cross_bank_authorized or not has_cross_bank_keys,
         )
+        emit(
+            "cross_bank_fraud",
+            "COMPLETED" if cross_bank_authorized else "DISABLED",
+            "Vakolatli scope tekshirildi." if cross_bank_authorized else "Banklararo almashinuv o‘chiq.",
+            input_refs=(transaction_id,) if cross_bank_authorized else (),
+            output_refs=tuple(match["correlation_key_hash"] for match in cross_bank.matches if match.get("correlation_key_hash")),
+        )
 
+        emit("human_case", "RUNNING", "Sintetik Case va inson ko‘rigi tayyorlanmoqda.", input_refs=(pipeline.risk["id"],))
         manager = CaseManager()
         case = manager.open_case(
             case_id=pipeline.case["id"],
@@ -168,7 +242,26 @@ class SystemFlow:
             actor_type="synthetic_demo",
             is_authoritative=False,
         )
+        emit(
+            "human_case",
+            "SYNTHETIC_REVIEW_ONLY",
+            "Sintetik Case yaratildi; bu rasmiy bank qarori emas.",
+            input_refs=(pipeline.risk["id"],),
+            output_refs=(case["case_id"], decision["human_decision"]["decision_id"]),
+        )
 
+        emit("audit_kpi", "RUNNING", "Audit va KPI natijalari tayyorlanmoqda.", input_refs=(transaction_id,))
+        kpi = calculate_kpis(
+            signals_detected=len(pipeline.signals),
+            cases_opened=1,
+            cases_actioned=0,
+            review_seconds_total=0,
+            data_mode="synthetic",
+        )
+        audit_event = decision["audit_event"]
+        emit("audit_kpi", "COMPLETED", "Audit hodisasi va sintetik KPI tayyor.", input_refs=(transaction_id,), output_refs=(audit_event["event_id"],))
+
+        emit("finzanjir_ai", "RUNNING", "Canonical knowledge va runtime dalillari bilan izoh tayyorlanmoqda.")
         runtime_refs = tuple(
             value
             for value in (
@@ -189,6 +282,23 @@ class SystemFlow:
             runtime_refs=runtime_refs,
             working_memory_scope=case["case_id"],
         )
+        ai_answer = getattr(ai, "answer", None)
+        emit(
+            "finzanjir_ai",
+            "ABSTAINED" if getattr(ai_answer, "abstained", False) else "COMPLETED",
+            "AI dalil yetishmasligi sabab javobdan tiyildi." if getattr(ai_answer, "abstained", False) else "AI izohi tayyor.",
+            input_refs=runtime_refs,
+            output_refs=tuple(getattr(ai_answer, "citations", ()) or ()),
+        )
+
+        citizen_status = decision["citizen_status"] or {
+            "case_id": case["case_id"],
+            "status": "SYNTHETIC_REVIEW_ONLY",
+            "message": "Sintetik sinov natijasi; bankning rasmiy qarori yoki mijozga qo‘llangan chora emas.",
+        }
+        emit("citizen", "SYNTHETIC_STATUS_ONLY", "Fuqaro oynasi uchun sintetik status tayyor.", input_refs=(decision["human_decision"]["decision_id"],), output_refs=(case["case_id"],))
+        layers = self._layer_trace(transaction_id=transaction_id)
+        emit("layers_16", "PARTIAL", "16 qatlam izi tayyor; statuslar qisman/rejalashtirilgan.", input_refs=(transaction_id,), output_refs=tuple(item["layer_id"] for item in layers))
 
         return {
             "transaction_id": transaction["transaction_id"],
@@ -201,19 +311,9 @@ class SystemFlow:
             "cross_bank": cross_bank,
             "audit": (decision["audit_event"],),
             "ai": ai,
-            "citizen_status": decision["citizen_status"] or {
-                "case_id": case["case_id"],
-                "status": "SYNTHETIC_REVIEW_ONLY",
-                "message": "Sintetik sinov natijasi; bankning rasmiy qarori yoki mijozga qo‘llangan chora emas.",
-            },
-            "kpi": calculate_kpis(
-                signals_detected=len(pipeline.signals),
-                cases_opened=1,
-                cases_actioned=0,
-                review_seconds_total=0,
-                data_mode="synthetic",
-            ),
-            "layers_16": self._layer_trace(transaction_id=transaction["transaction_id"]),
+            "citizen_status": citizen_status,
+            "kpi": kpi,
+            "layers_16": layers,
         }
 
     def explain_result(self, result: dict[str, Any]) -> dict[str, Any]:
