@@ -122,7 +122,9 @@ class CaseManager:
             raise ValueError("human_review decision cannot be non-authoritative")
 
         decided_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-        decision_id = f"decision-{uuid4().hex}"
+        prior_decisions = sum(1 for item in self._human_decisions.values() if item["case_id"] == case_id)
+        decision_suffix = "" if prior_decisions == 0 else f"-{prior_decisions + 1}"
+        decision_id = f"decision-{case_id}{decision_suffix}"
         human_decision = {
             "id": decision_id,
             "decision_id": decision_id,
