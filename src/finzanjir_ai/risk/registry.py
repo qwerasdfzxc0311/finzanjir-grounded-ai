@@ -3,6 +3,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 
+REGISTRY_VERSION = "signal-registry-v1"
+
+
 @dataclass(frozen=True)
 class SignalDefinition:
     signal_id: str
