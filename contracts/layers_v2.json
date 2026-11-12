@@ -91,9 +91,9 @@
       "label": "Qoidalar va modellarni boshqarish",
       "status": "PARTIAL",
       "evidence_refs": [
-        "src/finzanjir_ai/risk/registry.py",
         "src/finzanjir_ai/risk/thresholds.py",
-        "contracts/event_contracts_v2.json"
+        "tests/test_threshold_manager.py",
+        "src/finzanjir_ai/audit/service.py"
       ],
       "acceptance_criteria": [
         "Signal registry versionlangan.",
@@ -101,8 +101,9 @@
         "Score scale farqlari ochiq."
       ],
       "remaining_work": [
-        "Approval/segregation-of-duties workflow.",
-        "Staged rollout, rollback va rule impact review."
+        "Production identity/RBAC for proposer and approver roles with enforced separation of duties.",
+        "Durable versioned rule/threshold registry and tamper-evident audit store.",
+        "Approval policy, staged rollout, rollback and rule-impact monitoring under independent governance."
       ],
       "reviewed_at": "2026-11-12"
     },
