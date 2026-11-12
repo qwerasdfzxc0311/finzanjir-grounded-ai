@@ -44,7 +44,7 @@ def test_fraud_graph_creates_shared_network_edge():
     assert result.graph_edges[0]["edge_type"] == "SHARED_NETWORK"
 
 
-@pytest.mark.parametrize("authorized_exchange", [False, 0, 1, "true", "false", None, []])
+@pytest.mark.parametrize("authorized_exchange", [0, 1, "true", "false", None, []])
 def test_cross_bank_match_rejects_non_boolean_authorization(authorized_exchange):
     matcher = CrossBankMatcher()
 
@@ -53,4 +53,15 @@ def test_cross_bank_match_rejects_non_boolean_authorization(authorized_exchange)
             [],
             scope="cross_bank",
             authorized_exchange=authorized_exchange,
+        )
+
+
+def test_cross_bank_match_rejects_false_authorization():
+    matcher = CrossBankMatcher()
+
+    with pytest.raises(ValueError, match="authorized cross-bank exchange is required"):
+        matcher.match(
+            [],
+            scope="cross_bank",
+            authorized_exchange=False,
         )
