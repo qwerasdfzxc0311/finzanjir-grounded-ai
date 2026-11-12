@@ -130,3 +130,4 @@ def test_signal_risk_window_shows_signal_reasons_evidence_and_threshold_explanat
         assert field in script
     assert "priority score" not in script.lower()
     assert "ustuvorlik balli" in script
+    assert "#activeWindowData{max-height:560px;overflow-y:auto;overscroll-behavior:contain;padding-right:12px}" in styles
