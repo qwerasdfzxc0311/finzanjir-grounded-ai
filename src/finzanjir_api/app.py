@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 from typing import Any, Literal
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel, Field, StrictBool
@@ -16,6 +16,8 @@ from finzanjir_ai.prototype.flow import build_system_flow
 from finzanjir_ai.orchestration.engine import FINZANJIRAI
 from finzanjir_ai.risk.shadow import evaluate_shadow_batch
 from finzanjir_ai.risk.scenarios import build_synthetic_case_signal_events
+from finzanjir_ai.storage.prototype_history import PrototypeRunStore, default_database_path
+import sqlite3
 
 
 class AIAnswerRequest(BaseModel):
@@ -101,6 +103,11 @@ async def security_headers(request, call_next):
         response.headers["Cache-Control"] = "no-store"
         response.headers["Pragma"] = "no-cache"
     return response
+
+
+@lru_cache(maxsize=1)
+def prototype_run_store() -> PrototypeRunStore:
+    return PrototypeRunStore(default_database_path())
 
 
 @lru_cache(maxsize=1)
@@ -227,9 +234,46 @@ def run_prototype(transaction: PrototypeTransaction) -> dict[str, Any]:
         if "authorized cross-bank exchange" in str(exc):
             raise HTTPException(status_code=403, detail=str(exc)) from exc
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    return jsonable_encoder(result)
+    pipeline = result["pipeline"]
+    risk = pipeline.risk or {}
+    summary = {
+        "data_mode": "synthetic",
+        "risk_score": risk.get("score", 0),
+        "risk_level": risk.get("level", "OBSERVE"),
+        "threshold": risk.get("escalation_threshold", (risk.get("threshold") or {}).get("value", 75) if isinstance(risk.get("threshold"), dict) else risk.get("threshold", 75)),
+        "signal_count": len(pipeline.signals),
+        "evidence_count": risk.get("evidence_count", len(pipeline.evidences)),
+        "independent_families": risk.get("independent_families", 0),
+        "case_eligible": bool(risk.get("case_eligible", False)),
+        "case_opened": result.get("case") is not None,
+        "shadow_mode": bool(risk.get("shadow_mode", True)),
+        "engine_version": risk.get("engine_version", "unknown"),
+        "registry_version": risk.get("registry_version", "unknown"),
+    }
+    try:
+        saved_run = prototype_run_store().save(summary)
+    except (OSError, sqlite3.Error, ValueError) as exc:
+        raise HTTPException(status_code=503, detail="Prototype run could not be safely saved.") from exc
+    response = jsonable_encoder(result)
+    response["prototype_run_id"] = saved_run["run_id"]
+    return response
 
 
-frontend_dir = Path(__file__).resolve().parents[2] / "frontend"
+@app.get("/api/prototype/runs")
+def prototype_runs(limit: int = Query(default=50, ge=1, le=100)) -> dict[str, Any]:
+    try:
+        runs = prototype_run_store().list_recent(limit=limit)
+    except (OSError, sqlite3.Error, ValueError) as exc:
+        raise HTTPException(status_code=503, detail="Prototype run history is temporarily unavailable.") from exc
+    return {
+        "data_mode": "synthetic",
+        "retention_days": prototype_run_store().retention_days,
+        "count": len(runs),
+        "runs": runs,
+        "privacy_note": "Only aggregate synthetic run metrics are stored; transaction, citizen, account, device and raw evidence identifiers are not stored in run history.",
+    }
+
+
+frontend_dir= Path(__file__).resolve().parents[2] / "frontend"
 if frontend_dir.exists():
     app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="frontend")
