@@ -151,3 +151,17 @@ def test_detected_signal_observations_are_unique_and_have_provenance():
     assert observation["scope"] == "bank_internal"
     assert observation["rule_version"] == "1.0.0-candidate"
     assert observation["corroborating_signal_ids"] == []
+
+
+def test_optional_provenance_features_are_allowed_but_not_required():
+    rule = next(item for item in CONTRACT["detectors"] if item["signal_id"] == "SIG-013")
+    features = _fixture(rule)
+    features["watchlist_list_version"] = "watchlist-v3"
+    result = SyntheticSignalDetector().evaluate(
+        scenario_id="optional-provenance",
+        observed_at="2026-11-12T09:00:00Z",
+        features=features,
+    )
+    outcome = next(item for item in result["detections"] if item["signal_id"] == "SIG-013")
+    assert outcome["status"] == "DETECTED"
+    assert outcome["observed_optional_features"] == ["watchlist_list_version"]
