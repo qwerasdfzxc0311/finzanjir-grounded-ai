@@ -170,16 +170,19 @@
       "label": "Fuqaro shaffofligi va e’tiroz",
       "status": "PARTIAL",
       "evidence_refs": [
-        "src/finzanjir_ai/prototype/flow.py",
-        "src/finzanjir_ai/case/manager.py"
+        "src/finzanjir_ai/citizen_transparency.py",
+        "src/finzanjir_ai/citizen_appeals.py",
+        "tests/test_citizen_transparency_appeal.py",
+        "tests/test_citizen_appeals.py"
       ],
       "acceptance_criteria": [
         "SHADOW_ONLY va SYNTHETIC_REVIEW_ONLY statuslari mavjud.",
         "Synthetic demo status bank qarori emas."
       ],
       "remaining_work": [
-        "Real citizen notification va understandable reasons.",
-        "Appeal, correction, response SLA va privacy-safe access."
+        "Authenticated citizen identity and privacy-safe access to only the citizen's own records.",
+        "Approved notification channel, legal response SLA and operational caseworker workflow.",
+        "Appeal/override authority, independent second review and durable correction audit trail."
       ],
       "reviewed_at": "2026-11-12"
     },
