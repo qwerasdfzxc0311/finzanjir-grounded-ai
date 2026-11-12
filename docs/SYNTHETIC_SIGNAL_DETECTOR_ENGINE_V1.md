@@ -105,3 +105,8 @@ Freshness is deliberately not inferred from the timestamp alone in v1:
 Arrival-order handling is also distinct from event chronology. Scoring is deterministic for the same set of event records regardless of the order in which they arrive. This does not validate a complete source-event sequence or prove that one event occurred before another. Sequence validation requires a versioned event-time contract with source identifiers, event timestamps, ingestion timestamps and ordering semantics.
 
 Benign counter-evidence remains rule-specific through each detector's `benign_if` clauses. A general cross-signal contradiction-resolution model is not yet implemented; contradictory evidence must not be silently treated as resolved until that model and its source authority are specified.
+
+
+## Feature type validation
+
+The detector now checks each required feature's type against its declared comparison operator before evaluating a rule. A type mismatch (for example, the string "false" where a boolean is required, or the string "1" where a numeric interval is required) returns `INSUFFICIENT_DATA` with reason `invalid_feature_values`; it is not reported as a benign non-detection. The `ne` operator also returns false for mismatched types instead of treating a type mismatch as proof of inequality. This prevents malformed values from satisfying future negative-match rules.

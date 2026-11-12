@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from finzanjir_ai.risk.detectors import SyntheticSignalDetector
+from finzanjir_ai.risk.detectors import SyntheticSignalDetector, _matches
 from finzanjir_ai.risk.registry import SIGNAL_REGISTRY
 
 
@@ -268,3 +268,36 @@ def test_negative_nonnegative_feature_values_abstain_instead_of_being_called_ben
     assert outcome["reason_code"] == "invalid_feature_values"
     assert outcome["invalid_features"] == [field]
     assert outcome["missing_features"] == []
+
+
+
+@pytest.mark.parametrize(
+    "signal_id,field,bad_value",
+    [
+        ("SIG-006", "device_age_hours", "1"),
+        ("SIG-006", "trusted_device", "false"),
+    ],
+)
+def test_detector_type_mismatch_abstains_instead_of_being_called_benign(signal_id, field, bad_value):
+    rule = next(item for item in CONTRACT["detectors"] if item["signal_id"] == signal_id)
+    features = _fixture(rule)
+    features[field] = bad_value
+
+    result = SyntheticSignalDetector().evaluate(
+        scenario_id=f"type-mismatch-{signal_id}-{field}",
+        observed_at="2026-11-12T09:00:00Z",
+        features=features,
+    )
+    outcome = next(item for item in result["detections"] if item["signal_id"] == signal_id)
+
+    assert outcome["status"] == "INSUFFICIENT_DATA"
+    assert outcome["reason_code"] == "invalid_feature_values"
+    assert outcome["invalid_features"] == [field]
+
+
+def test_ne_operator_does_not_treat_type_mismatch_as_inequality():
+    condition = {"op": "ne", "value": False}
+
+    assert _matches("false", condition) is False
+    assert _matches(False, condition) is False
+    assert _matches(True, condition) is True
