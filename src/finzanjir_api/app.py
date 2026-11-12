@@ -346,6 +346,7 @@ def prototype_runs(limit: int = Query(default=50, ge=1, le=100)) -> dict[str, An
         "count": len(runs),
         "runs": runs,
         "privacy_note": "Only aggregate synthetic run metrics are stored; transaction, citizen, account, device and raw evidence identifiers are not stored in run history.",
+        "persistence_note": "SQLite history is stored on the service filesystem and may be lost after restart or redeploy on an ephemeral host unless a persistent disk is configured.",
     }
 
 
