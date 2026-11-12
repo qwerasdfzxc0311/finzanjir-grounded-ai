@@ -35,3 +35,8 @@ def test_prototype_api_exposes_multi_signal_result_in_shadow_mode():
     assert body["pipeline"]["risk"]["shadow_mode"] is True
     assert body["case"] is None
     assert body["citizen_status"]["status"] == "SHADOW_ONLY"
+    assert body["citizen_status"]["risk_score"] == 80
+    assert body["citizen_status"]["case_eligible"] is True
+    assert body["audit"][0]["event_type"] == "RISK_EVALUATED_SHADOW"
+    assert body["audit"][0]["details"]["no_bank_action"] is True
+    assert body["pipeline"]["risk"]["id"] in body["ai"]["runtime_context"]["runtime_refs"]
