@@ -79,3 +79,66 @@ def test_system_flow_rejects_non_object_transactions_before_field_access():
 
     with pytest.raises(ValueError, match="transaction must be an object"):
         flow.execute([], knowledge_index=flow.demo_knowledge_index())
+
+
+
+import pytest
+
+
+@pytest.mark.parametrize("shadow_mode", [True, False], ids=["shadow", "synthetic-review"])
+def test_all_window_outputs_share_one_synthetic_transaction_correlation(shadow_mode):
+    flow = build_system_flow()
+    transaction_id = "TX-WINDOW-CORRELATION-" + ("SHADOW" if shadow_mode else "REVIEW")
+    transaction = {
+        "transaction_id": transaction_id,
+        "bank_id": "bank-synthetic-a",
+        "actor_id": "actor-synthetic-window-test",
+        "amount": 2500,
+        "occurred_at": "2026-11-12T09:00:00Z",
+        "synthetic": True,
+        "signal_events": build_synthetic_case_signal_events(
+            transaction_id=transaction_id,
+            observed_at="2026-11-12T09:00:00Z",
+        ),
+        "shadow_mode": shadow_mode,
+    }
+
+    result = flow.execute(transaction, knowledge_index=flow.demo_knowledge_index())
+    trace = flow.trace(transaction_id)
+
+    assert result["transaction_id"] == transaction_id
+    assert [item["window_id"] for item in trace] == list(flow.window_ids)
+    assert all(item["transaction_id"] == transaction_id for item in trace)
+    assert all(item["data_mode"] == "synthetic" for item in trace)
+
+    pipeline = result["pipeline"]
+    risk = pipeline.risk
+    assert pipeline.signal["transaction_id"] == transaction_id
+    assert all(signal["id"] in risk["signal_ids"] for signal in pipeline.signals)
+    assert {item["evidence_id"] for item in risk["contributions"]} == {
+        item["id"] for item in pipeline.evidences
+    }
+
+    assert result["cross_bank"].matches == []
+    assert result["audit"]
+    assert all(item["correlation_id"] == transaction_id for item in result["audit"])
+    assert result["ai"].runtime_context.runtime_refs
+    assert transaction_id in result["ai"].runtime_context.runtime_refs
+    assert risk["id"] in result["ai"].runtime_context.runtime_refs
+    assert all(item["id"] in result["ai"].runtime_context.runtime_refs for item in pipeline.signals)
+    assert all(item["id"] in result["ai"].runtime_context.runtime_refs for item in pipeline.evidences)
+
+    assert len(result["layers_16"]) == 16
+    assert all(item["transaction_id"] == transaction_id for item in result["layers_16"])
+    assert result["kpi"]["data_mode"] == "synthetic"
+
+    if shadow_mode:
+        assert result["case"] is None
+        assert result["decision"] is None
+        assert result["citizen_status"]["status"] == "SHADOW_ONLY"
+        assert result["kpi"]["signal_to_case_rate"] == 0
+    else:
+        assert result["case"]["transaction_id"] == transaction_id
+        assert result["decision"]["case"]["case_id"] == result["case"]["case_id"]
+        assert result["decision"]["human_decision"]["is_authoritative"] is False
+        assert result["citizen_status"]["status"] == "SYNTHETIC_REVIEW_ONLY"
