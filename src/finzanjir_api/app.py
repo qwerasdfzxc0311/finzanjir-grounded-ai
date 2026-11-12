@@ -84,6 +84,7 @@ def windows() -> dict[str, Any]:
         "window_ids": list(flow.window_ids),
         "transitions": [list(item) for item in flow.transitions],
         "architecture_layers": flow.architecture_layers,
+        "layer_status_summary": flow.layer_status_summary(),
         "data_mode": "synthetic",
     }
 
