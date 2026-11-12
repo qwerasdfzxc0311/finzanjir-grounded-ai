@@ -30,19 +30,39 @@ def _fixture(rule):
 
 def _negative_fixture(rule):
     values = _fixture(rule)
-    condition = rule["all_of"][0]
-    field, op, expected = condition["field"], condition["op"], condition["value"]
-    if op == "eq":
-        values[field] = "__not_equal__" if isinstance(expected, str) else not expected
-    elif op in {"gte", "gt"}:
-        values[field] = expected - 1
-    elif op in {"lte", "lt"}:
-        values[field] = expected + 1
-    elif op == "in":
-        values[field] = "__not_in_set__"
-    elif op == "ne":
-        values[field] = expected
-    return values
+    for condition in rule["all_of"]:
+        field, op, expected = condition["field"], condition["op"], condition["value"]
+        if op == "eq":
+            candidate = "__not_equal__" if isinstance(expected, str) else not expected
+        elif op == "gte":
+            candidate = expected - 1
+        elif op == "gt":
+            candidate = expected
+        elif op == "lte":
+            candidate = expected + 1
+        elif op == "lt":
+            candidate = expected
+        elif op == "in":
+            candidate = "__not_in_set__"
+        elif op == "ne":
+            candidate = expected
+        else:
+            continue
+
+        # A negative fixture must violate one detector condition without
+        # introducing an invalid value for another declared non-negative field.
+        violates_domain = any(
+            guard["field"] == field
+            and guard["op"] == "gte"
+            and guard["value"] == 0
+            and (not isinstance(candidate, (int, float)) or isinstance(candidate, bool) or candidate < 0)
+            for guard in rule["all_of"]
+        )
+        if not violates_domain:
+            values[field] = candidate
+            return values
+
+    raise AssertionError(f"No valid negative fixture could be built for {rule['signal_id']}")
 
 
 def test_detector_rule_contract_covers_registry_without_cross_bank_data():
