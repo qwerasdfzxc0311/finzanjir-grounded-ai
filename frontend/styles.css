@@ -15,3 +15,10 @@
 .status-good{color:#166534;font-weight:700}
 .status-muted{color:#64748b}
 @media(max-width:600px){.history-item{align-items:flex-start;flex-direction:column}}
+
+
+.module-results{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:16px}
+.module-card{padding:12px;border:1px solid #e2e8f0;border-radius:10px;background:#fff;min-width:0}
+.module-card h3{font-size:1rem;margin:0 0 8px}
+.module-card .layers{margin:0;padding-left:18px}
+.module-card li{overflow-wrap:anywhere}
