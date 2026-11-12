@@ -50,8 +50,9 @@ def test_prototype_run_can_detect_and_score_multiple_synthetic_features():
     assert body["case"]["data_mode"] == "synthetic"
     assert body["case"]["transaction_id"] == "TX-DETECTOR-INTEGRATION-001"
     assert body["decision"] is not None
-    assert body["bank_status"] is not None
-    assert body["citizen_status"] is not None
+    assert body["decision"]["human_decision"]["is_authoritative"] is False
+    assert body["bank_status"] is None
+    assert body["citizen_status"]["status"] == "SYNTHETIC_REVIEW_ONLY"
     assert body["audit"]
     assert body["ai"] is not None
     assert body["kpi"]["data_mode"] == "synthetic"
@@ -141,7 +142,7 @@ def test_detector_features_flow_through_shadow_without_case_or_bank_action():
     assert body["bank_status"] is None
     assert body["citizen_status"]["status"] == "SHADOW_ONLY"
     assert body["citizen_status"]["case_id"] is None
-    assert body["kpi"]["cases_opened"] == 0
+    assert body["kpi"]["signal_to_case_rate"] == 0
     assert len(body["audit"]) == 1
     assert body["cross_bank"]["matches"] == []
     assert len(body["layers_16"]) == 16
