@@ -254,6 +254,7 @@ def prototype_demo() -> dict[str, Any]:
             "stages": explanation["stages"],
         },
         "runtime": explanation["runtime"],
+        "window_trace": flow.build_window_trace(result),
         "explanation": explanation["explanation"],
     }
     response["runtime"]["cross_bank_authorized"] = transaction["cross_bank_authorized"]
@@ -319,6 +320,7 @@ def run_prototype(transaction: PrototypeTransaction) -> dict[str, Any]:
     except (OSError, sqlite3.Error, ValueError) as exc:
         raise HTTPException(status_code=503, detail="Prototype run could not be safely saved.") from exc
     response = jsonable_encoder(result)
+    response["window_trace"] = flow.build_window_trace(result)
     # Expose only the minimal synthetic transaction summary needed by the UI.
     # Do not echo actor, device, network, raw features or evidence identifiers.
     response["transaction"] = {
