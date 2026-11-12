@@ -4,7 +4,6 @@ from dataclasses import dataclass
 import math
 from typing import Any
 
-from .engine import evaluate_risk
 from .scoring import evaluate_signal_set
 
 
@@ -28,6 +27,29 @@ def _validate_transaction(transaction: Any) -> dict[str, Any]:
         if not isinstance(value, str) or not value.strip():
             raise ValueError(f"transaction {field} must be a non-empty string")
     return transaction
+
+
+def _validate_threshold_config(threshold_config: dict[str, Any] | None) -> dict[str, Any] | None:
+    if threshold_config is None:
+        return None
+    if not isinstance(threshold_config, dict):
+        raise ValueError("threshold_config must be an object")
+    required_fields = ("id", "value", "score_scale", "version", "changed_by", "effective_at", "status")
+    if any(field not in threshold_config for field in required_fields):
+        raise ValueError("threshold_config is missing required fields")
+    if threshold_config["score_scale"] != "priority_0_100" or threshold_config["status"] != "ACTIVE":
+        raise ValueError("threshold_config must be active and use priority_0_100 scale")
+    if not isinstance(threshold_config["id"], str) or not threshold_config["id"].strip():
+        raise ValueError("threshold_config id must be a non-empty string")
+    if not isinstance(threshold_config["version"], int) or isinstance(threshold_config["version"], bool) or threshold_config["version"] < 1:
+        raise ValueError("threshold_config version must be a positive integer")
+    if not isinstance(threshold_config["changed_by"], str) or not threshold_config["changed_by"].strip():
+        raise ValueError("threshold_config changed_by must be a non-empty string")
+    if not isinstance(threshold_config["effective_at"], str) or not threshold_config["effective_at"].strip():
+        raise ValueError("threshold_config effective_at must be a non-empty string")
+    if not isinstance(threshold_config["value"], (int, float)) or isinstance(threshold_config["value"], bool) or not math.isfinite(threshold_config["value"]) or not 0 <= threshold_config["value"] <= 100:
+        raise ValueError("threshold_config value must be between 0 and 100")
+    return dict(threshold_config)
 
 
 def _process_multi_signal_transaction(
@@ -78,6 +100,18 @@ def _process_multi_signal_transaction(
         for item in evaluation["contributions"]
     )
 
+    active_threshold = dict(threshold_config) if threshold_config else {
+        "id": "multi-signal-escalation-v1",
+        "type": "case_escalation",
+        "value": evaluation["threshold"],
+        "score_scale": "priority_0_100",
+        "version": 1,
+        "status": "ACTIVE",
+        "effective_at": transaction["occurred_at"],
+        "changed_by": "system:default",
+        "reason": "Default synthetic threshold.",
+        "data_mode": "synthetic",
+    }
     risk = {
         "id": f"risk-{transaction['transaction_id']}",
         "signal_ids": [item["id"] for item in signals],
@@ -95,19 +129,15 @@ def _process_multi_signal_transaction(
         "evidence_count": evaluation["evidence_count"],
         "independent_families": evaluation["independent_families"],
         "escalation_threshold": evaluation["threshold"],
-        "threshold_id": threshold_config["id"] if threshold_config else "multi-signal-escalation-v1",
-        "threshold_version": threshold_config["version"] if threshold_config else 1,
-        "threshold_changed_by": threshold_config["changed_by"] if threshold_config else "system:default",
-        "threshold_effective_at": threshold_config["effective_at"] if threshold_config else transaction["occurred_at"],
-        "threshold": dict(threshold_config) if threshold_config else {
-            "id": "multi-signal-escalation-v1", "type": "case_escalation",
-            "value": evaluation["threshold"], "score_scale": "priority_0_100",
-            "version": 1, "status": "ACTIVE", "effective_at": transaction["occurred_at"],
-            "changed_by": "system:default", "reason": "Default synthetic threshold.", "data_mode": "synthetic",
-        },
+        "threshold_id": active_threshold["id"],
+        "threshold_version": active_threshold["version"],
+        "threshold_changed_by": active_threshold["changed_by"],
+        "threshold_effective_at": active_threshold["effective_at"],
+        "threshold": active_threshold,
         "family_contributions": evaluation["family_contributions"],
         "contributions": evaluation["contributions"],
         "deduplicated_evidence_ids": evaluation["deduplicated_evidence_ids"],
+        "registry_version": evaluation["registry_version"],
         "score_semantics": evaluation["score_semantics"],
         "data_mode": "synthetic",
         "shadow_mode": shadow_mode,
@@ -146,6 +176,7 @@ def process_transaction(
     threshold_config: dict[str, Any] | None = None,
 ) -> PipelineResult:
     transaction = _validate_transaction(transaction)
+    threshold_config = _validate_threshold_config(threshold_config)
 
     if (
         not isinstance(signal_amount_threshold, (int, float))
@@ -165,27 +196,7 @@ def process_transaction(
     if not 0 <= escalation_threshold <= 1:
         raise ValueError("escalation_threshold must be between 0 and 1")
 
-    # New evidence-backed multi-signal mode. Missing signal_events preserves the
-    # legacy synthetic demo path until the connected demo fixtures are migrated.
     if "signal_events" in transaction and transaction["signal_events"] is not None:
-        if threshold_config is not None:
-            if not isinstance(threshold_config, dict):
-                raise ValueError("threshold_config must be an object")
-            required_threshold_fields = ("id", "value", "score_scale", "version", "changed_by", "effective_at", "status")
-            if any(field not in threshold_config for field in required_threshold_fields):
-                raise ValueError("threshold_config is missing required fields")
-            if threshold_config["score_scale"] != "priority_0_100" or threshold_config["status"] != "ACTIVE":
-                raise ValueError("threshold_config must be active and use priority_0_100 scale")
-            if not isinstance(threshold_config["id"], str) or not threshold_config["id"].strip():
-                raise ValueError("threshold_config id must be a non-empty string")
-            if not isinstance(threshold_config["version"], int) or isinstance(threshold_config["version"], bool) or threshold_config["version"] < 1:
-                raise ValueError("threshold_config version must be a positive integer")
-            if not isinstance(threshold_config["changed_by"], str) or not threshold_config["changed_by"].strip():
-                raise ValueError("threshold_config changed_by must be a non-empty string")
-            if not isinstance(threshold_config["effective_at"], str) or not threshold_config["effective_at"].strip():
-                raise ValueError("threshold_config effective_at must be a non-empty string")
-            if not isinstance(threshold_config["value"], (int, float)) or isinstance(threshold_config["value"], bool) or not math.isfinite(threshold_config["value"]) or not 0 <= threshold_config["value"] <= 100:
-                raise ValueError("threshold_config value must be between 0 and 100")
         return _process_multi_signal_transaction(
             transaction,
             signal_events=transaction["signal_events"],
@@ -204,71 +215,82 @@ def process_transaction(
     if amount < signal_amount_threshold:
         return PipelineResult(signal=None, evidence=None, risk=None, case=None)
 
+    # Deprecated compatibility path: a large amount alone is context, not a
+    # fraud signal. Keep the old event visible, but assign no risk points and
+    # never open a Case from this single attribute.
+    signal_id = f"legacy-context-{transaction['transaction_id']}"
     signal = {
-        "id": f"sig-{transaction['transaction_id']}",
+        "id": signal_id,
+        "signal_id": "LEGACY-LARGE-TRANSACTION-CONTEXT",
         "transaction_id": transaction["transaction_id"],
-        "type": "LARGE_TRANSACTION",
+        "type": "LARGE_TRANSACTION_CONTEXT",
         "source": "synthetic-bank",
         "occurred_at": transaction["occurred_at"],
-        "status": "ACTIVE",
+        "status": "CONTEXT_ONLY",
         "data_mode": "synthetic",
-        "scoring_mode": "legacy_demo_compatibility",
+        "scoring_mode": "legacy_demo_context_only",
     }
     evidence = {
-        "id": f"ev-{transaction['transaction_id']}",
-        "signal_id": signal["id"],
-        "type": "TRANSACTION_AMOUNT",
-        "status": "OBSERVED",
+        "id": f"legacy-context-evidence-{transaction['transaction_id']}",
+        "signal_id": signal_id,
+        "type": "TRANSACTION_AMOUNT_CONTEXT",
+        "status": "CONTEXT_ONLY",
         "observed_at": transaction["occurred_at"],
-        "provenance": {"source": "synthetic-bank", "transaction_id": transaction["transaction_id"]},
+        "provenance": {
+            "source": "synthetic-bank",
+            "transaction_id": transaction["transaction_id"],
+            "data_mode": "synthetic",
+        },
     }
-
-    evaluation = evaluate_risk(
-        signal_score=0.85,
-        evidence_count=1,
-        escalation_threshold=escalation_threshold,
-    )
-    risk = {
-        "id": f"risk-{transaction['transaction_id']}",
-        "signal_id": signal["id"],
-        "signal_ids": [signal["id"]],
-        "score": evaluation.signal_score,
-        "score_scale": "legacy_0_1",
-        "threshold_scale": "legacy_0_1",
-        "level": evaluation.risk_level,
-        "calculated_at": transaction["occurred_at"],
-        "engine_version": "risk-v1-legacy-demo",
-        "threshold_met": evaluation.threshold_met,
-        "case_eligible": evaluation.case_should_open,
-        "independent_families": 1,
-        "evidence_count": evaluation.evidence_count,
-        "escalation_threshold": escalation_threshold,
-        "scoring_mode": "legacy_demo_compatibility",
-        "score_semantics": "legacy_demo_score_not_probability",
-        "shadow_mode": False,
+    active_threshold = threshold_config or {
+        "id": "multi-signal-case-escalation",
+        "type": "case_escalation",
+        "value": 75.0,
+        "score_scale": "priority_0_100",
+        "version": 1,
+        "status": "ACTIVE",
+        "effective_at": transaction["occurred_at"],
+        "changed_by": "system:default",
+        "reason": "Default synthetic threshold.",
         "data_mode": "synthetic",
     }
-
-    case = None
-    if evaluation.case_should_open:
-        case = {
-            "id": f"case-{transaction['transaction_id']}",
-            "bank_id": transaction["bank_id"],
-            "citizen_id": transaction.get("citizen_id", "synthetic-subject"),
-            "transaction_id": transaction["transaction_id"],
-            "signal_ids": [signal["id"]],
-            "risk_id": risk["id"],
-            "threshold_id": "case-escalation-v1",
-            "status": "OPEN",
-            "opened_at": transaction["occurred_at"],
-            "data_mode": "synthetic",
-        }
-
+    risk = {
+        "id": f"risk-{transaction['transaction_id']}",
+        "signal_id": signal_id,
+        "signal_ids": [signal_id],
+        "score": 0.0,
+        "score_scale": "priority_0_100",
+        "threshold_scale": "priority_0_100",
+        "level": "OBSERVE",
+        "evidence_confidence": 0.0,
+        "calculated_at": transaction["occurred_at"],
+        "engine_version": "multi-signal-shadow-v1",
+        "registry_version": "signal-registry-v1",
+        "threshold_met": False,
+        "case_eligible": False,
+        "case_block_reason": "single_amount_context_not_sufficient",
+        "case_suppressed_reason": "legacy_demo_context_only",
+        "evidence_count": 0,
+        "independent_families": 0,
+        "escalation_threshold": float(active_threshold["value"]),
+        "threshold_id": active_threshold["id"],
+        "threshold_version": active_threshold["version"],
+        "threshold_changed_by": active_threshold["changed_by"],
+        "threshold_effective_at": active_threshold["effective_at"],
+        "threshold": dict(active_threshold),
+        "family_contributions": {},
+        "contributions": [],
+        "deduplicated_evidence_ids": [],
+        "score_semantics": "context_only_not_risk_score",
+        "scoring_mode": "legacy_demo_context_only",
+        "data_mode": "synthetic",
+        "shadow_mode": True,
+    }
     return PipelineResult(
         signal=signal,
         evidence=evidence,
         risk=risk,
-        case=case,
+        case=None,
         signals=(signal,),
         evidences=(evidence,),
     )
