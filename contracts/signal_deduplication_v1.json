@@ -1,0 +1,394 @@
+{
+  "schema_version": "1.0",
+  "contract_id": "signal-deduplication-crosswalk-v1",
+  "status": "source_mapping_review_not_legal_or_production_approval",
+  "source_scope": {
+    "legacy_primary_count": 15,
+    "legacy_small_example_count": 10,
+    "new_candidate_count": 20,
+    "excluded_source_documents": [
+      "FINZANJIR_Ilgor_Signallar.docx"
+    ],
+    "note": "Only the ZIP's 15 primary and 10 small-signal examples plus the Notion SIG-016..035 proposal are compared. No excluded advanced-signal source is used."
+  },
+  "policies": {
+    "preserve_legacy_ids": true,
+    "aliases_and_subconditions_receive_independent_score": false,
+    "same_source_event_key_scores_once": true,
+    "candidate_signals_synthetic_only_until_legal_and_bank_approval": true,
+    "context_only_signals_score_zero": true,
+    "no_automatic_production_merge": true
+  },
+  "legacy_signals": [
+    {
+      "signal_id": "SIG-001",
+      "name": "Noodatiy summa",
+      "related_new_ids": [
+        "SIG-025",
+        "SIG-032"
+      ],
+      "relationship": "partial",
+      "dedup_rule": "Same transaction evidence must not score twice across amount and aggregate flow views."
+    },
+    {
+      "signal_id": "SIG-002",
+      "name": "Yuqori tezlik",
+      "related_new_ids": [
+        "SIG-017",
+        "SIG-027",
+        "SIG-036"
+      ],
+      "relationship": "partial",
+      "dedup_rule": "OTP/payment retries and micro-test are distinct event types; transaction velocity remains separate."
+    },
+    {
+      "signal_id": "SIG-003",
+      "name": "Pul o‘tishi",
+      "related_new_ids": [
+        "SIG-023",
+        "SIG-024",
+        "SIG-025",
+        "SIG-032",
+        "SIG-033"
+      ],
+      "relationship": "partial",
+      "dedup_rule": "Same transaction-chain/source event group contributes once."
+    },
+    {
+      "signal_id": "SIG-004",
+      "name": "Yangi qabul qiluvchi",
+      "related_new_ids": [
+        "SIG-020",
+        "SIG-021",
+        "SIG-037"
+      ],
+      "relationship": "partial",
+      "dedup_rule": "New beneficiary, existing beneficiary change, name-match and account-age are distinct facts only when source events differ."
+    },
+    {
+      "signal_id": "SIG-005",
+      "name": "Limitdan qochish",
+      "related_new_ids": [
+        "SIG-031"
+      ],
+      "relationship": "partial",
+      "dedup_rule": "Same split-transfer set cannot score as both structuring and small-outflow pattern."
+    },
+    {
+      "signal_id": "SIG-006",
+      "name": "Yangi qurilma",
+      "related_new_ids": [
+        "SIG-019",
+        "SIG-035",
+        "SIG-034"
+      ],
+      "relationship": "partial",
+      "dedup_rule": "Device registration/binding and profile contact changes require distinct event keys."
+    },
+    {
+      "signal_id": "SIG-007",
+      "name": "Geo-anomaliya",
+      "related_new_ids": [],
+      "relationship": "distinct",
+      "dedup_rule": "No equivalent in SIG-016..035; keep legacy signal and travel/VPN benign context."
+    },
+    {
+      "signal_id": "SIG-008",
+      "name": "Bir qurilmada ko‘p karta",
+      "related_new_ids": [
+        "SIG-029",
+        "SIG-033",
+        "SIG-039"
+      ],
+      "relationship": "partial",
+      "dedup_rule": "Device-to-instrument, parallel session, graph and shared-IP are not interchangeable; shared IP requires corroboration."
+    },
+    {
+      "signal_id": "SIG-009",
+      "name": "VPN/Proxy/Tor",
+      "related_new_ids": [],
+      "relationship": "distinct_context",
+      "dedup_rule": "Weak context only; never use alone for high risk."
+    },
+    {
+      "signal_id": "SIG-010",
+      "name": "Noodatiy vaqt",
+      "related_new_ids": [],
+      "relationship": "distinct",
+      "dedup_rule": "Small signal 9 is an alias/subcondition; time-of-day alone is not proof."
+    },
+    {
+      "signal_id": "SIG-011",
+      "name": "Shoshilinch sessiya",
+      "related_new_ids": [
+        "SIG-028",
+        "SIG-029"
+      ],
+      "relationship": "partial",
+      "dedup_rule": "Short-session duration is a SIG-011 subcondition; channel switch and parallel-session conflict need distinct events."
+    },
+    {
+      "signal_id": "SIG-012",
+      "name": "Parol tiklash + pul",
+      "related_new_ids": [
+        "SIG-016",
+        "SIG-017",
+        "SIG-018",
+        "SIG-028",
+        "SIG-034"
+      ],
+      "relationship": "partial",
+      "dedup_rule": "Auth failure, OTP, MFA, channel and contact events are separate only with independent event provenance."
+    },
+    {
+      "signal_id": "SIG-013",
+      "name": "Shubhali qabul qiluvchi",
+      "related_new_ids": [
+        "SIG-021"
+      ],
+      "relationship": "partial",
+      "dedup_rule": "Confirmed authorized watchlist and bank-side name-match discrepancy are different checks."
+    },
+    {
+      "signal_id": "SIG-014",
+      "name": "Umumiy atributlar",
+      "related_new_ids": [
+        "SIG-029",
+        "SIG-033",
+        "SIG-039"
+      ],
+      "relationship": "partial",
+      "dedup_rule": "Shared device/phone, parallel sessions, graph topology and shared IP must not be conflated."
+    },
+    {
+      "signal_id": "SIG-015",
+      "name": "Halqa / Circular",
+      "related_new_ids": [
+        "SIG-023",
+        "SIG-024",
+        "SIG-025",
+        "SIG-033"
+      ],
+      "relationship": "partial",
+      "dedup_rule": "Same graph edges and transaction chain are counted once; cycle topology remains distinct."
+    }
+  ],
+  "small_signals": [
+    {
+      "small_id": "SMALL-001",
+      "name": "Mikro-tranzaksiya / kartani sinash",
+      "mapping": "SIG-036",
+      "relationship": "candidate_new_subtype",
+      "score_policy": "corroboration_required"
+    },
+    {
+      "small_id": "SMALL-002",
+      "name": "Juda qisqa session",
+      "mapping": "SIG-011",
+      "relationship": "legacy_alias_subcondition",
+      "score_policy": "no_independent_score"
+    },
+    {
+      "small_id": "SMALL-003",
+      "name": "Parol tiklangach birinchi transfer",
+      "mapping": "SIG-012",
+      "relationship": "legacy_alias_subcondition",
+      "score_policy": "no_independent_score"
+    },
+    {
+      "small_id": "SMALL-004",
+      "name": "Benefitsiar hisobining yoshi",
+      "mapping": "SIG-037",
+      "relationship": "candidate_new_subtype",
+      "score_policy": "corroboration_required"
+    },
+    {
+      "small_id": "SMALL-005",
+      "name": "Limitdan past takroriy summalar",
+      "mapping": "SIG-005",
+      "relationship": "legacy_alias_subcondition",
+      "score_policy": "no_independent_score"
+    },
+    {
+      "small_id": "SMALL-006",
+      "name": "Ilova tili o‘zgarishi",
+      "mapping": "SIG-038",
+      "relationship": "context_only_candidate",
+      "score_policy": "zero"
+    },
+    {
+      "small_id": "SMALL-007",
+      "name": "Bir IP/Wi-Fi dan ko‘p karta",
+      "mapping": "SIG-039",
+      "relationship": "candidate_new_context",
+      "score_policy": "corroboration_required"
+    },
+    {
+      "small_id": "SMALL-008",
+      "name": "Karta raqamini copy-paste",
+      "mapping": "SIG-040",
+      "relationship": "context_only_candidate",
+      "score_policy": "zero_and_never_capture_clipboard_content"
+    },
+    {
+      "small_id": "SMALL-009",
+      "name": "Odatiy vaqtdan farqli faollik",
+      "mapping": "SIG-010",
+      "relationship": "legacy_alias_subcondition",
+      "score_policy": "no_independent_score"
+    },
+    {
+      "small_id": "SMALL-010",
+      "name": "Telefon raqami o‘zgarishi / SIM Swap belgisi",
+      "mapping": "SIG-034",
+      "relationship": "candidate_profile_change_event",
+      "score_policy": "one_contribution_per_source_event"
+    }
+  ],
+  "new_candidates": [
+    {
+      "signal_id": "SIG-016",
+      "related_legacy_ids": [
+        "SIG-012"
+      ],
+      "relationship": "distinct_auth_event"
+    },
+    {
+      "signal_id": "SIG-017",
+      "related_legacy_ids": [
+        "SIG-012"
+      ],
+      "relationship": "distinct_otp_lifecycle_event"
+    },
+    {
+      "signal_id": "SIG-018",
+      "related_legacy_ids": [
+        "SIG-012"
+      ],
+      "relationship": "distinct_mfa_setting_event"
+    },
+    {
+      "signal_id": "SIG-019",
+      "related_legacy_ids": [
+        "SIG-006"
+      ],
+      "relationship": "distinct_device_binding_event"
+    },
+    {
+      "signal_id": "SIG-020",
+      "related_legacy_ids": [
+        "SIG-004"
+      ],
+      "relationship": "existing_beneficiary_change_not_new_beneficiary"
+    },
+    {
+      "signal_id": "SIG-021",
+      "related_legacy_ids": [
+        "SIG-013",
+        "SIG-004"
+      ],
+      "relationship": "bank_side_name_match_result"
+    },
+    {
+      "signal_id": "SIG-022",
+      "related_legacy_ids": [],
+      "relationship": "distinct_dormancy_reactivation"
+    },
+    {
+      "signal_id": "SIG-023",
+      "related_legacy_ids": [
+        "SIG-003",
+        "SIG-015"
+      ],
+      "relationship": "multi_sender_flow"
+    },
+    {
+      "signal_id": "SIG-024",
+      "related_legacy_ids": [
+        "SIG-003",
+        "SIG-015"
+      ],
+      "relationship": "multi_hop_flow"
+    },
+    {
+      "signal_id": "SIG-025",
+      "related_legacy_ids": [
+        "SIG-001",
+        "SIG-003",
+        "SIG-015"
+      ],
+      "relationship": "balance_drain_flow"
+    },
+    {
+      "signal_id": "SIG-026",
+      "related_legacy_ids": [],
+      "relationship": "distinct_payment_lifecycle"
+    },
+    {
+      "signal_id": "SIG-027",
+      "related_legacy_ids": [
+        "SIG-002"
+      ],
+      "relationship": "payment_attempt_lifecycle"
+    },
+    {
+      "signal_id": "SIG-028",
+      "related_legacy_ids": [
+        "SIG-011",
+        "SIG-012"
+      ],
+      "relationship": "security_to_channel_switch"
+    },
+    {
+      "signal_id": "SIG-029",
+      "related_legacy_ids": [
+        "SIG-008",
+        "SIG-014"
+      ],
+      "relationship": "parallel_session_conflict"
+    },
+    {
+      "signal_id": "SIG-030",
+      "related_legacy_ids": [],
+      "relationship": "distinct_digital_to_atm_cashout"
+    },
+    {
+      "signal_id": "SIG-031",
+      "related_legacy_ids": [
+        "SIG-005"
+      ],
+      "relationship": "related_node_outflow_pattern"
+    },
+    {
+      "signal_id": "SIG-032",
+      "related_legacy_ids": [
+        "SIG-001",
+        "SIG-003"
+      ],
+      "relationship": "aggregate_flow_ratio_shift"
+    },
+    {
+      "signal_id": "SIG-033",
+      "related_legacy_ids": [
+        "SIG-014",
+        "SIG-015"
+      ],
+      "relationship": "fan_in_fan_out_graph_topology"
+    },
+    {
+      "signal_id": "SIG-034",
+      "related_legacy_ids": [
+        "SIG-006",
+        "SIG-012"
+      ],
+      "relationship": "profile_contact_change_event"
+    },
+    {
+      "signal_id": "SIG-035",
+      "related_legacy_ids": [
+        "SIG-006"
+      ],
+      "relationship": "app_registration_event"
+    }
+  ]
+}
