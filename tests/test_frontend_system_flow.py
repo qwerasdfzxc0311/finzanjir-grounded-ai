@@ -110,3 +110,25 @@ def test_each_window_exposes_truthful_shared_execution_status():
     assert 'executionStatus = "success"' in script
     assert 'executionStatus = "failed"' in script
     assert '.window-status[data-state="running"]' in styles
+
+
+
+def test_signal_risk_window_shows_signal_reasons_evidence_and_threshold_explanation():
+    script = Path("frontend/app.js").read_text(encoding="utf-8")
+    styles = Path("frontend/styles.css").read_text(encoding="utf-8")
+    for field in [
+        "risk.contributions",
+        "signal_name",
+        "score_suppressed_reason",
+        "family_contributions",
+        "provenance.source",
+        "evidence_quality",
+        "recency_factor",
+        "threshold?.reason",
+        "case_block_reason",
+        "case_suppressed_reason",
+    ]:
+        assert field in script
+    assert "priority score" not in script.lower()
+    assert "ustuvorlik balli" in script
+    assert "#activeWindowData{max-height:560px;overflow-y:auto;overscroll-behavior:contain;padding-right:12px}" in styles
