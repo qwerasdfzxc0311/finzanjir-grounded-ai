@@ -97,6 +97,7 @@ class SystemFlow:
                 )
             return {
                 "transaction_id": transaction["transaction_id"],
+                "cross_bank_authorized": cross_bank_authorized,
                 "pipeline": pipeline,
                 "threshold": pipeline.risk.get("threshold") if pipeline.risk else None,
                 "case": None,
@@ -191,6 +192,7 @@ class SystemFlow:
 
         return {
             "transaction_id": transaction["transaction_id"],
+            "cross_bank_authorized": cross_bank_authorized,
             "pipeline": pipeline,
             "threshold": pipeline.risk.get("threshold") if pipeline.risk else None,
             "case": case,
@@ -255,6 +257,152 @@ class SystemFlow:
                 "synthetic_data_only": True,
             },
         }
+
+    def build_window_trace(self, result: dict[str, Any]) -> list[dict[str, Any]]:
+        """Build truthful post-execution statuses from outputs actually produced."""
+        pipeline = result["pipeline"]
+        risk = pipeline.risk or {}
+        transaction_id = result["transaction_id"]
+        signal_ids = [item["id"] for item in pipeline.signals]
+        evidence_ids = [item["id"] for item in pipeline.evidences]
+        case = result.get("case")
+        decision = result.get("decision") or {}
+        human_decision = decision.get("human_decision") or {}
+        audit_events = list(result.get("audit") or ())
+        ai = result.get("ai")
+        ai_answer = getattr(ai, "answer", None)
+        citizen_status = result.get("citizen_status") or {}
+        layers = list(result.get("layers_16") or ())
+        layer_counts = {
+            "complete": sum(item.get("status") == "COMPLETE" for item in layers),
+            "partial": sum(item.get("status") == "PARTIAL" for item in layers),
+            "planned": sum(item.get("status") == "PLANNED" for item in layers),
+        }
+        cross_bank_authorized = result.get("cross_bank_authorized") is True
+        cross_bank = result.get("cross_bank")
+        cross_bank_matches = list(getattr(cross_bank, "matches", ()) or ())
+
+        stages = [
+            {
+                "window_id": "synthetic_bank",
+                "status": "COMPLETED",
+                "status_label": "Bajarildi · sintetik tranzaksiya qabul qilindi",
+                "summary": "Sintetik tranzaksiya yagona oqimga qabul qilindi.",
+                "input_refs": [],
+                "output_refs": [transaction_id],
+            },
+            {
+                "window_id": "signal_risk",
+                "status": "COMPLETED" if risk else "NOT_RUN",
+                "status_label": "Bajarildi · signal va risk natijasi tayyor" if risk else "Bajarilmadi · risk natijasi yo‘q",
+                "summary": "Signal, dalil, ustuvorlik balli va threshold natijasi.",
+                "input_refs": [transaction_id],
+                "output_refs": [*signal_ids, *evidence_ids, *([risk["id"]] if risk.get("id") else [])],
+            },
+            {
+                "window_id": "cross_bank_fraud",
+                "status": "COMPLETED" if cross_bank_authorized else "DISABLED",
+                "status_label": (
+                    "Vakolatli scope tekshirildi · moslik bor" if cross_bank_matches
+                    else "Vakolatli scope tekshirildi · moslik yo‘q" if cross_bank_authorized
+                    else "O‘chiq · banklararo almashinuvga ruxsat yo‘q"
+                ),
+                "summary": (
+                    "Faqat aniq runtime vakolati bo‘lsa cross-bank natijasi ko‘rsatiladi."
+                    if cross_bank_authorized
+                    else "Banklararo almashinuv bajarilmadi; bu holat moslik topilmadi degani emas."
+                ),
+                "input_refs": [transaction_id] if cross_bank_authorized else [],
+                "output_refs": [
+                    item["correlation_key_hash"] for item in cross_bank_matches
+                    if item.get("correlation_key_hash")
+                ],
+            },
+            {
+                "window_id": "human_case",
+                "status": (
+                    "SYNTHETIC_REVIEW_ONLY" if case
+                    else "SHADOW_ONLY" if risk.get("shadow_mode") is True
+                    else "NOT_ELIGIBLE"
+                ),
+                "status_label": (
+                    "Sintetik Case · rasmiy qaror emas" if case
+                    else "Shadow Mode · Case ochilmadi" if risk.get("shadow_mode") is True
+                    else "Case ochilmadi · mezonlar bajarilmadi"
+                ),
+                "summary": "Case va inson ko‘rigi faqat sintetik namuna; rasmiy bank qarori emas.",
+                "input_refs": [risk["id"]] if risk.get("id") else [],
+                "output_refs": [
+                    item for item in (
+                        case.get("case_id") if case else None,
+                        human_decision.get("decision_id"),
+                    ) if item
+                ],
+            },
+            {
+                "window_id": "audit_kpi",
+                "status": "COMPLETED" if audit_events and result.get("kpi") else "PARTIAL",
+                "status_label": "Audit va KPI natijasi tayyor" if audit_events and result.get("kpi") else "Qisman · audit yoki KPI natijasi yetishmaydi",
+                "summary": "Audit hodisalari va sintetik KPI ko‘rsatkichlari.",
+                "input_refs": [transaction_id],
+                "output_refs": [
+                    item.get("event_id") or item.get("audit_id")
+                    for item in audit_events
+                    if item.get("event_id") or item.get("audit_id")
+                ],
+            },
+            {
+                "window_id": "finzanjir_ai",
+                "status": "ABSTAINED" if getattr(ai_answer, "abstained", False) else "COMPLETED" if ai_answer else "NOT_RUN",
+                "status_label": (
+                    "AI dalil yetishmasligi sabab javobdan tiyildi"
+                    if getattr(ai_answer, "abstained", False)
+                    else "AI izohi tayyor" if ai_answer
+                    else "AI natijasi mavjud emas"
+                ),
+                "summary": "AI javobi runtime dalillari va canonical knowledge bilan bog‘langan.",
+                "input_refs": list(getattr(getattr(ai, "runtime_context", None), "runtime_refs", ()) or ()),
+                "output_refs": list(getattr(ai_answer, "citations", ()) or ()),
+            },
+            {
+                "window_id": "citizen",
+                "status": "SYNTHETIC_STATUS_ONLY" if citizen_status else "NOT_AVAILABLE",
+                "status_label": (
+                    "Sintetik status · fuqaroning haqiqiy bank holati emas"
+                    if citizen_status else "Fuqaro statusi mavjud emas"
+                ),
+                "summary": citizen_status.get("message", "Fuqaro statusi mavjud emas."),
+                "input_refs": [human_decision["decision_id"]] if human_decision.get("decision_id") else [],
+                "output_refs": [
+                    item for item in (
+                        citizen_status.get("status_id"),
+                        citizen_status.get("case_id"),
+                    ) if item
+                ],
+            },
+            {
+                "window_id": "layers_16",
+                "status": (
+                    "COMPLETE" if len(layers) == self.architecture_layers and layer_counts["complete"] == self.architecture_layers
+                    else "PARTIAL" if len(layers) == self.architecture_layers
+                    else "INCOMPLETE"
+                ),
+                "status_label": (
+                    f"16 qatlam izi · {layer_counts['complete']} to‘liq, {layer_counts['partial']} qisman, {layer_counts['planned']} rejalashtirilgan"
+                    if len(layers) == self.architecture_layers
+                    else f"Qatlam izi to‘liq emas · {len(layers)} / {self.architecture_layers}"
+                ),
+                "summary": "Qatlam izi mavjudligi ularning barchasi ishlab chiqilganini anglatmaydi.",
+                "input_refs": [transaction_id],
+                "output_refs": [item["layer_id"] for item in layers],
+            },
+        ]
+        if [item["window_id"] for item in stages] != list(self.window_ids):
+            raise RuntimeError("window execution trace does not match the canonical system flow")
+        return [
+            {"sequence": index + 1, "transaction_id": transaction_id, "data_mode": "synthetic", **stage}
+            for index, stage in enumerate(stages)
+        ]
 
     def trace(self, transaction_id: str) -> list[dict[str, Any]]:
         return [
