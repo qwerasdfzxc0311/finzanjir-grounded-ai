@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from copy import deepcopy
 from datetime import datetime, timezone
 from typing import Any
 from uuid import uuid4
@@ -89,7 +90,7 @@ class CaseManager:
             event = next((item for item in self._audit_events.values() if item["event_id"] == audit_id), None)
         if event is None:
             raise ValueError(f"Unknown audit event: {audit_id}")
-        return dict(event)
+        return deepcopy(event)
 
     def apply_human_decision(
         self,
@@ -208,11 +209,11 @@ class CaseManager:
         if bank_status is not None and citizen_status is not None:
             self._bank_statuses[case_id] = dict(bank_status)
             self._citizen_statuses[case_id] = dict(citizen_status)
-        self._audit_events[audit_event["audit_id"]] = dict(audit_event)
+        self._audit_events[audit_event["audit_id"]] = deepcopy(audit_event)
         return {
             "case": dict(case),
             "human_decision": dict(human_decision),
             "bank_status": bank_status,
             "citizen_status": citizen_status,
-            "audit_event": dict(audit_event),
+            "audit_event": deepcopy(audit_event),
         }
