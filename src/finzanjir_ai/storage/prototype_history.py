@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from contextlib import closing
 from datetime import datetime, timedelta, timezone
 import math
 import os
@@ -30,32 +31,35 @@ class PrototypeRunStore:
         return connection
 
     def _initialize(self) -> None:
-        with self._connect() as connection:
-            connection.execute("PRAGMA journal_mode = WAL")
-            connection.execute("PRAGMA synchronous = FULL")
-            connection.execute(
-                """
-                CREATE TABLE IF NOT EXISTS prototype_run_history (
-                    run_id TEXT PRIMARY KEY,
-                    created_at TEXT NOT NULL,
-                    data_mode TEXT NOT NULL CHECK (data_mode = 'synthetic'),
-                    risk_score REAL NOT NULL CHECK (risk_score >= 0 AND risk_score <= 100),
-                    risk_level TEXT NOT NULL CHECK (risk_level IN ('CRITICAL','HIGH','ELEVATED','MEDIUM','LOW','OBSERVE')),
-                    threshold REAL NOT NULL CHECK (threshold >= 0 AND threshold <= 100),
-                    signal_count INTEGER NOT NULL CHECK (signal_count >= 0),
-                    evidence_count INTEGER NOT NULL CHECK (evidence_count >= 0),
-                    independent_families INTEGER NOT NULL CHECK (independent_families >= 0),
-                    case_eligible INTEGER NOT NULL CHECK (case_eligible IN (0,1)),
-                    case_opened INTEGER NOT NULL CHECK (case_opened IN (0,1)),
-                    shadow_mode INTEGER NOT NULL CHECK (shadow_mode IN (0,1)),
-                    engine_version TEXT NOT NULL,
-                    registry_version TEXT NOT NULL
+        with closing(self._connect()) as connection:
+            with connection:
+                connection.execute("PRAGMA journal_mode = WAL")
+                connection.execute("PRAGMA synchronous = FULL")
+                connection.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS prototype_run_history (
+                        run_id TEXT PRIMARY KEY,
+                        created_at TEXT NOT NULL,
+                        data_mode TEXT NOT NULL CHECK (data_mode = 'synthetic'),
+                        risk_score REAL NOT NULL CHECK (risk_score >= 0 AND risk_score <= 100),
+                        risk_level TEXT NOT NULL CHECK (risk_level IN ('CRITICAL','HIGH','ELEVATED','MEDIUM','LOW','OBSERVE')),
+                        threshold REAL NOT NULL CHECK (threshold >= 0 AND threshold <= 100),
+                        signal_count INTEGER NOT NULL CHECK (signal_count >= 0),
+                        evidence_count INTEGER NOT NULL CHECK (evidence_count >= 0),
+                        independent_families INTEGER NOT NULL CHECK (independent_families >= 0),
+                        case_eligible INTEGER NOT NULL CHECK (case_eligible IN (0,1)),
+                        case_opened INTEGER NOT NULL CHECK (case_opened IN (0,1)),
+                        shadow_mode INTEGER NOT NULL CHECK (shadow_mode IN (0,1)),
+                        engine_version TEXT NOT NULL,
+                        registry_version TEXT NOT NULL
+                    )
+                    """
                 )
-                """
-            )
-            connection.execute(
-                "CREATE INDEX IF NOT EXISTS idx_prototype_run_created_at ON prototype_run_history(created_at DESC)"
-            )
+                connection.execute(
+                    "CREATE INDEX IF NOT EXISTS idx_prototype_run_created_at ON prototype_run_history(created_at DESC)"
+                )
+        if os.name == "posix":
+            self.database_path.chmod(0o600)
 
     @staticmethod
     def _finite_number(value: Any, field: str) -> float:
@@ -105,10 +109,11 @@ class PrototypeRunStore:
             **flags,
             **versions,
         }
-        with self._connect() as connection:
-            connection.execute(
-                """
-                INSERT INTO prototype_run_history (
+        with closing(self._connect()) as connection:
+            with connection:
+                connection.execute(
+                    """
+                    INSERT INTO prototype_run_history (
                     run_id, created_at, data_mode, risk_score, risk_level, threshold,
                     signal_count, evidence_count, independent_families,
                     case_eligible, case_opened, shadow_mode, engine_version, registry_version
@@ -118,19 +123,20 @@ class PrototypeRunStore:
                     :case_eligible, :case_opened, :shadow_mode, :engine_version, :registry_version
                 )
                 """,
-                run,
-            )
-            cutoff = (datetime.now(timezone.utc) - timedelta(days=self.retention_days)).isoformat().replace("+00:00", "Z")
-            connection.execute("DELETE FROM prototype_run_history WHERE created_at < ?", (cutoff,))
+                    run,
+                )
+                cutoff = (datetime.now(timezone.utc) - timedelta(days=self.retention_days)).isoformat().replace("+00:00", "Z")
+                connection.execute("DELETE FROM prototype_run_history WHERE created_at < ?", (cutoff,))
         return run
 
     def list_recent(self, *, limit: int = 50) -> list[dict[str, Any]]:
         if not isinstance(limit, int) or isinstance(limit, bool) or not 1 <= limit <= 100:
             raise ValueError("limit must be an integer between 1 and 100")
         cutoff = (datetime.now(timezone.utc) - timedelta(days=self.retention_days)).isoformat().replace("+00:00", "Z")
-        with self._connect() as connection:
-            connection.execute("DELETE FROM prototype_run_history WHERE created_at < ?", (cutoff,))
-            rows = connection.execute(
+        with closing(self._connect()) as connection:
+            with connection:
+                connection.execute("DELETE FROM prototype_run_history WHERE created_at < ?", (cutoff,))
+                rows = connection.execute(
                 """
                 SELECT run_id, created_at, data_mode, risk_score, risk_level, threshold,
                        signal_count, evidence_count, independent_families,
@@ -139,8 +145,8 @@ class PrototypeRunStore:
                 ORDER BY created_at DESC, run_id DESC
                 LIMIT ?
                 """,
-                (limit,),
-            ).fetchall()
+                    (limit,),
+                ).fetchall()
         results = []
         for row in rows:
             item = dict(row)
