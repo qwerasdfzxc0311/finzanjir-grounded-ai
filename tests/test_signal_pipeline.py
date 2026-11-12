@@ -1,4 +1,6 @@
+import json
 import math
+from pathlib import Path
 
 import pytest
 
@@ -137,3 +139,27 @@ def test_pipeline_rejects_invalid_escalation_thresholds(value):
             signal_amount_threshold=1000,
             escalation_threshold=value,
         )
+
+
+
+def test_legacy_context_objects_conform_to_v2_contract_without_case():
+    result = process_transaction(
+        {
+            "transaction_id": "syn-tx-context-v2",
+            "bank_id": "bank-demo",
+            "actor_id": "actor-context-v2",
+            "amount": 2500,
+            "occurred_at": "2026-11-11T00:00:07Z",
+            "synthetic": True,
+        },
+        signal_amount_threshold=1000,
+        escalation_threshold=0.75,
+    )
+    schemas = json.loads(
+        (Path(__file__).resolve().parents[1] / "contracts" / "event_contracts_v2.json").read_text(encoding="utf-8")
+    )["schemas"]
+
+    assert set(schemas["Signal"]["required"]).issubset(result.signal)
+    assert set(schemas["Evidence"]["required"]).issubset(result.evidence)
+    assert set(schemas["Risk"]["required"]).issubset(result.risk)
+    assert result.case is None
