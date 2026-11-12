@@ -187,8 +187,13 @@ function windowExecutionStatus(windowId) {
     case "signal_risk":
       return snapshot.pipeline?.risk ? "Signal va risk hisoblandi" : "Risk natijasi mavjud emas";
     case "cross_bank_fraud":
-      if (!snapshot.cross_bank) return "Cross-bank natijasi mavjud emas";
-      return snapshot.cross_bank.matches?.length ? "Ruxsatli scope ichida moslik bor" : "Scope tekshirildi · moslik topilmadi";
+      if (snapshot.runtime?.cross_bank_authorized !== true) {
+        return "Cross-bank almashinuvi o‘chiq · ruxsat yo‘q";
+      }
+      if (!Array.isArray(snapshot.cross_bank?.matches)) return "Cross-bank natijasi mavjud emas";
+      return snapshot.cross_bank.matches.length
+        ? "Ruxsatli scope ichida moslik bor"
+        : "Ruxsatli scope tekshirildi · moslik topilmadi";
     case "human_case":
       if (snapshot.case) return "Sintetik Case va inson ko‘rigi qayd etildi";
       if (snapshot.pipeline?.risk?.shadow_mode === true) return "Shadow Mode · Case ochilmadi";

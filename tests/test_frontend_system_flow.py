@@ -132,3 +132,11 @@ def test_signal_risk_window_shows_signal_reasons_evidence_and_threshold_explanat
     assert "priority score" not in script.lower()
     assert "ustuvorlik balli" in script
     assert "#activeWindowData{max-height:560px;overflow-y:auto;overscroll-behavior:contain;padding-right:12px}" in styles
+
+
+
+def test_cross_bank_window_never_claims_a_check_without_authorized_exchange():
+    script = Path("frontend/app.js").read_text(encoding="utf-8")
+    assert 'snapshot.runtime?.cross_bank_authorized !== true' in script
+    assert 'Cross-bank almashinuvi o‘chiq · ruxsat yo‘q' in script
+    assert 'Ruxsatli scope tekshirildi · moslik topilmadi' in script
