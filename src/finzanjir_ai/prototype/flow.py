@@ -72,6 +72,10 @@ class SystemFlow:
                     event_type="RISK_EVALUATED_SHADOW" if is_shadow else "RISK_EVALUATED_NO_CASE",
                     object_type="Risk",
                     object_id=pipeline.risk["id"],
+                    source="risk_engine",
+                    scope="bank_internal",
+                    correlation_id=transaction["transaction_id"],
+                    data_mode="synthetic",
                     details={
                         "score": pipeline.risk["score"],
                         "risk_level": pipeline.risk["level"],
