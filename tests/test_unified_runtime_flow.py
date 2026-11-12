@@ -16,7 +16,7 @@ def test_system_flow_is_a_real_pipeline_not_only_a_visual_sequence():
     assert flow.transitions == tuple(zip(flow.window_ids, flow.window_ids[1:]))
 
 
-def test_system_flow_executes_one_transaction_through_all_runtime_stages():
+def test_system_flow_keeps_synthetic_decision_non_authoritative():
     flow = build_system_flow()
     transaction = {
         "transaction_id": "TX-FLOW-001",
@@ -31,11 +31,14 @@ def test_system_flow_executes_one_transaction_through_all_runtime_stages():
     assert result["pipeline"].signal["transaction_id"] == "TX-FLOW-001"
     assert result["pipeline"].risk["signal_id"] == result["pipeline"].signal["id"]
     assert result["case"]["transaction_id"] == "TX-FLOW-001"
+    assert result["case"]["status"] == "OPEN"
     assert result["decision"]["case"]["case_id"] == result["case"]["case_id"]
+    assert result["decision"]["human_decision"]["is_authoritative"] is False
     assert result["cross_bank"].matches == []
     assert result["audit"]
     assert result["ai"].runtime_context.runtime_refs
-    assert result["citizen_status"]["case_id"] == result["case"]["case_id"]
+    assert result["citizen_status"] is None
+    assert result["bank_status"] is None
     assert len(result["layers_16"]) == 16
 
 
