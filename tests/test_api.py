@@ -464,8 +464,8 @@ def _module_failure_stream_payload(transaction_id: str, *, shadow_mode: bool = F
         "amount": 2500,
         "occurred_at": "2026-11-12T09:00:00Z",
         "synthetic": True,
-        "shadow_mode": shadow_mode,
         **_multi_signal_fields(transaction_id, "2026-11-12T09:00:00Z"),
+        "shadow_mode": shadow_mode,
     }
 
 
