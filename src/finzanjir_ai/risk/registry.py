@@ -13,6 +13,8 @@ class SignalDefinition:
     family: str
     weight: float
     source_status: str = "legacy"
+    requires_corroboration: bool = False
+    score_eligible: bool = True
 
 
 # Legacy SIG-001..015 weights are initial engineering defaults, not calibrated
@@ -54,6 +56,11 @@ _DEFINITIONS = (
     SignalDefinition("SIG-033", "Fan-in / fan-out graph topology", "FLOW_GRAPH", 20, "candidate"),
     SignalDefinition("SIG-034", "Contact detail change followed by transfer", "PROFILE_SECURITY", 15, "candidate"),
     SignalDefinition("SIG-035", "New app registration followed by transfer", "DEVICE", 10, "candidate"),
+    SignalDefinition("SIG-036", "Micro-transaction card test", "TRANSACTION_VELOCITY", 5, "candidate", True),
+    SignalDefinition("SIG-037", "New beneficiary account age", "BENEFICIARY", 5, "candidate", True),
+    SignalDefinition("SIG-038", "Application language changed", "DEVICE", 0, "candidate", False, False),
+    SignalDefinition("SIG-039", "Shared IP across multiple accounts", "GRAPH_ATTRIBUTES", 5, "candidate", True),
+    SignalDefinition("SIG-040", "Copy-paste beneficiary entry context", "SESSION", 0, "candidate", False, False),
 )
 
 SIGNAL_REGISTRY = {item.signal_id: item for item in _DEFINITIONS}
