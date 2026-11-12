@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from finzanjir_ai.audit.service import calculate_kpis
+from finzanjir_ai.audit.service import AuditLog, calculate_kpis
 from finzanjir_ai.case.manager import CaseManager
 from finzanjir_ai.cross_bank.matcher import CrossBankMatcher
 from finzanjir_ai.knowledge.index import KnowledgeIndex, build_index_from_document
@@ -49,11 +49,39 @@ class SystemFlow:
             raise ValueError("authorized cross-bank exchange is required")
 
         if pipeline.signal is None or pipeline.risk is None or pipeline.case is None:
+            shadow_runtime_refs = tuple(
+                value
+                for value in (
+                    transaction["transaction_id"],
+                    *(item["id"] for item in pipeline.signals),
+                    *(item["id"] for item in pipeline.evidences),
+                    pipeline.risk["id"] if pipeline.risk else None,
+                )
+                if value
+            )
             ai = FINZANJIRAI(knowledge_index).answer(
-                "Why was no case opened?",
-                runtime_refs=(transaction["transaction_id"],),
+                "Why was this risk result kept in Shadow Mode?",
+                runtime_refs=shadow_runtime_refs,
                 working_memory_scope=transaction["transaction_id"],
             )
+            shadow_audit = None
+            if pipeline.risk is not None and pipeline.risk.get("shadow_mode"):
+                shadow_audit = AuditLog().append(
+                    actor_id="system:synthetic-shadow",
+                    event_type="RISK_EVALUATED_SHADOW",
+                    object_type="Risk",
+                    object_id=pipeline.risk["id"],
+                    details={
+                        "score": pipeline.risk["score"],
+                        "risk_level": pipeline.risk["level"],
+                        "signal_ids": pipeline.risk["signal_ids"],
+                        "evidence_count": pipeline.risk["evidence_count"],
+                        "engine_version": pipeline.risk["engine_version"],
+                        "registry_version": pipeline.risk.get("registry_version"),
+                        "data_mode": "synthetic",
+                        "no_bank_action": True,
+                    },
+                )
             return {
                 "transaction_id": transaction["transaction_id"],
                 "pipeline": pipeline,
@@ -65,12 +93,15 @@ class SystemFlow:
                     scope="cross_bank",
                     authorized_exchange=True,
                 ),
-                "audit": (),
+                "audit": (shadow_audit,) if shadow_audit else (),
                 "ai": ai,
                 "citizen_status": {
                     "case_id": None,
                     "status": "SHADOW_ONLY" if pipeline.risk and pipeline.risk.get("shadow_mode") else "NO_CASE",
                     "message": "Shadow Mode: natija qayd etildi, real to‘lov yoki bank qaroriga ta’sir qilmaydi." if pipeline.risk and pipeline.risk.get("shadow_mode") else "Hodisa bo‘yicha Case ochilmadi.",
+                    "risk_score": pipeline.risk.get("score") if pipeline.risk else None,
+                    "risk_level": pipeline.risk.get("level") if pipeline.risk else None,
+                    "case_eligible": pipeline.risk.get("case_eligible", False) if pipeline.risk else False,
                 },
                 "kpi": calculate_kpis(
                     signals_detected=len(pipeline.signals),
