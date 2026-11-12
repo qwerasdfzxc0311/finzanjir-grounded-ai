@@ -13,9 +13,10 @@ class ImpactHarmReduction:
     def _context(value, field: str) -> str | None:
         if value is None:
             return None
-        if not isinstance(value, str) or not value.strip():
-            raise ValueError(f"{field} must be a non-empty string or None")
-        return value.strip()
+        if not isinstance(value, str):
+            raise ValueError(f"{field} must be a string or None")
+        normalized = value.strip()
+        return normalized or None
 
     def compare_rate(
         self,
