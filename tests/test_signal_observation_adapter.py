@@ -89,3 +89,10 @@ def test_adapter_rejects_empty_source_event_key():
         normalize_signal_observations([
             _observation("SIG-006", "ev-device", event_key=" "),
         ])
+
+
+def test_adapter_rejects_non_opaque_source_event_keys():
+    with pytest.raises(ValueError, match="event_key"):
+        normalize_signal_observations([
+            _observation("SIG-006", "ev-device", event_key="customer name"),
+        ])
