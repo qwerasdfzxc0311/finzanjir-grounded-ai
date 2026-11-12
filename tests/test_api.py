@@ -181,3 +181,18 @@ def test_api_single_amount_context_stays_shadow_only_without_case():
     assert body["decision"] is None
     assert body["citizen_status"]["status"] == "SHADOW_ONLY"
     assert body["audit"][0]["event_type"] == "RISK_EVALUATED_SHADOW"
+
+
+
+def test_windows_endpoint_reports_real_layer_implementation_status():
+    response = client.get("/api/windows")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["architecture_layers"] == 16
+    assert body["layer_status_summary"] == {
+        "total": 16,
+        "complete": 0,
+        "partial": 12,
+        "planned": 4,
+    }
