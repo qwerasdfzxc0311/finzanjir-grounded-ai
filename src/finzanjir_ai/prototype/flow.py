@@ -76,6 +76,7 @@ class SystemFlow:
                 [item["id"] for item in pipeline.signals]
                 + [item["id"] for item in pipeline.evidences]
                 + ([pipeline.risk["id"]] if pipeline.risk and pipeline.risk.get("id") else [])
+                + ([pipeline.risk["threshold_id"]] if pipeline.risk and pipeline.risk.get("threshold_id") else [])
             ),
         )
 
@@ -262,7 +263,9 @@ class SystemFlow:
             data_mode="synthetic",
         )
         audit_event = decision["audit_event"]
-        emit("audit_kpi", "COMPLETED", "Audit hodisasi va sintetik KPI tayyor.", input_refs=(transaction_id,), output_refs=(audit_event["event_id"],))
+        emit("audit_kpi", "COMPLETED", "Audit hodisasi va sintetik KPI tayyor.", input_refs=(transaction_id,), output_refs=tuple(dict.fromkeys(
+                ref for ref in (audit_event.get("event_id"), audit_event.get("audit_id")) if ref
+            )))
 
         emit("finzanjir_ai", "RUNNING", "Canonical knowledge va runtime dalillari bilan izoh tayyorlanmoqda.")
         runtime_refs = tuple(
@@ -402,7 +405,12 @@ class SystemFlow:
                 "status_label": "Bajarildi · signal va risk natijasi tayyor" if risk else "Bajarilmadi · risk natijasi yo‘q",
                 "summary": "Signal, dalil, ustuvorlik balli va threshold natijasi.",
                 "input_refs": [transaction_id],
-                "output_refs": [*signal_ids, *evidence_ids, *([risk["id"]] if risk.get("id") else [])],
+                "output_refs": [
+                    *signal_ids,
+                    *evidence_ids,
+                    *([risk["id"]] if risk.get("id") else []),
+                    *([risk["threshold_id"]] if risk.get("threshold_id") else []),
+                ],
             },
             {
                 "window_id": "cross_bank_fraud",
@@ -450,11 +458,12 @@ class SystemFlow:
                 "status_label": "Audit va KPI natijasi tayyor" if audit_events and result.get("kpi") else "Qisman · audit yoki KPI natijasi yetishmaydi",
                 "summary": "Audit hodisalari va sintetik KPI ko‘rsatkichlari.",
                 "input_refs": [transaction_id],
-                "output_refs": [
-                    item.get("event_id") or item.get("audit_id")
+                "output_refs": list(dict.fromkeys(
+                    ref
                     for item in audit_events
-                    if item.get("event_id") or item.get("audit_id")
-                ],
+                    for ref in (item.get("event_id"), item.get("audit_id"))
+                    if ref
+                )),
             },
             {
                 "window_id": "finzanjir_ai",
