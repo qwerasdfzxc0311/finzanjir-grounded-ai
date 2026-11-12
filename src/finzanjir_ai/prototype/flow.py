@@ -113,6 +113,7 @@ class SystemFlow:
                 )
                 if value
             )
+            emit("audit_kpi", "RUNNING", "Audit va sintetik KPI tayyorlanmoqda.", input_refs=(transaction_id,))
             shadow_audit = None
             if pipeline.risk is not None:
                 is_shadow = pipeline.risk.get("shadow_mode") is True
@@ -166,6 +167,7 @@ class SystemFlow:
                 input_refs=shadow_runtime_refs,
                 output_refs=tuple(getattr(ai_answer, "citations", ()) or ()),
             )
+            emit("citizen", "RUNNING", "Sintetik fuqaro statusi tayyorlanmoqda.")
             shadow_citizen_status = {
                 "case_id": None,
                 "status": "SHADOW_ONLY" if pipeline.risk and pipeline.risk.get("shadow_mode") else "NO_CASE",
@@ -175,6 +177,7 @@ class SystemFlow:
                 "case_eligible": pipeline.risk.get("case_eligible", False) if pipeline.risk else False,
             }
             emit("citizen", "SYNTHETIC_STATUS_ONLY", "Faqaro statusi faqat sintetik namuna.")
+            emit("layers_16", "RUNNING", "16 qatlam izi shakllantirilmoqda.", input_refs=(transaction_id,))
             shadow_layers = self._layer_trace(transaction_id=transaction_id)
             emit("layers_16", "PARTIAL", "16 qatlam izi tayyor; statuslar qisman/rejalashtirilgan.", input_refs=(transaction_id,), output_refs=tuple(item["layer_id"] for item in shadow_layers))
             return {
@@ -291,12 +294,14 @@ class SystemFlow:
             output_refs=tuple(getattr(ai_answer, "citations", ()) or ()),
         )
 
+        emit("citizen", "RUNNING", "Sintetik fuqaro statusi tayyorlanmoqda.", input_refs=(decision["human_decision"]["decision_id"],))
         citizen_status = decision["citizen_status"] or {
             "case_id": case["case_id"],
             "status": "SYNTHETIC_REVIEW_ONLY",
             "message": "Sintetik sinov natijasi; bankning rasmiy qarori yoki mijozga qo‘llangan chora emas.",
         }
         emit("citizen", "SYNTHETIC_STATUS_ONLY", "Fuqaro oynasi uchun sintetik status tayyor.", input_refs=(decision["human_decision"]["decision_id"],), output_refs=(case["case_id"],))
+        emit("layers_16", "RUNNING", "16 qatlam izi shakllantirilmoqda.", input_refs=(transaction_id,))
         layers = self._layer_trace(transaction_id=transaction_id)
         emit("layers_16", "PARTIAL", "16 qatlam izi tayyor; statuslar qisman/rejalashtirilgan.", input_refs=(transaction_id,), output_refs=tuple(item["layer_id"] for item in layers))
 
