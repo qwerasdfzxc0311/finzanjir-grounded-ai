@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+from copy import deepcopy
 from datetime import datetime, timezone
 from typing import Any
+from uuid import uuid4
 
 
 class AuditLog:
@@ -47,7 +49,7 @@ class AuditLog:
         if not isinstance(details, dict):
             raise ValueError("details must be an object")
 
-        event_id = f"audit-{len(self._events) + 1:06d}"
+        event_id = f"audit-{uuid4().hex}"
         occurred_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         payload = dict(details)
         event = {
@@ -69,11 +71,11 @@ class AuditLog:
             "audit_id": event_id,
             "details": payload,
         }
-        self._events.append(event)
-        return dict(event)
+        self._events.append(deepcopy(event))
+        return deepcopy(event)
 
     def events(self) -> tuple[dict[str, Any], ...]:
-        return tuple(dict(event) for event in self._events)
+        return tuple(deepcopy(event) for event in self._events)
 
 
 def calculate_kpis(*, signals_detected: int, cases_opened: int, cases_actioned: int, review_seconds_total: int, data_mode: str) -> dict[str, Any]:
