@@ -9,3 +9,6 @@ def test_frontend_shell_exposes_unified_windows_and_synthetic_mode():
     assert 'id="windows"' in html
     assert 'id="layers"' in html
     assert "JavaScript yoqilgan bo‘lsa" in html
+    assert 'id="scenarioSelector"' in html
+    assert 'id="runSyntheticScenario"' in html
+    assert 'id="runHistory"' in html
