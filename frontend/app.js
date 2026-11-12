@@ -89,6 +89,18 @@ function windowSummaryLines(windowId) {
       ];
     case "signal_risk": {
       const contributions = Array.isArray(risk.contributions) ? risk.contributions : [];
+      const detectorOutcomes = Array.isArray(snapshot.detector?.detections) ? snapshot.detector.detections : [];
+      const detectorCounts = detectorOutcomes.reduce((counts, item) => {
+        counts[item.status] = (counts[item.status] || 0) + 1;
+        return counts;
+      }, {});
+      const detectorLines = detectorOutcomes.map(item =>
+        "Detector " + value(item.signal_id) + " — " + value(item.name)
+          + " · " + value(item.status) + " · sabab " + value(item.reason_code)
+          + " · mos fieldlar " + value((item.matched_features || []).join(", ") || "—")
+          + " · yetishmaydi " + value((item.missing_features || []).join(", ") || "—")
+          + " · yaroqsiz " + value((item.invalid_features || []).join(", ") || "—")
+      );
       const evidenceById = new Map((pipeline.evidences || []).map(item => [item.id, item]));
       const signalLines = contributions.length
         ? contributions.map(item => {
@@ -115,6 +127,7 @@ function windowSummaryLines(windowId) {
       return [
         "Signals: " + value(pipeline.signals?.length ?? runtime.signal_ids?.length ?? 0),
         "Evidence: " + value(pipeline.evidences?.length ?? runtime.evidence_ids?.length ?? 0),
+        "40 detector holati: " + value(detectorOutcomes.length) + " · " + Object.entries(detectorCounts).map(([status, count]) => status + "=" + count).join(", "),
         "Risk score: " + value(risk.score ?? runtime.risk_score) + " / 100",
         "Risk level: " + value(risk.level ?? runtime.risk_level),
         "Threshold: " + value(risk.escalation_threshold ?? risk.threshold?.value ?? runtime.threshold) + " / 100",
@@ -124,6 +137,7 @@ function windowSummaryLines(windowId) {
         "Case block/suppression: " + value(risk.case_block_reason || risk.case_suppressed_reason || "yo‘q"),
         "Score meaning: ustuvorlik balli, firibgarlik ehtimoli yoki aybdorlik emas",
         ...familyLines,
+        ...(detectorOutcomes.length ? detectorLines : ["Detector rule sababi: bu run oldindan tayyor signal eventlaridan foydalandi"]),
         ...signalLines,
         ...evidenceLines
       ];
