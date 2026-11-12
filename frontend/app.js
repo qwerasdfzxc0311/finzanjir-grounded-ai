@@ -41,6 +41,7 @@ let lastExecution = null;
 let activeWindowId = "dashboard";
 let executionStatus = "demo";
 let executionError = "";
+let liveWindowTrace = [];
 
 function windowSummaryLines(windowId) {
   const snapshot = lastExecution || {};
@@ -174,6 +175,26 @@ function windowSummaryLines(windowId) {
 
 
 function windowTraceFor(windowId) {
+  if (executionStatus === "running") {
+    const live = liveWindowTrace.find(item => item.window_id === windowId);
+    if (live) return live;
+    const flowIds = currentManifest?.system_flow?.transitions?.length
+      ? [currentManifest.system_flow.transitions[0][0], ...currentManifest.system_flow.transitions.map(item => item[1])]
+      : [];
+    const sequence = flowIds.indexOf(windowId);
+    if (sequence >= 0) {
+      return {
+        sequence: sequence + 1,
+        window_id: windowId,
+        status: "PENDING",
+        status_label: "Navbatda · oldingi bosqichlar kutilmoqda",
+        summary: "Backend bosqich hodisasi kelishi bilan holat yangilanadi.",
+        input_refs: [],
+        output_refs: []
+      };
+    }
+    return null;
+  }
   const snapshot = lastExecution || {};
   return Array.isArray(snapshot.window_trace)
     ? snapshot.window_trace.find(item => item.window_id === windowId)
@@ -194,10 +215,15 @@ function windowTraceLines(windowId) {
 }
 
 function windowExecutionStatus(windowId) {
-  if (executionStatus === "running") return "Yagona oqim bajarilmoqda · bosqichlar javob kelgach yangilanadi";
   if (executionStatus === "failed") return "Sinov xato bilan tugadi · oldingi natija saqlangan";
 
   const trace = windowTraceFor(windowId);
+  if (executionStatus === "running" && trace) {
+    if (trace.status === "RUNNING") return "Hozir bajarilmoqda";
+    if (trace.status === "PENDING") return "Navbatda";
+    return trace.status_label || trace.status;
+  }
+  if (executionStatus === "running") return "Yagona oqim bajarilmoqda";
   if (trace) return trace.status_label || trace.status;
   if (executionStatus === "demo") return "Demo ko‘rinishi · to‘liq sinov hali ishga tushmagan";
 
@@ -465,6 +491,53 @@ async function loadRunHistory() {
   }
 }
 
+async function readPrototypeProgress(response) {
+  if (!response.body || typeof response.body.getReader !== "function") {
+    throw new Error("Brauzer oqimli progressni qo‘llab-quvvatlamaydi.");
+  }
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let finalResult = null;
+  let streamError = null;
+
+  function handleFrame(frame) {
+    const lines = frame.split(/\\r?\\n/);
+    const eventLine = lines.find(line => line.startsWith("event: "));
+    const dataLine = lines.find(line => line.startsWith("data: "));
+    if (!eventLine || !dataLine) return;
+    const eventName = eventLine.slice(7);
+    const data = JSON.parse(dataLine.slice(6));
+    if (eventName === "stage") {
+      const index = liveWindowTrace.findIndex(item => item.window_id === data.window_id);
+      if (index >= 0) liveWindowTrace[index] = data;
+      else liveWindowTrace.push(data);
+      liveWindowTrace.sort((a, b) => a.sequence - b.sequence);
+      refreshWindowStatuses();
+      selectWindow(activeWindowId);
+    } else if (eventName === "result") {
+      finalResult = data;
+    } else if (eventName === "error") {
+      streamError = new Error(data.detail || "Sinov bajarilmadi");
+    }
+  }
+
+  while (true) {
+    const chunk = await reader.read();
+    buffer += decoder.decode(chunk.value || new Uint8Array(), {stream: !chunk.done});
+    let boundary = buffer.indexOf("\\n\\n");
+    while (boundary >= 0) {
+      handleFrame(buffer.slice(0, boundary));
+      buffer = buffer.slice(boundary + 2);
+      boundary = buffer.indexOf("\\n\\n");
+    }
+    if (chunk.done) break;
+  }
+  if (streamError) throw streamError;
+  if (!finalResult) throw new Error("Progress oqimi yakuniy natijasiz tugadi.");
+  return finalResult;
+}
+
 async function runSyntheticScenario() {
   const button = document.querySelector("#runSyntheticScenario");
   if (button.disabled) return;
@@ -475,9 +548,10 @@ async function runSyntheticScenario() {
   button.disabled = true;
   executionStatus = "running";
   executionError = "";
+  liveWindowTrace = [];
   refreshWindowStatuses();
   button.textContent = "Sinov bajarilmoqda...";
-  document.querySelector("#scenarioResult").replaceChildren(element("p", "muted", "Sintetik feature’lar tekshirilmoqda..."));
+  document.querySelector("#scenarioResult").replaceChildren(element("p", "muted", "Backend bosqichlari ketma-ket bajarilmoqda..."));
 
   const runToken = (window.crypto && window.crypto.randomUUID)
     ? window.crypto.randomUUID()
@@ -495,20 +569,25 @@ async function runSyntheticScenario() {
   };
 
   try {
-    const response = await fetch("/api/prototype/run", {
+    const response = await fetch("/api/prototype/run/stream", {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify(payload)
     });
-    const body = await response.json();
-    if (!response.ok) throw new Error(body.detail || "Sinov bajarilmadi");
+    if (!response.ok) {
+      const body = await response.json();
+      throw new Error(body.detail || "Progress oqimini boshlash imkoni bo‘lmadi");
+    }
+    const body = await readPrototypeProgress(response);
     lastExecution = body;
+    liveWindowTrace = [];
     executionStatus = "success";
     refreshWindowStatuses();
     selectWindow(activeWindowId);
     renderScenarioResult(body);
     await loadRunHistory();
   } catch (error) {
+    liveWindowTrace = [];
     executionStatus = "failed";
     executionError = error.message;
     refreshWindowStatuses();
