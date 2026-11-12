@@ -187,7 +187,7 @@ def test_each_signal_abstains_when_any_required_feature_is_missing(rule, missing
     )
     outcome = next(item for item in result["detections"] if item["signal_id"] == rule["signal_id"])
     assert outcome["status"] == "INSUFFICIENT_DATA"
-    assert missing_field in outcome["missing_required_features"]
+    assert missing_field in outcome["missing_features"]
 
 
 @pytest.mark.parametrize(
