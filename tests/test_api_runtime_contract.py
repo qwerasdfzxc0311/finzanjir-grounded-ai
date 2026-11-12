@@ -54,6 +54,7 @@ def test_prototype_run_accepts_explicit_synthetic_transaction_without_cross_bank
         json={
             "transaction_id": "TX-SYNTH-001",
             "bank_id": "bank-a",
+            "actor_id": "actor-synth-001",
             "amount": 2500,
             "occurred_at": "2026-11-11T00:00:00Z",
             "synthetic": True,
@@ -72,6 +73,7 @@ def test_prototype_run_requires_explicit_cross_bank_authorization():
         json={
             "transaction_id": "TX-CROSSBANK-UNAUTH-001",
             "bank_id": "bank-a",
+            "actor_id": "actor-cross-unauth-001",
             "amount": 2500,
             "occurred_at": "2026-11-11T00:00:00Z",
             "synthetic": True,
@@ -90,6 +92,7 @@ def test_prototype_run_allows_cross_bank_matching_only_when_authorized():
         json={
             "transaction_id": "TX-CROSSBANK-AUTH-001",
             "bank_id": "bank-a",
+            "actor_id": "actor-cross-auth-001",
             "amount": 2500,
             "occurred_at": "2026-11-11T00:00:00Z",
             "synthetic": True,
