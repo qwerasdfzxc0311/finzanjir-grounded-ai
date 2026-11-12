@@ -54,6 +54,7 @@ class AuditLog:
         payload = dict(details)
         event = {
             # Canonical event-envelope v2 fields.
+            "id": event_id,
             "event_id": event_id,
             "event_type": event_type,
             "occurred_at": occurred_at,
@@ -69,6 +70,7 @@ class AuditLog:
             "schema_version": "event-envelope-v2",
             # Legacy aliases retained for v1 consumers.
             "audit_id": event_id,
+            "legacy_audit_id": event_id,
             "details": payload,
         }
         self._events.append(deepcopy(event))
