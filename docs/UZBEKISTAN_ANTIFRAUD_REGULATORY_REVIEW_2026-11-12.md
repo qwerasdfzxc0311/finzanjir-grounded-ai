@@ -125,3 +125,43 @@ Recommended direction for consideration:
 - No independent raw interbank data lake, real Cross-Bank Matcher, real bank connector, biometric ingestion or payment-blocking function until legal authority and integration agreements are confirmed.
 
 **Project owner decision required before changing the existing architecture.** Existing synthetic prototype functionality is preserved in the meantime.
+
+
+## 8. Additional current requirements: CBU Regulation No. 3669
+
+Central Bank Board Resolution No. 19/1, registered as No. 3669 on 18 August 2025 and effective 20 November 2025:
+https://www.lex.uz/uz/acts/-7689673
+
+The regulation establishes minimum information-security and cybersecurity requirements for commercial banks, including microfinance banks.
+
+Relevant controls:
+- Paragraphs 21–25: continuous security and cybersecurity risk identification, collection, assessment, mitigation, monitoring, reporting and review; incident prevention, response and recovery; audit/logging and controlled user/device access.
+- Paragraph 47: remote banking sessions must log access, information exchange and user actions, including IP and/or MAC address and IMEI when a mobile phone is used.
+- Paragraph 48: administrators' activities must be performed through a Privileged Access Management (PAM) system, with privileged-session recording and audit.
+- Paragraph 69: banks must use IDS/IPS and detect network anomalies and unauthorized access in real time.
+- Paragraphs 167–168: secure decommissioning and retention of logs/records; bank primary/backup data-center requirements include ISO/IEC 27001, PCI DSS or other relevant international certifications.
+
+### FINZANJIR implications
+
+If FINZANJIR is contracted as a bank's service provider, the bank's vendor-risk assessment should map these controls to FINZANJIR's access, privileged administration, logging, incident response, network monitoring, backup, data-center certification and audit evidence. The current public prototype has not implemented or demonstrated this bank-grade control set and must not claim compliance.
+
+## 9. Cross-border transfer country list — Cabinet of Ministers Resolution No. 415
+
+Resolution No. 415 of 29 July 2026, effective 3 August 2026:
+https://test.lex.uz/uz/docs/-8369688
+
+The resolution approves a list of 49 countries/territories considered to provide equivalent personal-data protection for Article 27¹ of the Personal Data Law. The United States entry is conditional: it applies to companies participating in the EU–US Data Privacy Framework.
+
+Key requirements in paragraph 4:
+- Transfer to listed countries through information systems established on the basis of international agreements follows the procedure described in the resolution.
+- Transfers to countries not on the list are permitted only if legal, organizational and technical conditions established by the competent authority are met.
+- If a personal-data breach occurs during cross-border transfer, the operator must notify the competent authority within 24 hours and provide detailed information about causes and remedial actions within 72 hours.
+
+Do not assume a cloud provider qualifies merely because its headquarters or one region is in a listed country. The actual hosting region, legal entity, sub-processors, backup locations, transfer mechanism and (for the US) relevant DPF participation must be verified. Render region and DPF status have not been verified in this project. Current prototype data remains synthetic only.
+
+## 10. Updated legal work items
+
+- Map Regulation 3669 paragraphs to a future FINZANJIR bank-vendor control matrix.
+- Map Resolution 415 country list and transfer rules to each proposed hosting/subprocessor location.
+- Verify Render region and subprocessor chain only through authorized account/service information; do not infer from the provider name.
+- Reconcile Regulation 3513, Regulation 3669, PQ-153, Banking Secrecy Law and Personal Data Law into one control matrix before a bank pilot.
