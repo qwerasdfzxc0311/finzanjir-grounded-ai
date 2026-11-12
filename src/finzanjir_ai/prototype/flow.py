@@ -65,10 +65,11 @@ class SystemFlow:
                 working_memory_scope=transaction["transaction_id"],
             )
             shadow_audit = None
-            if pipeline.risk is not None and pipeline.risk.get("shadow_mode"):
+            if pipeline.risk is not None:
+                is_shadow = pipeline.risk.get("shadow_mode") is True
                 shadow_audit = AuditLog().append(
-                    actor_id="system:synthetic-shadow",
-                    event_type="RISK_EVALUATED_SHADOW",
+                    actor_id="system:synthetic-shadow" if is_shadow else "system:synthetic-review",
+                    event_type="RISK_EVALUATED_SHADOW" if is_shadow else "RISK_EVALUATED_NO_CASE",
                     object_type="Risk",
                     object_id=pipeline.risk["id"],
                     details={
