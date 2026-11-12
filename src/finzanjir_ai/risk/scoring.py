@@ -22,14 +22,17 @@ def evaluate_signal_set(
     minimum_independent_families: int = 2,
     minimum_evidence_count: int = 2,
 ) -> dict[str, Any]:
-    """Score a set of evidence-backed signals; this is not a fraud probability.
+    """Score evidence-backed signals without treating the score as probability.
 
     Each event requires signal_id, evidence_id, source, observed_at,
-    evidence_quality and recency_factor. Reused evidence_id values are
-    deduplicated so one underlying item cannot contribute more than once.
+    evidence_quality and recency_factor. Reused evidence IDs are grouped and
+    only the strongest eligible contribution is counted. Corroboration must
+    come from a different evidence ID.
     """
     if not isinstance(signal_events, list):
         raise ValueError("signal_events must be a list")
+    if len(signal_events) > 100:
+        raise ValueError("signal_events cannot contain more than 100 items")
     if not isinstance(escalation_threshold, (int, float)) or isinstance(escalation_threshold, bool) or not math.isfinite(escalation_threshold):
         raise ValueError("escalation_threshold must be finite")
     if not 0 <= escalation_threshold <= 100:
@@ -41,20 +44,8 @@ def evaluate_signal_set(
         if not isinstance(value, int) or isinstance(value, bool) or value < 1:
             raise ValueError(f"{field} must be a positive integer")
 
-    event_signal_ids: set[str] = set()
-    for index, event in enumerate(signal_events):
-        if not isinstance(event, dict):
-            raise ValueError(f"signal_events[{index}] must be an object")
-        signal_id = event.get("signal_id")
-        if not isinstance(signal_id, str) or signal_id not in SIGNAL_REGISTRY:
-            raise ValueError(f"unknown signal_id at index {index}")
-        event_signal_ids.add(signal_id)
-
-    seen_evidence: set[str] = set()
-    contributions: list[dict[str, Any]] = []
-    deduplicated: list[str] = []
-    family_totals: dict[str, float] = defaultdict(float)
-    quality_values: list[float] = []
+    normalized: list[dict[str, Any]] = []
+    evidence_groups: dict[str, list[dict[str, Any]]] = defaultdict(list)
 
     for index, event in enumerate(signal_events):
         if not isinstance(event, dict):
@@ -67,44 +58,74 @@ def evaluate_signal_set(
             value = event.get(field)
             if not isinstance(value, str) or not value.strip():
                 raise ValueError(f"signal_events[{index}].{field} must be a non-empty string")
+        corroborating_ids = event.get("corroborating_signal_ids", [])
+        if not isinstance(corroborating_ids, list) or any(not isinstance(value, str) for value in corroborating_ids):
+            raise ValueError("corroborating_signal_ids must be a list of signal IDs")
+        item = {
+            "definition": definition,
+            "signal_id": signal_id,
+            "evidence_id": event["evidence_id"].strip(),
+            "source": event["source"].strip(),
+            "observed_at": event["observed_at"].strip(),
+            "evidence_quality": _unit_interval(event.get("evidence_quality"), "evidence_quality"),
+            "recency_factor": _unit_interval(event.get("recency_factor"), "recency_factor"),
+            "corroborating_signal_ids": set(corroborating_ids),
+        }
+        normalized.append(item)
+        evidence_groups[item["evidence_id"]].append(item)
 
-        evidence_id = event["evidence_id"].strip()
-        if evidence_id in seen_evidence:
-            deduplicated.append(evidence_id)
-            continue
-        seen_evidence.add(evidence_id)
+    signal_ids_by_evidence = {
+        evidence_id: {item["signal_id"] for item in items}
+        for evidence_id, items in evidence_groups.items()
+    }
+    contributions: list[dict[str, Any]] = []
+    deduplicated: list[str] = []
+    family_totals: dict[str, float] = defaultdict(float)
+    quality_values: list[float] = []
 
-        quality = _unit_interval(event.get("evidence_quality"), "evidence_quality")
-        recency = _unit_interval(event.get("recency_factor"), "recency_factor")
-        quality_values.append(quality)
-        score_suppressed_reason = None
-        corroborated = True
-        if definition.requires_corroboration:
-            corroborating_ids = event.get("corroborating_signal_ids", [])
-            if not isinstance(corroborating_ids, list) or any(not isinstance(value, str) for value in corroborating_ids):
-                raise ValueError("corroborating_signal_ids must be a list of signal IDs")
-            corroborated = any(value in event_signal_ids and value != signal_id for value in corroborating_ids)
-            if not corroborated:
-                score_suppressed_reason = "requires_corroboration"
-        if not definition.score_eligible:
-            score_suppressed_reason = "context_only"
-        score_eligible = definition.score_eligible and corroborated
-        raw_contribution = definition.weight * quality * recency if score_eligible else 0.0
+    for evidence_id in sorted(evidence_groups):
+        options: list[tuple[float, str, dict[str, Any], str | None]] = []
+        for item in evidence_groups[evidence_id]:
+            definition = item["definition"]
+            corroborated = any(
+                signal_id in other_signal_ids
+                for other_evidence_id, other_signal_ids in signal_ids_by_evidence.items()
+                if other_evidence_id != evidence_id
+                for signal_id in item["corroborating_signal_ids"]
+            )
+            suppressed_reason = None
+            if not definition.score_eligible:
+                suppressed_reason = "context_only"
+            elif definition.requires_corroboration and not corroborated:
+                suppressed_reason = "requires_corroboration"
+            eligible = suppressed_reason is None
+            raw = definition.weight * item["evidence_quality"] * item["recency_factor"] if eligible else 0.0
+            options.append((raw, definition.signal_id, item, suppressed_reason))
+
+        # Stable, order-independent deduplication: highest eligible contribution wins;
+        # signal ID breaks ties deterministically.
+        raw_contribution, _, chosen, suppressed_reason = sorted(
+            options, key=lambda option: (-option[0], option[1])
+        )[0]
+        definition = chosen["definition"]
+        quality_values.append(chosen["evidence_quality"])
         family_totals[definition.family] += raw_contribution
+        if len(options) > 1:
+            deduplicated.append(evidence_id)
         contributions.append({
             "signal_id": definition.signal_id,
             "signal_name": definition.name,
             "family": definition.family,
             "evidence_id": evidence_id,
-            "source": event["source"].strip(),
-            "observed_at": event["observed_at"].strip(),
+            "source": chosen["source"],
+            "observed_at": chosen["observed_at"],
             "base_weight": definition.weight,
-            "evidence_quality": quality,
-            "recency_factor": recency,
+            "evidence_quality": chosen["evidence_quality"],
+            "recency_factor": chosen["recency_factor"],
             "raw_contribution": round(raw_contribution, 4),
             "source_status": definition.source_status,
-            "score_eligible": score_eligible,
-            "score_suppressed_reason": score_suppressed_reason,
+            "score_eligible": suppressed_reason is None,
+            "score_suppressed_reason": suppressed_reason,
         })
 
     family_contributions = {
@@ -112,7 +133,7 @@ def evaluate_signal_set(
         for family, total in sorted(family_totals.items())
     }
     score = round(min(100.0, sum(family_contributions.values())), 2)
-    evidence_count = len(seen_evidence)
+    evidence_count = len(evidence_groups)
     independent_families = sum(1 for value in family_contributions.values() if value > 0)
     evidence_confidence = round(sum(quality_values) / len(quality_values), 4) if quality_values else 0.0
 
