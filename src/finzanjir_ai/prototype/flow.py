@@ -144,7 +144,10 @@ class SystemFlow:
             risk_id=pipeline.case["risk_id"],
             threshold_id=pipeline.case["threshold_id"],
             transaction_id=transaction["transaction_id"],
+            bank_id=transaction["bank_id"],
+            citizen_id=transaction.get("citizen_id", "synthetic-subject"),
             escalation_met=bool(pipeline.risk["threshold_met"]),
+            data_mode="synthetic",
         )
         decision = manager.apply_human_decision(
             case_id=case["case_id"],
