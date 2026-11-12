@@ -175,7 +175,7 @@ def test_optional_provenance_features_are_allowed_but_not_required():
         for rule in CONTRACT["detectors"]
         for field in rule["required_features"]
     ],
-    ids=lambda value: value if isinstance(value, str) else value["signal_id"],
+    ids=[f"{rule['signal_id']}-{field}" for rule in CONTRACT["detectors"] for field in rule["required_features"]],
 )
 def test_each_signal_abstains_when_any_required_feature_is_missing(rule, missing_field):
     features = _fixture(rule)
