@@ -5,6 +5,7 @@ from finzanjir_ai.case.manager import CaseManager
 from finzanjir_ai.knowledge.index import build_knowledge_index
 from finzanjir_ai.orchestration.engine import FINZANJIRAI
 from finzanjir_ai.risk.pipeline import process_transaction
+from finzanjir_ai.risk.scenarios import build_synthetic_case_signal_events
 from finzanjir_ai.retrieval.grounding import GroundedContext, GroundedContextItem
 
 
@@ -19,6 +20,8 @@ def test_end_to_end_synthetic_transaction_to_grounded_ai_explanation():
         "channel": "mobile",
         "status": "AUTHORIZED",
         "synthetic": True,
+        "signal_events": build_synthetic_case_signal_events(transaction_id="syn-tx-e2e", observed_at="2026-11-11T00:00:01Z"),
+        "shadow_mode": False,
     }
 
     pipeline = process_transaction(

@@ -1,6 +1,7 @@
 import pytest
 
 from finzanjir_ai.prototype.flow import build_system_flow
+from finzanjir_ai.risk.scenarios import build_synthetic_case_signal_events
 
 
 def test_system_flow_rejects_non_boolean_cross_bank_authorization():
@@ -48,6 +49,8 @@ def test_demo_decision_is_explicitly_marked_as_synthetic_demo():
         "amount": 2500,
         "occurred_at": "2026-11-11T00:00:00Z",
         "synthetic": True,
+        "signal_events": build_synthetic_case_signal_events(transaction_id="TX-DEMO-BOUNDARY-001", observed_at="2026-11-11T00:00:00Z"),
+        "shadow_mode": False,
     }
 
     result = flow.execute(transaction, knowledge_index=flow.demo_knowledge_index())

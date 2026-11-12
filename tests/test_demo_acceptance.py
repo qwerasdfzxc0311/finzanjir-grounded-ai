@@ -1,5 +1,6 @@
 from finzanjir_ai.knowledge.index import build_knowledge_index
 from finzanjir_ai.prototype.demo import run_full_demo
+from finzanjir_ai.risk.scenarios import build_synthetic_case_signal_events
 
 
 def _knowledge():
@@ -27,6 +28,8 @@ def test_demo_suspicious_path_opens_case_and_keeps_synthetic_decision_non_author
             "channel": "mobile",
             "status": "AUTHORIZED",
             "synthetic": True,
+            "signal_events": build_synthetic_case_signal_events(transaction_id="syn-demo-suspicious", observed_at="2026-11-11T00:00:01Z"),
+            "shadow_mode": False,
         },
         knowledge_index=_knowledge(),
     )

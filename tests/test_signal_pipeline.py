@@ -1,11 +1,13 @@
+import json
 import math
+from pathlib import Path
 
 import pytest
 
 from finzanjir_ai.risk.pipeline import process_transaction
 
 
-def test_transaction_above_signal_threshold_flows_to_risk_and_case():
+def test_legacy_large_transaction_is_context_only_and_does_not_open_case():
     result = process_transaction(
         {
             "transaction_id": "syn-tx-100",
@@ -25,8 +27,13 @@ def test_transaction_above_signal_threshold_flows_to_risk_and_case():
     assert result.signal is not None
     assert result.evidence is not None
     assert result.risk is not None
-    assert result.case is not None
-    assert result.case["status"] == "OPEN"
+    assert result.case is None
+    assert result.signal["status"] == "CONTEXT_ONLY"
+    assert result.evidence["status"] == "CONTEXT_ONLY"
+    assert result.risk["score"] == 0.0
+    assert result.risk["case_eligible"] is False
+    assert result.risk["case_block_reason"] == "single_amount_context_not_sufficient"
+    assert result.risk["shadow_mode"] is True
 
 
 def test_transaction_below_signal_threshold_stops_before_case():
@@ -132,3 +139,27 @@ def test_pipeline_rejects_invalid_escalation_thresholds(value):
             signal_amount_threshold=1000,
             escalation_threshold=value,
         )
+
+
+
+def test_legacy_context_objects_conform_to_v2_contract_without_case():
+    result = process_transaction(
+        {
+            "transaction_id": "syn-tx-context-v2",
+            "bank_id": "bank-demo",
+            "actor_id": "actor-context-v2",
+            "amount": 2500,
+            "occurred_at": "2026-11-11T00:00:07Z",
+            "synthetic": True,
+        },
+        signal_amount_threshold=1000,
+        escalation_threshold=0.75,
+    )
+    schemas = json.loads(
+        (Path(__file__).resolve().parents[1] / "contracts" / "event_contracts_v2.json").read_text(encoding="utf-8")
+    )["schemas"]
+
+    assert set(schemas["Signal"]["required"]).issubset(result.signal)
+    assert set(schemas["Evidence"]["required"]).issubset(result.evidence)
+    assert set(schemas["Risk"]["required"]).issubset(result.risk)
+    assert result.case is None

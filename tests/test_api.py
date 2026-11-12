@@ -1,9 +1,17 @@
 from fastapi.testclient import TestClient
 
 from finzanjir_api.app import app
+from finzanjir_ai.risk.scenarios import build_synthetic_case_signal_events
 
 
 client = TestClient(app)
+
+
+def _multi_signal_fields(transaction_id: str, occurred_at: str) -> dict:
+    return {
+        "signal_events": build_synthetic_case_signal_events(transaction_id=transaction_id, observed_at=occurred_at),
+        "shadow_mode": False,
+    }
 
 
 def test_health_endpoint_reports_runtime_api():
@@ -37,6 +45,7 @@ def test_prototype_endpoint_executes_synthetic_flow_without_cross_bank_authoriza
             "amount": 2500,
             "occurred_at": "2026-11-11T00:00:00Z",
             "synthetic": True,
+            **_multi_signal_fields("TX-API-001", "2026-11-11T00:00:00Z"),
         },
     )
     assert response.status_code == 200
@@ -132,6 +141,7 @@ def test_prototype_endpoint_never_returns_authoritative_synthetic_demo_decision(
             "amount": 2500,
             "occurred_at": "2026-11-11T00:00:00Z",
             "synthetic": True,
+            **_multi_signal_fields("TX-API-SYNTHETIC-AUTH-001", "2026-11-11T00:00:00Z"),
         },
     )
 
@@ -146,3 +156,28 @@ def test_prototype_endpoint_never_returns_authoritative_synthetic_demo_decision(
     assert audit_change["decision_origin"] == "synthetic_demo"
     assert audit_change["actor_type"] == "synthetic_demo"
     assert audit_change["is_authoritative"] is False
+
+
+
+def test_api_single_amount_context_stays_shadow_only_without_case():
+    response = client.post(
+        "/api/prototype/run",
+        json={
+            "transaction_id": "TX-API-CONTEXT-ONLY-001",
+            "bank_id": "bank-a",
+            "actor_id": "actor-context-only",
+            "amount": 2500,
+            "occurred_at": "2026-11-11T00:00:00Z",
+            "synthetic": True,
+        },
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["pipeline"]["risk"]["score"] == 0
+    assert body["pipeline"]["risk"]["case_eligible"] is False
+    assert body["pipeline"]["signal"]["status"] == "CONTEXT_ONLY"
+    assert body["case"] is None
+    assert body["decision"] is None
+    assert body["citizen_status"]["status"] == "SHADOW_ONLY"
+    assert body["audit"][0]["event_type"] == "RISK_EVALUATED_SHADOW"
