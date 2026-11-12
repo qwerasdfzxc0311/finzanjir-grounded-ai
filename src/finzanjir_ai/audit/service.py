@@ -5,18 +5,69 @@ from typing import Any
 
 
 class AuditLog:
+    ALLOWED_SCOPES = frozenset({"bank_internal", "cross_bank"})
+    ALLOWED_DATA_MODES = frozenset({"synthetic", "real", "unknown"})
+
     def __init__(self) -> None:
         self._events: list[dict[str, Any]] = []
 
-    def append(self, *, actor_id: str, event_type: str, object_type: str, object_id: str, details: dict[str, Any]) -> dict[str, Any]:
+    def append(
+        self,
+        *,
+        actor_id: str,
+        event_type: str,
+        object_type: str,
+        object_id: str,
+        details: dict[str, Any],
+        source: str = "finzanjir-prototype",
+        scope: str = "bank_internal",
+        correlation_id: str | None = None,
+        causation_id: str | None = None,
+        data_mode: str = "synthetic",
+    ) -> dict[str, Any]:
+        for field, value in (
+            ("actor_id", actor_id),
+            ("event_type", event_type),
+            ("object_type", object_type),
+            ("object_id", object_id),
+            ("source", source),
+        ):
+            if not isinstance(value, str) or not value.strip():
+                raise ValueError(f"{field} must be a non-empty string")
+        if scope not in self.ALLOWED_SCOPES:
+            raise ValueError("scope must be bank_internal or cross_bank")
+        if data_mode not in self.ALLOWED_DATA_MODES:
+            raise ValueError("data_mode must be synthetic, real, or unknown")
+        if correlation_id is None:
+            correlation_id = object_id
+        if not isinstance(correlation_id, str) or not correlation_id.strip():
+            raise ValueError("correlation_id must be a non-empty string")
+        if causation_id is not None and (not isinstance(causation_id, str) or not causation_id.strip()):
+            raise ValueError("causation_id must be a non-empty string or None")
+        if not isinstance(details, dict):
+            raise ValueError("details must be an object")
+
+        event_id = f"audit-{len(self._events) + 1:06d}"
+        occurred_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        payload = dict(details)
         event = {
-            "audit_id": f"audit-{len(self._events) + 1:06d}",
-            "actor_id": actor_id,
+            # Canonical event-envelope v2 fields.
+            "event_id": event_id,
             "event_type": event_type,
-            "object_type": object_type,
-            "object_id": object_id,
-            "occurred_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
-            "details": dict(details),
+            "occurred_at": occurred_at,
+            "actor_id": actor_id.strip(),
+            "source": source.strip(),
+            "scope": scope,
+            "object_type": object_type.strip(),
+            "object_id": object_id.strip(),
+            "correlation_id": correlation_id.strip(),
+            "causation_id": causation_id.strip() if causation_id else None,
+            "payload": payload,
+            "data_mode": data_mode,
+            "schema_version": "event-envelope-v2",
+            # Legacy aliases retained for v1 consumers.
+            "audit_id": event_id,
+            "details": payload,
         }
         self._events.append(event)
         return dict(event)
