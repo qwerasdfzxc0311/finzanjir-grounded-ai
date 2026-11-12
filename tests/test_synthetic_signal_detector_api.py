@@ -47,6 +47,15 @@ def test_prototype_run_can_detect_and_score_multiple_synthetic_features():
     assert body["pipeline"]["risk"]["score"] == 80
     assert body["pipeline"]["risk"]["independent_families"] == 5
     assert body["pipeline"]["risk"]["case_eligible"] is True
+    risk = body["pipeline"]["risk"]
+    assert len(risk["contributions"]) == 5
+    assert all(item["signal_name"] and item["family"] for item in risk["contributions"])
+    assert all("raw_contribution" in item and "score_suppressed_reason" in item for item in risk["contributions"])
+    evidence_by_id = {item["id"]: item for item in body["pipeline"]["evidences"]}
+    assert all(item["evidence_id"] in evidence_by_id for item in risk["contributions"])
+    assert all(evidence_by_id[item["evidence_id"]]["provenance"]["source"] for item in risk["contributions"])
+    assert risk["threshold"]["reason"]
+    assert risk["threshold"]["value"] == 75
     assert body["case"]["data_mode"] == "synthetic"
     assert body["case"]["transaction_id"] == "TX-DETECTOR-INTEGRATION-001"
     assert body["decision"] is not None
