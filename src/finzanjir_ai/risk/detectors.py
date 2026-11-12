@@ -82,9 +82,10 @@ class SyntheticSignalDetector:
             if rule.get("legal_gate") != "unverified_bank_internal_lawful_purpose_required":
                 raise ValueError(f"{signal_id} is missing the bank-internal legal gate")
             required = rule.get("required_features")
+            optional = rule.get("optional_features", [])
             all_of = rule.get("all_of")
             benign_if = rule.get("benign_if", [])
-            if not isinstance(required, list) or not required or not isinstance(all_of, list) or not all_of:
+            if not isinstance(required, list) or not required or not isinstance(optional, list) or not isinstance(all_of, list) or not all_of:
                 raise ValueError(f"{signal_id} must declare required_features and all_of conditions")
             if not isinstance(benign_if, list):
                 raise ValueError(f"{signal_id}.benign_if must be a list")
@@ -99,9 +100,12 @@ class SyntheticSignalDetector:
                 if operator == "in" and not isinstance(condition["value"], list):
                     raise ValueError(f"{signal_id} in-condition requires a list")
                 condition_fields.add(field)
+            if any(not isinstance(field, str) or not field.strip() for field in [*required, *optional]):
+                raise ValueError(f"{signal_id} required/optional feature names must be non-empty strings")
             if not set(required).issubset({item["field"] for item in all_of}):
                 raise ValueError(f"{signal_id} required_features must be covered by all_of conditions")
             self._allowed_features.update(condition_fields)
+            self._allowed_features.update(optional)
             self._rules[signal_id] = rule
         if set(self._rules) != set(SIGNAL_REGISTRY):
             raise ValueError("detector rules and signal registry IDs do not match")
@@ -194,6 +198,9 @@ class SyntheticSignalDetector:
                 "reason_code": reason,
                 "matched_features": matched,
                 "missing_features": missing,
+                "observed_optional_features": [
+                    field for field in rule.get("optional_features", []) if field in features
+                ],
                 "rule_version": rule["rule_version"],
                 "detector_version": rule["detector_version"],
                 "legal_gate": rule["legal_gate"],
