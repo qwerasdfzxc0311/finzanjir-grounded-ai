@@ -193,8 +193,8 @@ def test_windows_endpoint_reports_real_layer_implementation_status():
     assert body["layer_status_summary"] == {
         "total": 16,
         "complete": 0,
-        "partial": 12,
-        "planned": 4,
+        "partial": 13,
+        "planned": 3,
     }
 
 
