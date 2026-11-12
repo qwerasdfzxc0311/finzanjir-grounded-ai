@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+from datetime import datetime
 from collections import defaultdict
 from typing import Any
 
@@ -58,9 +59,19 @@ def evaluate_signal_set(
             value = event.get(field)
             if not isinstance(value, str) or not value.strip():
                 raise ValueError(f"signal_events[{index}].{field} must be a non-empty string")
+        try:
+            observed_at = datetime.fromisoformat(event["observed_at"].replace("Z", "+00:00"))
+        except ValueError as exc:
+            raise ValueError(f"signal_events[{index}].observed_at must be ISO-8601") from exc
+        if observed_at.tzinfo is None or observed_at.utcoffset() is None:
+            raise ValueError(f"signal_events[{index}].observed_at must include a timezone")
         corroborating_ids = event.get("corroborating_signal_ids", [])
-        if not isinstance(corroborating_ids, list) or any(not isinstance(value, str) for value in corroborating_ids):
-            raise ValueError("corroborating_signal_ids must be a list of signal IDs")
+        if (
+            not isinstance(corroborating_ids, list)
+            or any(not isinstance(value, str) or value not in SIGNAL_REGISTRY for value in corroborating_ids)
+            or len(corroborating_ids) != len(set(corroborating_ids))
+        ):
+            raise ValueError("corroborating_signal_ids must contain unique registered signal IDs")
         rule_version = event.get("rule_version", "unspecified")
         detector_version = event.get("detector_version", "unspecified")
         if not isinstance(rule_version, str) or not rule_version.strip():
