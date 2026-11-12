@@ -167,7 +167,7 @@ class CaseManager:
         return {
             "case": dict(case),
             "human_decision": dict(human_decision),
-            "bank_status": dict(bank_status),
-            "citizen_status": dict(citizen_status),
+            "bank_status": bank_status,
+            "citizen_status": citizen_status,
             "audit_event": dict(audit_event),
         }
