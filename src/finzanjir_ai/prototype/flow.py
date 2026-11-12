@@ -21,6 +21,8 @@ class SystemFlow:
     architecture_layers: int = 16
 
     def execute(self, transaction: dict[str, Any], *, knowledge_index: KnowledgeIndex) -> dict[str, Any]:
+        if not isinstance(transaction, dict):
+            raise ValueError("transaction must be an object")
         if transaction.get("synthetic") is not True:
             raise ValueError("Unified prototype flow accepts only explicitly synthetic transactions")
 

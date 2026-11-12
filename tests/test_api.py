@@ -88,6 +88,7 @@ def test_prototype_endpoint_blocks_unauthorized_cross_bank_exchange():
         json={
             "transaction_id": "TX-API-CROSS-BANK-UNAUTH-001",
             "bank_id": "bank-a",
+            "actor_id": "actor-api-cross-unauth",
             "amount": 2500,
             "occurred_at": "2026-11-11T00:00:00Z",
             "synthetic": True,
@@ -107,6 +108,7 @@ def test_prototype_endpoint_does_not_trust_client_cross_bank_authorization():
         json={
             "transaction_id": "TX-API-CLIENT-AUTH-001",
             "bank_id": "bank-a",
+            "actor_id": "actor-api-client-auth",
             "amount": 2500,
             "occurred_at": "2026-11-11T00:00:00Z",
             "synthetic": True,
@@ -126,6 +128,7 @@ def test_prototype_endpoint_never_returns_authoritative_synthetic_demo_decision(
         json={
             "transaction_id": "TX-API-SYNTHETIC-AUTH-001",
             "bank_id": "bank-a",
+            "actor_id": "actor-api-synth-auth",
             "amount": 2500,
             "occurred_at": "2026-11-11T00:00:00Z",
             "synthetic": True,

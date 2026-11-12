@@ -64,3 +64,12 @@ def test_system_flow_rejects_synthetic_cross_bank_authorization():
         assert "cross-bank" in str(exc)
     else:
         raise AssertionError("synthetic cross-bank authorization must fail closed")
+
+
+def test_system_flow_rejects_non_object_transactions_before_field_access():
+    import pytest
+
+    flow = build_system_flow()
+
+    with pytest.raises(ValueError, match="transaction must be an object"):
+        flow.execute([], knowledge_index=flow.demo_knowledge_index())
