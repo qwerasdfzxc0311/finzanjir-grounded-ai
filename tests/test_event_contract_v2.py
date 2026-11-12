@@ -157,3 +157,36 @@ def test_legacy_and_multi_signal_pipeline_objects_match_v2_required_fields():
         assert set(schemas["Risk"]["required"]).issubset(result.risk)
         assert result.risk["score_scale"] == ("legacy_0_1" if index == 0 else "priority_0_100")
         assert set(schemas["Case"]["required"]).issubset(result.case)
+
+
+
+def test_case_manager_uses_unique_event_ids_for_repeated_non_authoritative_reviews():
+    manager = CaseManager()
+    manager.open_case(
+        case_id="case-multiple-reviews",
+        signal_ids=["signal-1"],
+        risk_id="risk-1",
+        threshold_id="threshold-1",
+        escalation_met=True,
+    )
+    first = manager.apply_human_decision(
+        case_id="case-multiple-reviews",
+        actor_id="reviewer-1",
+        decision="APPROVE_ACTION",
+        reason="First synthetic review",
+        decision_origin="synthetic_demo",
+        actor_type="synthetic_demo",
+        is_authoritative=False,
+    )
+    second = manager.apply_human_decision(
+        case_id="case-multiple-reviews",
+        actor_id="reviewer-2",
+        decision="DISMISS",
+        reason="Second synthetic review",
+        decision_origin="synthetic_demo",
+        actor_type="synthetic_demo",
+        is_authoritative=False,
+    )
+
+    assert first["human_decision"]["id"] != second["human_decision"]["id"]
+    assert first["audit_event"]["event_id"] != second["audit_event"]["event_id"]
