@@ -255,12 +255,18 @@
       ],
       "aliases": {
         "event_id": [
-          "audit_id"
+          "id"
         ],
         "payload": [
           "details"
         ]
-      }
+      },
+      "optional": [
+        "audit_id",
+        "legacy_audit_id",
+        "case_id",
+        "schema_version"
+      ]
     }
   },
   "event_envelope": "event_envelope_v2.json",
