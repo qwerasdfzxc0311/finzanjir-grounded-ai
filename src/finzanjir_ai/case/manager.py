@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from typing import Any
+from uuid import uuid4
 
 
 class CaseManager:
@@ -121,9 +122,10 @@ class CaseManager:
             raise ValueError("human_review decision cannot be non-authoritative")
 
         decided_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        decision_id = f"decision-{uuid4().hex}"
         human_decision = {
-            "id": f"decision-{case_id}",
-            "decision_id": f"decision-{case_id}",
+            "id": decision_id,
+            "decision_id": decision_id,
             "case_id": case_id,
             "actor_id": actor_id.strip(),
             "decision": decision,
@@ -173,7 +175,7 @@ class CaseManager:
             "actor_type": actor_type.strip(),
             "is_authoritative": is_authoritative,
         }
-        audit_id = f"audit-{case_id}"
+        audit_id = f"audit-{uuid4().hex}"
         audit_event = {
             "id": audit_id,
             "event_id": audit_id,
