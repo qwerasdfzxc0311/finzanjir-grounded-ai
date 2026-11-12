@@ -244,3 +244,32 @@ def test_prototype_run_returns_per_window_status_and_reference_trace():
     assert next(item for item in trace if item["window_id"] == "cross_bank_fraud")["status"] == "DISABLED"
     assert next(item for item in trace if item["window_id"] == "human_case")["status"] == "SYNTHETIC_REVIEW_ONLY"
     assert next(item for item in trace if item["window_id"] == "layers_16")["status"] == "PARTIAL"
+
+
+
+def test_prototype_run_stops_after_signal_module_failure_without_trace_or_history(monkeypatch):
+    def fail_signal_module(*args, **kwargs):
+        raise ValueError("synthetic signal module failure")
+
+    def history_must_not_be_written():
+        raise AssertionError("failed module execution must not be persisted as a completed run")
+
+    monkeypatch.setattr("finzanjir_ai.prototype.flow.process_transaction", fail_signal_module)
+    monkeypatch.setattr("finzanjir_api.app.prototype_run_store", history_must_not_be_written)
+
+    response = client.post(
+        "/api/prototype/run",
+        json={
+            "transaction_id": "TX-API-SIGNAL-FAILURE-001",
+            "bank_id": "bank-synthetic-a",
+            "actor_id": "actor-signal-failure",
+            "amount": 2500,
+            "occurred_at": "2026-11-12T09:00:00Z",
+            "synthetic": True,
+        },
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "synthetic signal module failure"
+    assert "window_trace" not in response.json()
+    assert "prototype_run_id" not in response.json()
