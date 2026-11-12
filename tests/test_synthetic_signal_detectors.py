@@ -197,7 +197,7 @@ def test_each_signal_abstains_when_any_required_feature_is_missing(rule, missing
         for rule in CONTRACT["detectors"]
         for condition in rule["all_of"]
     ],
-    ids=lambda value: value if isinstance(value, str) else value["signal_id"],
+    ids=[f"{rule['signal_id']}-{condition['field']}" for rule in CONTRACT["detectors"] for condition in rule["all_of"]],
 )
 def test_each_signal_threshold_boundary_is_inclusive_or_exact_as_declared(rule, condition):
     features = _fixture(rule)
