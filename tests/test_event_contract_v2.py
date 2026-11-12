@@ -23,6 +23,8 @@ def test_event_contract_v2_and_envelope_required_fields_match():
         "contracts/event_contracts_v1.json",
         "contracts/event_envelope_v1.json",
     ]
+    audit_mapping = next(item for item in migration["mappings"] if item["object"] == "AuditEvent" and item["v1"] == "audit_id")
+    assert audit_mapping["v2"] == "legacy_audit_id"
 
 
 def test_audit_log_emits_v2_envelope_and_keeps_v1_aliases():
@@ -100,7 +102,10 @@ def test_case_manager_returns_canonical_v2_objects_and_legacy_aliases():
     assert decision["bank_status"]["data_mode"] == "unknown"
     assert decision["citizen_status"]["id"] == decision["citizen_status"]["status_id"]
     assert decision["citizen_status"]["citizen_id"] == "citizen-test"
-    assert decision["audit_event"]["event_id"] == decision["audit_event"]["audit_id"]
+    assert decision["audit_event"]["event_id"] != decision["audit_event"]["audit_id"]
+    assert decision["audit_event"]["id"] == decision["audit_event"]["event_id"]
+    assert decision["audit_event"]["legacy_audit_id"] == decision["audit_event"]["audit_id"]
+    assert manager.get_audit_event(decision["audit_event"]["audit_id"])["event_id"] == decision["audit_event"]["event_id"]
     assert decision["audit_event"]["scope"] == "bank_internal"
     assert decision["audit_event"]["correlation_id"] == "transaction-1"
     assert decision["audit_event"]["payload"]["case_id"] == "case-v2-1"
@@ -196,3 +201,4 @@ def test_case_manager_uses_unique_event_ids_for_repeated_non_authoritative_revie
 
     assert first["human_decision"]["id"] != second["human_decision"]["id"]
     assert first["audit_event"]["event_id"] != second["audit_event"]["event_id"]
+    assert first["audit_event"]["audit_id"] != second["audit_event"]["audit_id"]
