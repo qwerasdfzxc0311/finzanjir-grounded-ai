@@ -40,3 +40,5 @@
 .window-status[data-state="success"]{color:#166534}
 .window-status[data-state="failed"]{color:#b91c1c}
 #activeWindowStatus{margin:8px 0}
+
+#activeWindowData{max-height:560px;overflow-y:auto;overscroll-behavior:contain;padding-right:12px}
