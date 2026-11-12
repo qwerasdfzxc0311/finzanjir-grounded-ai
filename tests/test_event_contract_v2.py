@@ -16,6 +16,8 @@ def test_event_contract_v2_and_envelope_required_fields_match():
     migration = json.loads((ROOT / "contracts" / "contract_migration_v1_to_v2.json").read_text(encoding="utf-8"))
 
     assert contracts["schema_version"] == "2.0"
+    assert "SignalObservation" in contracts["objects"]
+    assert contracts["schemas"]["SignalObservation"]["status"] == "implemented-synthetic-adapter-only"
     assert contracts["event_envelope"] == "event_envelope_v2.json"
     assert contracts["schemas"]["AuditEvent"]["required"][:-1] == envelope["required"]
     assert contracts["schemas"]["AuditEvent"]["required"][-1] == "data_mode"
