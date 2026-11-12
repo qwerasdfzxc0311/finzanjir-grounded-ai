@@ -55,3 +55,23 @@ def test_synthetic_demo_cannot_be_marked_authoritative():
             actor_type="synthetic_demo",
             is_authoritative=True,
         )
+
+
+
+def test_rejected_human_decision_leaves_case_and_related_records_unchanged():
+    manager = CaseManager()
+    _open_case(manager)
+
+    with pytest.raises(ValueError, match="Unsupported human decision"):
+        manager.apply_human_decision(
+            case_id="CASE-META-001",
+            actor_id="reviewer",
+            decision="BLOCK_ACCOUNT",
+            reason="Unsupported action must not mutate the case.",
+        )
+
+    assert manager.get_case("CASE-META-001")["status"] == "OPEN"
+    assert manager._human_decisions == {}
+    assert manager._bank_statuses == {}
+    assert manager._citizen_statuses == {}
+    assert manager._audit_events == {}
