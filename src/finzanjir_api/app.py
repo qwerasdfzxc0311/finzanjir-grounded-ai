@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import asyncio
+import json
 from functools import lru_cache
 import os
 from pathlib import Path
 from typing import Any, Literal
 
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel, Field, StrictBool
@@ -261,8 +264,11 @@ def prototype_demo() -> dict[str, Any]:
     return response
 
 
-@app.post("/api/prototype/run")
-def run_prototype(transaction: PrototypeTransaction) -> dict[str, Any]:
+def _execute_prototype(
+    transaction: PrototypeTransaction,
+    *,
+    on_stage: Any = None,
+) -> dict[str, Any]:
     if transaction.synthetic is not True:
         raise HTTPException(
             status_code=400,
@@ -294,6 +300,7 @@ def run_prototype(transaction: PrototypeTransaction) -> dict[str, Any]:
         result = flow.execute(
             payload,
             knowledge_index=knowledge_index(),
+            on_stage=on_stage,
         )
     except ValueError as exc:
         if "authorized cross-bank exchange" in str(exc):
@@ -334,6 +341,119 @@ def run_prototype(transaction: PrototypeTransaction) -> dict[str, Any]:
     if detector_result is not None:
         response["detector"] = detector_result
     return response
+
+
+@app.post("/api/prototype/run")
+def run_prototype(transaction: PrototypeTransaction) -> dict[str, Any]:
+    return _execute_prototype(transaction)
+
+
+@app.post("/api/prototype/run/stream")
+async def stream_prototype(transaction: PrototypeTransaction) -> StreamingResponse:
+    """Stream actual backend window-stage events; no client-side simulated progress."""
+    async def event_stream():
+        queue: asyncio.Queue[tuple[str, dict[str, Any] | None]] = asyncio.Queue()
+        loop = asyncio.get_running_loop()
+        flow = build_system_flow()
+        state: dict[str, Any] = {
+            "active": None,
+            "last_event": None,
+            "transaction_id": transaction.transaction_id,
+        }
+
+        def publish(event_name: str, data: dict[str, Any] | None) -> None:
+            try:
+                loop.call_soon_threadsafe(queue.put_nowait, (event_name, data))
+            except RuntimeError:
+                # A disconnected client must not interrupt the synthetic core flow.
+                return
+
+        def on_stage(event: dict[str, Any]) -> None:
+            state["last_event"] = event
+            if event.get("status") == "RUNNING":
+                state["active"] = event
+            elif state["active"] and state["active"].get("window_id") == event.get("window_id"):
+                state["active"] = None
+            publish("stage", event)
+
+        def worker() -> None:
+            try:
+                result = _execute_prototype(transaction, on_stage=on_stage)
+            except HTTPException as exc:
+                active = state.get("active")
+                last_event = state.get("last_event")
+                failed_sequence = None
+                if active:
+                    failed_sequence = active["sequence"]
+                elif last_event and last_event.get("sequence", 0) < len(flow.window_ids):
+                    failed_sequence = last_event["sequence"] + 1
+                if failed_sequence is not None:
+                    failed_window = flow.window_ids[failed_sequence - 1]
+                    publish("stage", {
+                        "sequence": failed_sequence,
+                        "window_id": failed_window,
+                        "transaction_id": transaction.transaction_id,
+                        "data_mode": "synthetic",
+                        "status": "FAILED",
+                        "summary": "Bosqich xato sabab xavfsiz to‘xtadi.",
+                        "input_refs": [],
+                        "output_refs": [],
+                    })
+                    for sequence, window_id in enumerate(flow.window_ids[failed_sequence:], start=failed_sequence + 1):
+                        publish("stage", {
+                            "sequence": sequence,
+                            "window_id": window_id,
+                            "transaction_id": transaction.transaction_id,
+                            "data_mode": "synthetic",
+                            "status": "NOT_RUN",
+                            "summary": "Oldingi bosqich to‘xtagani sabab bajarilmadi.",
+                            "input_refs": [],
+                            "output_refs": [],
+                        })
+                publish("error", {"status_code": exc.status_code, "detail": exc.detail})
+            except Exception:
+                active = state.get("active")
+                if active:
+                    failed_sequence = active["sequence"]
+                    publish("stage", {
+                        **active,
+                        "status": "FAILED",
+                        "summary": "Ichki modul xatosi sabab bosqich to‘xtadi.",
+                    })
+                    for sequence, window_id in enumerate(flow.window_ids[failed_sequence:], start=failed_sequence + 1):
+                        publish("stage", {
+                            "sequence": sequence,
+                            "window_id": window_id,
+                            "transaction_id": transaction.transaction_id,
+                            "data_mode": "synthetic",
+                            "status": "NOT_RUN",
+                            "summary": "Oldingi bosqich to‘xtagani sabab bajarilmadi.",
+                            "input_refs": [],
+                            "output_refs": [],
+                        })
+                publish("error", {"status_code": 500, "detail": "Prototype flow failed safely."})
+            else:
+                publish("result", result)
+            finally:
+                publish("end", None)
+
+        task = asyncio.create_task(asyncio.to_thread(worker))
+        while True:
+            event_name, data = await queue.get()
+            if event_name == "end":
+                break
+            yield f"event: {event_name}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
+        await task
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache, no-transform",
+            "X-Accel-Buffering": "no",
+            "Connection": "keep-alive",
+        },
+    )
 
 
 @app.get("/api/prototype/runs")

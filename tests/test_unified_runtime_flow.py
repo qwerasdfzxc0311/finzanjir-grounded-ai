@@ -244,3 +244,79 @@ def test_all_window_references_form_one_consistent_synthetic_transaction_chain()
     assert case_id in by_id["citizen"]["output_refs"]
     assert transaction_id in by_id["layers_16"]["input_refs"]
     assert layer_ids <= set(by_id["layers_16"]["output_refs"])
+
+
+
+def test_flow_emits_real_ordered_stage_callbacks_for_synthetic_review():
+    flow = build_system_flow()
+    transaction_id = "TX-LIVE-PROGRESS-001"
+    events = []
+    transaction = {
+        "transaction_id": transaction_id,
+        "bank_id": "bank-synthetic-a",
+        "actor_id": "actor-live-progress",
+        "amount": 2500,
+        "occurred_at": "2026-11-12T09:00:00Z",
+        "synthetic": True,
+        "signal_events": build_synthetic_case_signal_events(
+            transaction_id=transaction_id,
+            observed_at="2026-11-12T09:00:00Z",
+        ),
+        "shadow_mode": False,
+    }
+
+    result = flow.execute(
+        transaction,
+        knowledge_index=flow.demo_knowledge_index(),
+        on_stage=events.append,
+    )
+
+    assert result["transaction_id"] == transaction_id
+    assert [event["window_id"] for event in events] == [
+        window_id
+        for window_id in flow.window_ids
+        for _ in range(2)
+    ]
+    assert [event["status"] for event in events[::2]] == ["RUNNING"] * 8
+    assert [event["status"] for event in events[1::2]] == [
+        "COMPLETED",
+        "COMPLETED",
+        "DISABLED",
+        "SYNTHETIC_REVIEW_ONLY",
+        "COMPLETED",
+        "COMPLETED",
+        "SYNTHETIC_STATUS_ONLY",
+        "PARTIAL",
+    ]
+    assert all(event["transaction_id"] == transaction_id for event in events)
+    assert all(event["data_mode"] == "synthetic" for event in events)
+
+
+def test_progress_callback_failure_does_not_change_flow_result():
+    flow = build_system_flow()
+    transaction_id = "TX-PROGRESS-CALLBACK-FAIL-001"
+    transaction = {
+        "transaction_id": transaction_id,
+        "bank_id": "bank-synthetic-a",
+        "actor_id": "actor-progress-fail",
+        "amount": 2500,
+        "occurred_at": "2026-11-12T09:00:00Z",
+        "synthetic": True,
+        "signal_events": build_synthetic_case_signal_events(
+            transaction_id=transaction_id,
+            observed_at="2026-11-12T09:00:00Z",
+        ),
+        "shadow_mode": True,
+    }
+
+    def broken_transport(_event):
+        raise RuntimeError("synthetic progress transport failure")
+
+    result = flow.execute(
+        transaction,
+        knowledge_index=flow.demo_knowledge_index(),
+        on_stage=broken_transport,
+    )
+
+    assert result["transaction_id"] == transaction_id
+    assert result["pipeline"].risk is not None
