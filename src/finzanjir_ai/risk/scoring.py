@@ -137,10 +137,22 @@ def evaluate_signal_set(
             raw = definition.weight * item["evidence_quality"] * item["recency_factor"] if eligible else 0.0
             options.append((raw, definition.signal_id, item, suppressed_reason))
 
-        # Stable, order-independent deduplication: highest eligible contribution wins;
-        # signal ID breaks ties deterministically.
+        # Stable, order-independent deduplication: highest eligible contribution wins.
+        # The remaining fields provide a total deterministic tie-break, including
+        # duplicate observations for the same signal and source event.
         raw_contribution, _, chosen, suppressed_reason = sorted(
-            options, key=lambda option: (-option[0], option[1])
+            options,
+            key=lambda option: (
+                -option[0],
+                option[1],
+                option[2]["evidence_id"],
+                option[2]["source"],
+                option[2]["observed_at"],
+                option[2]["rule_version"],
+                option[2]["detector_version"],
+                option[2]["evidence_quality"],
+                option[2]["recency_factor"],
+            ),
         )[0]
         definition = chosen["definition"]
         quality_values.append(chosen["evidence_quality"])
