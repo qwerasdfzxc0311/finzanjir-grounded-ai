@@ -23,3 +23,23 @@ def test_kpis_are_marked_as_synthetic_demo_metrics():
     assert result["signal_to_case_rate"] == 0.4
     assert result["case_action_rate"] == 0.75
     assert result["average_review_seconds"] == 400
+
+
+
+def test_rejected_audit_append_does_not_partially_append_an_event():
+    audit = AuditLog()
+
+    try:
+        audit.append(
+            actor_id="actor",
+            event_type="RejectedEvent",
+            object_type="Risk",
+            object_id="risk-1",
+            details=[],
+        )
+    except ValueError as exc:
+        assert "details" in str(exc)
+    else:
+        raise AssertionError("non-object audit details must be rejected")
+
+    assert audit.events() == ()
