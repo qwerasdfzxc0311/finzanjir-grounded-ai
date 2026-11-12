@@ -22,8 +22,8 @@ def test_registry_contains_fifteen_legacy_and_twenty_candidate_signals():
     candidate = [item for item in SIGNAL_REGISTRY.values() if item.source_status == "candidate"]
 
     assert len(legacy) == 15
-    assert len(candidate) == 20
-    assert len(SIGNAL_REGISTRY) == 35
+    assert len(candidate) == 25
+    assert len(SIGNAL_REGISTRY) == 40
 
 
 def test_multi_signal_score_requires_independent_families_and_evidence():
@@ -99,3 +99,40 @@ def test_threshold_and_minimum_support_are_validated():
 
     with pytest.raises(ValueError, match="minimum_independent_families"):
         evaluate_signal_set([], minimum_independent_families=0)
+
+
+
+@pytest.mark.parametrize("signal_id", sorted(SIGNAL_REGISTRY))
+def test_every_registered_signal_has_a_synthetic_evidence_test_path(signal_id):
+    definition = SIGNAL_REGISTRY[signal_id]
+    result = evaluate_signal_set([_event(signal_id, f"ev-{signal_id}")])
+
+    assert result["evidence_count"] == 1
+    assert result["contributions"][0]["signal_id"] == signal_id
+    if not definition.score_eligible:
+        assert result["score"] == 0
+        assert result["contributions"][0]["score_suppressed_reason"] == "context_only"
+    elif definition.requires_corroboration:
+        assert result["score"] == 0
+        assert result["contributions"][0]["score_suppressed_reason"] == "requires_corroboration"
+    else:
+        assert result["score"] == definition.weight
+
+
+def test_micro_transaction_candidate_scores_only_with_a_distinct_corroborating_signal():
+    result = evaluate_signal_set([
+        _event("SIG-036", "ev-micro", corroborating_signal_ids=["SIG-002"]),
+        _event("SIG-002", "ev-follow-up"),
+    ])
+
+    assert result["score"] == 20
+    assert result["contributions"][0]["score_eligible"] is True
+
+
+@pytest.mark.parametrize("signal_id", ["SIG-038", "SIG-040"])
+def test_context_only_small_signals_never_add_risk_points(signal_id):
+    result = evaluate_signal_set([_event(signal_id, f"ev-{signal_id}")])
+
+    assert result["score"] == 0
+    assert result["independent_families"] == 0
+    assert result["case_eligible"] is False
