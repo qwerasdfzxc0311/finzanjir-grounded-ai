@@ -229,3 +229,28 @@ def test_source_event_key_must_be_a_bounded_opaque_identifier():
         evaluate_signal_set([_event("SIG-006", "ev-space", event_key="raw customer name")])
     with pytest.raises(ValueError, match="event_key"):
         evaluate_signal_set([_event("SIG-006", "ev-long", event_key="x" * 257)])
+
+
+
+def test_same_signal_duplicate_source_event_tie_break_is_order_independent():
+    first_event = _event(
+        "SIG-006",
+        "ev-z",
+        event_key="shared-source-event",
+        source="source-z",
+    )
+    second_event = _event(
+        "SIG-006",
+        "ev-a",
+        event_key="shared-source-event",
+        source="source-a",
+    )
+
+    forward = evaluate_signal_set([first_event, second_event])
+    reverse = evaluate_signal_set([second_event, first_event])
+
+    assert forward["score"] == reverse["score"] == 15
+    assert forward["evidence_count"] == reverse["evidence_count"] == 1
+    assert forward["contributions"] == reverse["contributions"]
+    assert forward["contributions"][0]["evidence_id"] == "ev-a"
+    assert forward["contributions"][0]["source"] == "source-a"
