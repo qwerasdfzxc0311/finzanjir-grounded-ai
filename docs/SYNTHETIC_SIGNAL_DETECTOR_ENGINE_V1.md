@@ -88,3 +88,20 @@ The multi-signal scoring contract accepts an optional `event_key` in addition to
 - If no event key is supplied, the evaluator defaults it to the evidence ID for backward compatibility.
 
 This is a conservative duplicate-control mechanism. The bank-side adapter must supply event keys that reflect true source-event identity; a fabricated or overly broad event key can undercount independent evidence. Source event key design therefore remains a bank data-owner and legal-governance requirement.
+
+
+## Temporal validity and freshness boundary
+
+The v1 candidate contract now declares a zero lower bound for 13 fields that previously had only an upper bound: elapsed-time intervals, age values, geolocation accuracy, activity-time probability, session duration, graph-cycle duration and bank-verified name-match confidence. A negative value for a field with an explicit non-negative bound is treated as invalid input and returns `INSUFFICIENT_DATA` with reason `invalid_feature_values`; it is not converted into a benign non-detection or a suspicious signal.
+
+Freshness is deliberately not inferred from the timestamp alone in v1:
+
+- The scoring and detector interfaces validate that `observed_at` is a timezone-aware ISO-8601 timestamp.
+- `recency_factor` is supplied by the source-side caller and constrained to [0, 1]. A value of 0 contributes zero priority points.
+- The prototype does not calculate an age-based recency factor, define a universal maximum age, or account for source-specific clock skew.
+- The API's default recency factor of 1.0 is a synthetic-demo default only. It is not an approved real-data freshness policy.
+- Before any real source-side use, a bank data owner must define the event-time meaning, trusted reference clock, allowed clock skew, per-signal freshness window, and what happens when freshness cannot be established. Unknown or invalid freshness must abstain rather than assume fresh.
+
+Arrival-order handling is also distinct from event chronology. Scoring is deterministic for the same set of event records regardless of the order in which they arrive. This does not validate a complete source-event sequence or prove that one event occurred before another. Sequence validation requires a versioned event-time contract with source identifiers, event timestamps, ingestion timestamps and ordering semantics.
+
+Benign counter-evidence remains rule-specific through each detector's `benign_if` clauses. A general cross-signal contradiction-resolution model is not yet implemented; contradictory evidence must not be silently treated as resolved until that model and its source authority are specified.
