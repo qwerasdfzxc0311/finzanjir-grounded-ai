@@ -14,6 +14,7 @@ from finzanjir_ai.knowledge.index import KnowledgeIndex
 from finzanjir_ai.prototype.flow import build_system_flow
 from finzanjir_ai.orchestration.engine import FINZANJIRAI
 from finzanjir_ai.risk.shadow import evaluate_shadow_batch
+from finzanjir_ai.risk.scenarios import build_synthetic_case_signal_events
 
 
 class AIAnswerRequest(BaseModel):
@@ -137,6 +138,11 @@ def prototype_demo() -> dict[str, Any]:
         "amount": 2500,
         "occurred_at": "2026-11-11T00:00:00Z",
         "synthetic": True,
+        "signal_events": build_synthetic_case_signal_events(
+            transaction_id="TX-DEMO-2500",
+            observed_at="2026-11-11T00:00:00Z",
+        ),
+        "shadow_mode": False,
         # Public presentation demo is fail-closed: it contains no cross-bank
         # identifiers and carries no client/server authorization claim.
         "cross_bank_authorized": False,
