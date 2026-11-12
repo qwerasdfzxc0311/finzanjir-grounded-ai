@@ -136,3 +136,18 @@ def test_retention_rejects_invalid_timestamp_and_disposal_method():
             record={"case_id": "CASE-X"}, created_at=datetime.now(timezone.utc),
             retention_days=30, disposal="unknown",
         )
+
+
+def test_explicitly_approved_policy_allows_only_named_action():
+    lifecycle = PrivacyDataLifecycle()
+
+    result = lifecycle.resolve_policy(
+        policy={"approved": True, "allowed_actions": ["read", "review"]},
+        action="review",
+    )
+
+    assert result == {
+        "allowed": True,
+        "decision": "policy_approved",
+        "reason": "Approved policy explicitly permits this action.",
+    }
