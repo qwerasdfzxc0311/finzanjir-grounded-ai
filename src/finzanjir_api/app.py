@@ -14,7 +14,7 @@ from starlette.staticfiles import StaticFiles
 from finzanjir_ai.knowledge.index import KnowledgeIndex
 from finzanjir_ai.prototype.flow import build_system_flow
 from finzanjir_ai.orchestration.engine import FINZANJIRAI
-from finzanjir_ai.risk.shadow import evaluate_shadow_batch
+from finzanjir_ai.risk.shadow import evaluate_shadow_batch, evaluate_detector_shadow_batch
 from finzanjir_ai.risk.scenarios import build_synthetic_case_signal_events
 from finzanjir_ai.risk.detectors import synthetic_signal_detector
 from finzanjir_ai.storage.prototype_history import PrototypeRunStore, default_database_path
@@ -36,6 +36,22 @@ class ShadowScenario(BaseModel):
 
 class ShadowEvaluationRequest(BaseModel):
     scenarios: list[ShadowScenario] = Field(min_length=1, max_length=500)
+    escalation_threshold: float = Field(default=75, ge=0, le=100)
+
+
+class DetectorShadowScenario(BaseModel):
+    scenario_id: str = Field(min_length=1, max_length=128)
+    expected_label: Literal["suspicious", "benign"]
+    synthetic: StrictBool
+    observed_at: str = Field(min_length=1, max_length=64)
+    target_signal_ids: list[str] = Field(min_length=1, max_length=40)
+    features: dict[str, Any] = Field(default_factory=dict, max_length=100)
+    evidence_quality: float = Field(default=1.0, ge=0, le=1)
+    recency_factor: float = Field(default=1.0, ge=0, le=1)
+
+
+class DetectorShadowEvaluationRequest(BaseModel):
+    scenarios: list[DetectorShadowScenario] = Field(min_length=1, max_length=500)
     escalation_threshold: float = Field(default=75, ge=0, le=100)
 
 
@@ -175,6 +191,20 @@ def shadow_evaluate(request: ShadowEvaluationRequest) -> dict[str, Any]:
         )
     scenarios = [scenario.model_dump(exclude={"synthetic"}) for scenario in request.scenarios]
     return evaluate_shadow_batch(
+        scenarios,
+        escalation_threshold=request.escalation_threshold,
+    )
+
+
+@app.post("/api/prototype/detector-shadow-evaluate")
+def detector_shadow_evaluate(request: DetectorShadowEvaluationRequest) -> dict[str, Any]:
+    if any(scenario.synthetic is not True for scenario in request.scenarios):
+        raise HTTPException(
+            status_code=400,
+            detail="Detector shadow evaluation accepts only explicitly synthetic scenarios.",
+        )
+    scenarios = [scenario.model_dump() for scenario in request.scenarios]
+    return evaluate_detector_shadow_batch(
         scenarios,
         escalation_threshold=request.escalation_threshold,
     )

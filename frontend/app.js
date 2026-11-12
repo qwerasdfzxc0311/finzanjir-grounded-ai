@@ -224,42 +224,58 @@ function makeShadowEvents(prefix) {
 }
 
 function buildShadowScenarios() {
+  const highIds = ["SIG-018", "SIG-006", "SIG-012", "SIG-004", "SIG-002"];
+  const highFeatures = {
+    mfa_strength_decreased: true,
+    mfa_change_to_transfer_seconds: 300,
+    device_age_hours: 1,
+    trusted_device: false,
+    password_reset_to_transfer_seconds: 300,
+    beneficiary_age_days: 1,
+    beneficiary_prior_transaction_count: 0,
+    transaction_count_10m: 5
+  };
+  const benignFeatures = {
+    amount_to_customer_p95_ratio: 1.2,
+    customer_baseline_sample_count: 20
+  };
+  const timestamp = new Date().toISOString();
   const scenarios = [];
   for (let index = 0; index < 4; index += 1) {
-    const id = "ui-tp-" + index;
     scenarios.push({
-      scenario_id: id,
+      scenario_id: "ui-detector-tp-" + index,
       expected_label: "suspicious",
       synthetic: true,
-      signal_events: makeShadowEvents(id)
+      observed_at: timestamp,
+      target_signal_ids: highIds,
+      features: highFeatures
     });
   }
   for (let index = 0; index < 3; index += 1) {
     scenarios.push({
-      scenario_id: "ui-tn-" + index,
+      scenario_id: "ui-detector-tn-" + index,
       expected_label: "benign",
       synthetic: true,
-      signal_events: []
+      observed_at: timestamp,
+      target_signal_ids: ["SIG-001"],
+      features: benignFeatures
     });
   }
   scenarios.push({
-    scenario_id: "ui-fp-example",
+    scenario_id: "ui-detector-fp-example",
     expected_label: "benign",
     synthetic: true,
-    signal_events: makeShadowEvents("ui-fp")
+    observed_at: timestamp,
+    target_signal_ids: highIds,
+    features: highFeatures
   });
   scenarios.push({
-    scenario_id: "ui-fn-example",
+    scenario_id: "ui-detector-fn-example",
     expected_label: "suspicious",
     synthetic: true,
-    signal_events: [{
-      signal_id: "SIG-001",
-      evidence_id: "ui-fn-amount",
-      source: "synthetic-shadow-ui",
-      observed_at: new Date().toISOString(),
-      evidence_quality: 1.0,
-      recency_factor: 1.0
-    }]
+    observed_at: timestamp,
+    target_signal_ids: ["SIG-001"],
+    features: benignFeatures
   });
   return scenarios;
 }
@@ -269,9 +285,9 @@ async function runShadowEvaluation() {
   const target = document.querySelector("#shadowResult");
   button.disabled = true;
   button.textContent = "Shadow Mode baholanmoqda...";
-  target.replaceChildren(element("p", "muted", "9 ta sintetik scenario tekshirilmoqda..."));
+  target.replaceChildren(element("p", "muted", "9 ta sintetik scenario detector va Risk Engine orqali tekshirilmoqda..."));
   try {
-    const response = await fetch("/api/prototype/shadow-evaluate", {
+    const response = await fetch("/api/prototype/detector-shadow-evaluate", {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({scenarios: buildShadowScenarios(), escalation_threshold: 75})
@@ -290,7 +306,9 @@ async function runShadowEvaluation() {
       ["Specificity", (metrics.specificity * 100).toFixed(1) + "%"],
       ["False-positive rate", (metrics.false_positive_rate * 100).toFixed(1) + "%"],
       ["False-negative rate", (metrics.false_negative_rate * 100).toFixed(1) + "%"],
-      ["Accuracy", (metrics.accuracy * 100).toFixed(1) + "%"]
+      ["Accuracy", (metrics.accuracy * 100).toFixed(1) + "%"],
+      ["Coverage", (body.coverage * 100).toFixed(1) + "%"],
+      ["Abstention rate", (body.abstention_rate * 100).toFixed(1) + "%"]
     ].forEach(([label, value]) => {
       const metric = element("div", "metric");
       metric.append(element("span", "muted", label), element("strong", "", value));
@@ -299,7 +317,7 @@ async function runShadowEvaluation() {
     target.replaceChildren(
       element("p", "status-good", "Sintetik Shadow Mode baholashi tugadi"),
       grid,
-      element("p", "muted", "Bu ko‘rsatkichlar faqat ushbu 9 ta qo‘lda tuzilgan sintetik fixture uchun. Ular real fraud precision/recall yoki detector source-data qamrovini isbotlamaydi."),
+      element("p", "muted", "Bu ko‘rsatkichlar faqat ushbu 9 ta qo‘lda tuzilgan sintetik feature fixture uchun. Ular real fraud precision/recall yoki bank source-data qamrovini isbotlamaydi. Yetishmayotgan target feature benign emas, abstention sifatida hisoblanadi."),
       element("p", "muted", "Shadow Mode: Case ochilmaydi, to‘lov/bank/fuqaro holati o‘zgarmaydi.")
     );
   } catch (error) {
