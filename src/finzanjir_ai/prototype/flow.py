@@ -30,7 +30,11 @@ class SystemFlow:
             escalation_threshold=0.75,
         )
 
-        cross_bank_authorized = bool(transaction.get("cross_bank_authorized", False))
+        cross_bank_authorized = transaction.get("cross_bank_authorized", False)
+        if not isinstance(cross_bank_authorized, bool):
+            raise ValueError("cross_bank_authorized must be boolean")
+        if cross_bank_authorized and transaction.get("synthetic") is True:
+            raise ValueError("synthetic transactions cannot authorize cross-bank exchange")
         has_cross_bank_keys = any(
             isinstance(transaction.get(key), str) and transaction.get(key, "").strip()
             for key in ("device_id", "network_id")
@@ -49,6 +53,7 @@ class SystemFlow:
                 "pipeline": pipeline,
                 "case": None,
                 "decision": None,
+                "bank_status": None,
                 "cross_bank": CrossBankMatcher().match(
                     [],
                     scope="cross_bank",
@@ -104,6 +109,9 @@ class SystemFlow:
             actor_id="demo-reviewer",
             decision="APPROVE_ACTION",
             reason="Synthetic demo evidence supports continued review.",
+            decision_origin="synthetic_demo",
+            actor_type="synthetic_demo",
+            is_authoritative=False,
         )
 
         runtime_refs = tuple(
@@ -131,6 +139,7 @@ class SystemFlow:
             "pipeline": pipeline,
             "case": case,
             "decision": decision,
+            "bank_status": decision["bank_status"],
             "cross_bank": cross_bank,
             "audit": (decision["audit_event"],),
             "ai": ai,
@@ -138,8 +147,8 @@ class SystemFlow:
             "kpi": calculate_kpis(
                 signals_detected=1,
                 cases_opened=1,
-                cases_actioned=1,
-                review_seconds_total=120,
+                cases_actioned=0,
+                review_seconds_total=0,
                 data_mode="synthetic",
             ),
             "layers_16": self._layer_trace(transaction_id=transaction["transaction_id"]),

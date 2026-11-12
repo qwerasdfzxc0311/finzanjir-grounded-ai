@@ -7,7 +7,7 @@ from typing import Any
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.encoders import jsonable_encoder
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, StrictBool
 from starlette.staticfiles import StaticFiles
 
 from finzanjir_ai.knowledge.index import KnowledgeIndex
@@ -27,10 +27,10 @@ class PrototypeTransaction(BaseModel):
     actor_id: str = Field(default="", max_length=128)
     amount: float = Field(ge=0)
     occurred_at: str = Field(min_length=1, max_length=64)
-    synthetic: bool = False
+    synthetic: StrictBool = False
     device_id: str = Field(default="", max_length=128)
     network_id: str = Field(default="", max_length=128)
-    cross_bank_authorized: bool = False
+    cross_bank_authorized: StrictBool = False
 
 
 app = FastAPI(
@@ -108,14 +108,14 @@ def prototype_demo() -> dict[str, Any]:
         "amount": 2500,
         "occurred_at": "2026-11-11T00:00:00Z",
         "synthetic": True,
-        "device_id": "device-demo",
-        "network_id": "network-demo",
-        "cross_bank_authorized": True,
+        # Public presentation demo is fail-closed: it contains no cross-bank
+        # identifiers and carries no client/server authorization claim.
+        "cross_bank_authorized": False,
     }
     flow = build_system_flow()
     result = flow.execute(transaction, knowledge_index=knowledge_index())
     explanation = flow.explain_result(result)
-    return {
+    response = {
         "data_mode": "synthetic",
         "transaction": transaction,
         "flow": {
@@ -126,6 +126,8 @@ def prototype_demo() -> dict[str, Any]:
         "runtime": explanation["runtime"],
         "explanation": explanation["explanation"],
     }
+    response["runtime"]["cross_bank_authorized"] = transaction["cross_bank_authorized"]
+    return response
 
 
 @app.post("/api/prototype/run")
@@ -138,8 +140,12 @@ def run_prototype(transaction: PrototypeTransaction) -> dict[str, Any]:
 
     flow = build_system_flow()
     try:
+        payload = transaction.model_dump()
+        # Authorization is a trusted server-side decision, never a client claim.
+        # The public prototype endpoint therefore fails closed for cross-bank access.
+        payload["cross_bank_authorized"] = False
         result = flow.execute(
-            transaction.model_dump(),
+            payload,
             knowledge_index=knowledge_index(),
         )
     except ValueError as exc:
