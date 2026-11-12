@@ -115,6 +115,8 @@ def test_case_manager_returns_canonical_v2_objects_and_legacy_aliases():
     assert set(schemas["BankStatus"]["required"]).issubset(decision["bank_status"])
     assert set(schemas["CitizenStatus"]["required"]).issubset(decision["citizen_status"])
     assert set(schemas["AuditEvent"]["required"]).issubset(decision["audit_event"])
+    decision["audit_event"]["payload"]["case_id"] = "tampered"
+    assert manager.get_audit_event(decision["audit_event"]["audit_id"])["payload"]["case_id"] == "case-v2-1"
 
 
 
