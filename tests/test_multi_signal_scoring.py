@@ -222,3 +222,10 @@ def test_evidence_id_cannot_be_reassigned_to_another_source_event():
             _event("SIG-006", "same-evidence", event_key="event-a"),
             _event("SIG-035", "same-evidence", event_key="event-b"),
         ])
+
+
+def test_source_event_key_must_be_a_bounded_opaque_identifier():
+    with pytest.raises(ValueError, match="event_key"):
+        evaluate_signal_set([_event("SIG-006", "ev-space", event_key="raw customer name")])
+    with pytest.raises(ValueError, match="event_key"):
+        evaluate_signal_set([_event("SIG-006", "ev-long", event_key="x" * 257)])
