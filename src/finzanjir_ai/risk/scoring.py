@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+import re
 from datetime import datetime
 from collections import defaultdict
 from typing import Any
@@ -67,8 +68,11 @@ def evaluate_signal_set(
         if observed_at.tzinfo is None or observed_at.utcoffset() is None:
             raise ValueError(f"signal_events[{index}].observed_at must include a timezone")
         event_key = event.get("event_key", event["evidence_id"].strip())
-        if not isinstance(event_key, str) or not event_key.strip():
-            raise ValueError(f"signal_events[{index}].event_key must be a non-empty string")
+        if (
+            not isinstance(event_key, str)
+            or not re.fullmatch(r"[A-Za-z0-9._:-]{1,256}", event_key.strip())
+        ):
+            raise ValueError(f"signal_events[{index}].event_key must be a 1-256 character opaque identifier")
         event_key = event_key.strip()
         evidence_id = event["evidence_id"].strip()
         prior_event_key = evidence_event_keys.get(evidence_id)
