@@ -17,26 +17,42 @@ def _is_finite_number(value: Any) -> bool:
     return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)
 
 
+def _same_value_type(actual: Any, expected: Any) -> bool:
+    if isinstance(expected, bool):
+        return isinstance(actual, bool)
+    if isinstance(expected, str):
+        return isinstance(actual, str)
+    if _is_finite_number(expected):
+        return _is_finite_number(actual)
+    return type(actual) is type(expected)
+
+
+def _condition_value_type_matches(actual: Any, condition: dict[str, Any]) -> bool:
+    operator = condition["op"]
+    expected = condition["value"]
+    if operator in {"gt", "gte", "lt", "lte"}:
+        return _is_finite_number(actual)
+    if operator in {"eq", "ne"}:
+        return _same_value_type(actual, expected)
+    if operator == "in" and isinstance(expected, list):
+        return any(_same_value_type(actual, item) for item in expected)
+    return False
+
+
 def _matches(actual: Any, condition: dict[str, Any]) -> bool:
     operator = condition["op"]
     expected = condition["value"]
     if operator in {"eq", "ne"}:
-        if isinstance(expected, bool):
-            same_type_value = isinstance(actual, bool) and actual is expected
-        elif isinstance(expected, str):
-            same_type_value = isinstance(actual, str) and actual == expected
-        elif _is_finite_number(expected):
-            same_type_value = _is_finite_number(actual) and actual == expected
-        else:
-            same_type_value = actual == expected
-        return same_type_value if operator == "eq" else not same_type_value
+        if not _same_value_type(actual, expected):
+            return False
+        same_value = actual is expected if isinstance(expected, bool) else actual == expected
+        return same_value if operator == "eq" else not same_value
     if operator == "in":
         if not isinstance(expected, list):
             return False
         return any(
-            (isinstance(item, bool) and isinstance(actual, bool) and actual is item)
-            or (isinstance(item, str) and isinstance(actual, str) and actual == item)
-            or (_is_finite_number(item) and _is_finite_number(actual) and actual == item)
+            _same_value_type(actual, item)
+            and (actual is item if isinstance(item, bool) else actual == item)
             for item in expected
         )
     if not _is_finite_number(actual) or not _is_finite_number(expected):
@@ -172,11 +188,16 @@ class SyntheticSignalDetector:
             invalid = sorted({
                 item["field"]
                 for item in conditions
-                if item["op"] == "gte"
-                and item["value"] == 0
-                and item["field"] in features
-                and _is_finite_number(features[item["field"]])
-                and features[item["field"]] < 0
+                if item["field"] in features
+                and (
+                    not _condition_value_type_matches(features[item["field"]], item)
+                    or (
+                        item["op"] == "gte"
+                        and item["value"] == 0
+                        and _is_finite_number(features[item["field"]])
+                        and features[item["field"]] < 0
+                    )
+                )
             })
             if missing:
                 status = "INSUFFICIENT_DATA"
