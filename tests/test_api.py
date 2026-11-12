@@ -33,6 +33,7 @@ def test_prototype_endpoint_executes_synthetic_flow():
         json={
             "transaction_id": "TX-API-001",
             "bank_id": "bank-a",
+            "actor_id": "actor-api-001",
             "amount": 2500,
             "occurred_at": "2026-11-11T00:00:00Z",
             "synthetic": True,
