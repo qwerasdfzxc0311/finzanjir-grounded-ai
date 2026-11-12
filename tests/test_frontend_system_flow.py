@@ -66,3 +66,22 @@ def test_frontend_displays_all_connected_system_module_outputs():
     assert "body.cross_bank" in script
     assert "body.citizen_status" in script
     assert "body.layers_16" in script
+
+
+
+def test_work_windows_are_interactive_and_show_shared_latest_runtime_output():
+    html = Path("frontend/index.html").read_text(encoding="utf-8")
+    script = Path("frontend/app.js").read_text(encoding="utf-8")
+    styles = Path("frontend/styles.css").read_text(encoding="utf-8")
+
+    assert 'id="windowWorkspace"' in html
+    assert 'id="activeWindowTitle"' in html
+    assert 'id="activeWindowData"' in html
+    assert 'element("button", "window-card")' in script
+    assert 'button.addEventListener("click", () => selectWindow(id))' in script
+    assert 'function selectWindow(windowId)' in script
+    assert "function windowSummaryLines(windowId)" in script
+    assert "lastExecution = body" in script
+    assert 'setAttribute("aria-pressed"' in script
+    assert '.window-card[aria-pressed="true"]' in styles
+    assert "innerHTML" not in script
