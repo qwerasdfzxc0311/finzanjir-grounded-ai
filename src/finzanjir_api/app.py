@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from functools import lru_cache
+import os
 from pathlib import Path
 from typing import Any, Literal
 
@@ -50,6 +51,23 @@ class PrototypeTransaction(BaseModel):
     shadow_mode: StrictBool = True
 
 
+def _parse_allowed_origins(raw: str | None) -> list[str]:
+    """Parse an explicit browser-origin allowlist; an unset value is same-origin only."""
+    if not raw:
+        return []
+    origins = [item.strip().rstrip("/") for item in raw.split(",") if item.strip()]
+    if "*" in origins:
+        raise RuntimeError("FINZANJIR_ALLOWED_ORIGINS must not contain wildcard origins")
+    if any(not (origin.startswith("https://") or origin.startswith("http://")) for origin in origins):
+        raise RuntimeError("FINZANJIR_ALLOWED_ORIGINS entries must be absolute HTTP(S) origins")
+    if len(origins) != len(set(origins)):
+        raise RuntimeError("FINZANJIR_ALLOWED_ORIGINS entries must be unique")
+    return origins
+
+
+_ALLOWED_ORIGINS = _parse_allowed_origins(os.getenv("FINZANJIR_ALLOWED_ORIGINS"))
+
+
 app = FastAPI(
     title="FINZANJIR Grounded AI API",
     version="0.1.0",
@@ -58,11 +76,31 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_ALLOWED_ORIGINS,
     allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type"],
+    max_age=600,
 )
+
+
+@app.middleware("http")
+async def security_headers(request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "no-referrer"
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    response.headers["Cross-Origin-Resource-Policy"] = "same-origin"
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; base-uri 'self'; object-src 'none'; "
+        "frame-ancestors 'none'; script-src 'self'; style-src 'self'; "
+        "img-src 'self' data:; connect-src 'self'"
+    )
+    if request.url.path.startswith("/api/"):
+        response.headers["Cache-Control"] = "no-store"
+        response.headers["Pragma"] = "no-cache"
+    return response
 
 
 @lru_cache(maxsize=1)
