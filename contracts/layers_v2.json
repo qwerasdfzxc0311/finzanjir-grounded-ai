@@ -131,8 +131,8 @@
       "label": "Avtomatik jarayonlar xavfsizligi",
       "status": "PARTIAL",
       "evidence_refs": [
-        "src/finzanjir_ai/risk/pipeline.py",
-        "src/finzanjir_ai/prototype/flow.py"
+        "src/finzanjir_ai/automation/policy.py",
+        "tests/test_automation_safety_control.py"
       ],
       "acceptance_criteria": [
         "Shadow Mode default true.",
@@ -140,8 +140,8 @@
         "Shadow Mode bank action qilmaydi."
       ],
       "remaining_work": [
-        "Operational kill switch va circuit breaker.",
-        "Production automation guardrails va incident rollback."
+        "Server-owned persistent kill switch and distributed circuit-breaker state.",
+        "Production monitoring, rollback automation and incident-response integration."
       ],
       "reviewed_at": "2026-11-12"
     },
@@ -188,8 +188,8 @@
       "label": "Maxfiylik va ma’lumotlar hayotiy sikli",
       "status": "PARTIAL",
       "evidence_refs": [
-        "src/finzanjir_ai/risk/observations.py",
-        "src/finzanjir_ai/prototype/flow.py",
+        "src/finzanjir_ai/privacy_data_lifecycle.py",
+        "tests/test_privacy_data_lifecycle.py",
         "contracts/event_envelope_v2.json"
       ],
       "acceptance_criteria": [
@@ -197,8 +197,9 @@
         "Bank-internal scope default."
       ],
       "remaining_work": [
-        "Retention schedule, deletion, encryption at rest/in transit.",
-        "Purpose limitation, consent/legal basis va data-subject rights."
+        "Durable retention/deletion jobs and verifiable deletion evidence.",
+        "Encryption at rest/in transit, key management and approved hosting/subprocessor controls.",
+        "Purpose limitation, lawful basis/consent and data-subject rights workflow."
       ],
       "reviewed_at": "2026-11-12"
     },
