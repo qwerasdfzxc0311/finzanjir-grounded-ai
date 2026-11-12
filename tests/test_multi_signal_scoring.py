@@ -55,7 +55,7 @@ def test_related_auth_signals_are_limited_by_family_cap():
     assert result["family_contributions"]["AUTH"] == 30
     assert result["independent_families"] == 1
     assert result["case_eligible"] is False
-    assert result["case_block_reason"] == "insufficient_independent_evidence"
+    assert result["case_block_reason"] == "threshold_not_met"
 
 
 def test_same_evidence_cannot_be_counted_twice():
