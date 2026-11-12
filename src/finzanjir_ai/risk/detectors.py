@@ -217,6 +217,7 @@ class SyntheticSignalDetector:
                 "signal_id": signal_id,
                 "condition_met": True,
                 "evidence_id": f"{scenario_id.strip()}:{signal_id}",
+                "event_key": f"{scenario_id.strip()}:{signal_id}",
                 "source": "synthetic-feature-detector",
                 "observed_at": timestamp.isoformat().replace("+00:00", "Z"),
                 "evidence_quality": float(evidence_quality),

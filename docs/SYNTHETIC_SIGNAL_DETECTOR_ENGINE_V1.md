@@ -73,3 +73,18 @@ Each scenario supplies `synthetic=true`, an expected synthetic QA label, a timez
 A key distinction is preserved: if any target signal lacks required feature fields, the scenario is reported as `abstained_insufficient_data`. Missing fields are not silently classified as benign. The response reports decisive coverage and abstention rate separately from TP/FP/TN/FN and precision/recall-style fixture metrics.
 
 The metrics remain synthetic QA measurements only. They do not validate the availability, legality, completeness or predictive accuracy of any real bank source. The endpoint creates no Case, payment action, bank status change, customer block or authoritative decision.
+
+
+## Source-event deduplication
+
+The multi-signal scoring contract accepts an optional `event_key` in addition to `evidence_id`.
+
+- `evidence_id` identifies the evidence record.
+- `event_key` identifies the underlying source event or event group that produced the evidence.
+- When multiple detector observations refer to the same `event_key`, they are grouped and only the strongest eligible contribution is scored.
+- Evidence count and independent corroboration are based on distinct event keys, not merely distinct evidence record IDs.
+- A signal cannot corroborate itself through another detector label attached to the same event key.
+- One evidence ID cannot be reassigned to multiple event keys.
+- If no event key is supplied, the evaluator defaults it to the evidence ID for backward compatibility.
+
+This is a conservative duplicate-control mechanism. The bank-side adapter must supply event keys that reflect true source-event identity; a fabricated or overly broad event key can undercount independent evidence. Source event key design therefore remains a bank data-owner and legal-governance requirement.

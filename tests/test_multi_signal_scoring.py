@@ -189,3 +189,43 @@ def test_signal_event_rejects_unknown_or_duplicate_corroboration_references():
         evaluate_signal_set([
             _event("SIG-036", "ev-micro", corroborating_signal_ids=["SIG-002", "SIG-002"]),
         ])
+
+
+def test_distinct_evidence_ids_from_the_same_source_event_are_deduplicated():
+    result = evaluate_signal_set([
+        _event("SIG-006", "ev-device-a", event_key="source-event-42"),
+        _event("SIG-035", "ev-device-b", event_key="source-event-42"),
+    ])
+
+    assert result["score"] == 15
+    assert result["evidence_count"] == 1
+    assert result["independent_families"] == 1
+    assert result["deduplicated_event_keys"] == ["source-event-42"]
+    assert result["deduplicated_evidence_ids"] == ["ev-device-a", "ev-device-b"]
+    assert result["contributions"][0]["signal_id"] == "SIG-006"
+
+
+def test_same_source_event_cannot_self_corroborate_across_different_evidence_ids():
+    result = evaluate_signal_set([
+        _event("SIG-036", "ev-micro", event_key="same-source-event", corroborating_signal_ids=["SIG-002"]),
+        _event("SIG-002", "ev-follow-up", event_key="same-source-event"),
+    ])
+
+    assert result["evidence_count"] == 1
+    assert result["score"] == 15
+    assert result["contributions"][0]["signal_id"] == "SIG-002"
+
+
+def test_evidence_id_cannot_be_reassigned_to_another_source_event():
+    with pytest.raises(ValueError, match="multiple event_key"):
+        evaluate_signal_set([
+            _event("SIG-006", "same-evidence", event_key="event-a"),
+            _event("SIG-035", "same-evidence", event_key="event-b"),
+        ])
+
+
+def test_source_event_key_must_be_a_bounded_opaque_identifier():
+    with pytest.raises(ValueError, match="event_key"):
+        evaluate_signal_set([_event("SIG-006", "ev-space", event_key="raw customer name")])
+    with pytest.raises(ValueError, match="event_key"):
+        evaluate_signal_set([_event("SIG-006", "ev-long", event_key="x" * 257)])

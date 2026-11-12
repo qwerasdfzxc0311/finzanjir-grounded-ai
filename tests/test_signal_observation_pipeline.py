@@ -16,6 +16,7 @@ def _observations(transaction_id):
             "signal_id": signal_id,
             "condition_met": True,
             "evidence_id": f"{transaction_id}-{suffix}",
+            "event_key": f"source-event-{suffix}",
             "source": "synthetic-bank-adapter",
             "observed_at": "2026-11-12T09:00:00Z",
             "evidence_quality": 1.0,
@@ -53,6 +54,10 @@ def test_pipeline_consumes_observations_and_preserves_detector_provenance():
     assert len(result.signals) == 5
     assert all(signal["rule_version"] == "bank-rule-v1" for signal in result.signals)
     assert all(evidence["provenance"]["detector_version"] == "adapter-v1" for evidence in result.evidences)
+    assert {evidence["provenance"]["event_key"] for evidence in result.evidences} == {
+        "source-event-auth", "source-event-device", "source-event-account",
+        "source-event-beneficiary", "source-event-velocity",
+    }
 
 
 def test_pipeline_rejects_ambiguous_signal_events_and_observations():

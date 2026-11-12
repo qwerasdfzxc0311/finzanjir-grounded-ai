@@ -73,3 +73,26 @@ def test_adapter_rejects_more_than_100_observations():
     ]
     with pytest.raises(ValueError, match="100 items"):
         normalize_signal_observations(observations)
+
+
+def test_adapter_preserves_explicit_source_event_key_and_defaults_to_evidence_id():
+    events = normalize_signal_observations([
+        _observation("SIG-006", "ev-device", event_key="source-device-event-7"),
+        _observation("SIG-035", "ev-app",),
+    ])
+    assert events[0]["event_key"] == "source-device-event-7"
+    assert events[1]["event_key"] == "ev-app"
+
+
+def test_adapter_rejects_empty_source_event_key():
+    with pytest.raises(ValueError, match="event_key"):
+        normalize_signal_observations([
+            _observation("SIG-006", "ev-device", event_key=" "),
+        ])
+
+
+def test_adapter_rejects_non_opaque_source_event_keys():
+    with pytest.raises(ValueError, match="event_key"):
+        normalize_signal_observations([
+            _observation("SIG-006", "ev-device", event_key="customer name"),
+        ])

@@ -148,6 +148,7 @@ def test_detected_signal_observations_are_unique_and_have_provenance():
     observation = result["signal_observations"][0]
     assert observation["signal_id"] == "SIG-036"
     assert observation["evidence_id"] == "micro-test:SIG-036"
+    assert observation["event_key"] == "micro-test:SIG-036"
     assert observation["scope"] == "bank_internal"
     assert observation["rule_version"] == "1.0.0-candidate"
     assert observation["corroborating_signal_ids"] == []
