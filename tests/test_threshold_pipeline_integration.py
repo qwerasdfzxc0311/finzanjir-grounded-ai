@@ -1,3 +1,6 @@
+import json
+from pathlib import Path
+
 from finzanjir_ai.prototype.flow import build_system_flow
 
 
@@ -51,6 +54,8 @@ def test_unified_flow_uses_active_threshold_version_and_audits_it():
     assert result["pipeline"].risk["threshold_id"] == updated["threshold"]["id"]
     assert result["pipeline"].risk["threshold_version"] == 2
     assert result["threshold"]["value"] == 85
+    contracts = json.loads((Path(__file__).resolve().parents[1] / "contracts" / "event_contracts_v2.json").read_text(encoding="utf-8"))
+    assert set(contracts["schemas"]["Threshold"]["required"]).issubset(result["threshold"])
     assert result["case"] is None
     assert result["audit"][0]["details"]["threshold_version"] == 2
     assert updated["threshold"]["id"] in result["ai"].runtime_context.runtime_refs
