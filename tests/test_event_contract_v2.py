@@ -104,6 +104,12 @@ def test_case_manager_returns_canonical_v2_objects_and_legacy_aliases():
     assert decision["audit_event"]["scope"] == "bank_internal"
     assert decision["audit_event"]["correlation_id"] == "transaction-1"
     assert decision["audit_event"]["payload"]["case_id"] == "case-v2-1"
+    schemas = json.loads((ROOT / "contracts" / "event_contracts_v2.json").read_text(encoding="utf-8"))["schemas"]
+    assert set(schemas["Case"]["required"]).issubset(case)
+    assert set(schemas["HumanDecision"]["required"]).issubset(decision["human_decision"])
+    assert set(schemas["BankStatus"]["required"]).issubset(decision["bank_status"])
+    assert set(schemas["CitizenStatus"]["required"]).issubset(decision["citizen_status"])
+    assert set(schemas["AuditEvent"]["required"]).issubset(decision["audit_event"])
 
 
 
