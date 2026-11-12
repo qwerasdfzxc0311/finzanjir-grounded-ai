@@ -76,6 +76,7 @@ def _process_multi_signal_transaction(
             "transaction_id": transaction["transaction_id"],
             "type": item["signal_id"],
             "family": item["family"],
+            "event_key": item["event_key"],
             "source": item["source"],
             "rule_version": item["rule_version"],
             "detector_version": item["detector_version"],
@@ -96,6 +97,7 @@ def _process_multi_signal_transaction(
             "recency_factor": item["recency_factor"],
             "provenance": {
                 "source": item["source"],
+                "event_key": item["event_key"],
                 "rule_version": item["rule_version"],
                 "detector_version": item["detector_version"],
                 "transaction_id": transaction["transaction_id"],
