@@ -1,3 +1,9 @@
+const API_BASE_URL = "https://finzanjir-grounded-ai-api.onrender.com";
+
+function apiUrl(path) {
+  return new URL(path, API_BASE_URL).toString();
+}
+
 const scenarioTemplates = {
   multi_signal_high: {
     mfa_strength_decreased: true,
@@ -305,7 +311,7 @@ function selectWindow(windowId) {
 async function loadShell() {
   const [manifestResponse, demoResponse] = await Promise.all([
     fetch("./prototype_manifest.json"),
-    fetch("/api/prototype/demo")
+    fetch(apiUrl("/api/prototype/demo"))
   ]);
   if (!manifestResponse.ok || !demoResponse.ok) throw new Error("Prototype ma’lumotlari yuklanmadi");
   const [manifest, demo] = await Promise.all([manifestResponse.json(), demoResponse.json()]);
@@ -463,7 +469,7 @@ function renderScenarioResult(body) {
 async function loadRunHistory() {
   const target = document.querySelector("#runHistory");
   try {
-    const response = await fetch("/api/prototype/runs?limit=10");
+    const response = await fetch(apiUrl("/api/prototype/runs?limit=10"));
     if (!response.ok) throw new Error("Tarix vaqtincha mavjud emas");
     const body = await response.json();
     if (!body.runs.length) {
@@ -574,7 +580,7 @@ async function runSyntheticScenario() {
   };
 
   try {
-    const response = await fetch("/api/prototype/run/stream", {
+    const response = await fetch(apiUrl("/api/prototype/run/stream"), {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify(payload)
@@ -695,7 +701,7 @@ async function runShadowEvaluation() {
   button.textContent = "Shadow Mode baholanmoqda...";
   target.replaceChildren(element("p", "muted", "9 ta sintetik scenario detector va Risk Engine orqali tekshirilmoqda..."));
   try {
-    const response = await fetch("/api/prototype/detector-shadow-evaluate", {
+    const response = await fetch(apiUrl("/api/prototype/detector-shadow-evaluate"), {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({scenarios: buildShadowScenarios(), escalation_threshold: 75})

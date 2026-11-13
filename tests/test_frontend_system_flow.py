@@ -25,7 +25,9 @@ def test_frontend_manifest_explains_each_window_role():
 
 def test_frontend_bootstraps_from_real_runtime_demo_endpoint():
     script = Path("frontend/app.js").read_text(encoding="utf-8")
-    assert "/api/prototype/demo" in script
+    assert 'const API_BASE_URL = "https://finzanjir-grounded-ai-api.onrender.com";' in script
+    assert "function apiUrl(path)" in script
+    assert 'fetch(apiUrl("/api/prototype/demo"))' in script
     assert "prototypeResult" in script
     assert "transaction_id" in script
 
@@ -152,14 +154,14 @@ def test_frontend_renders_backend_execution_trace_for_each_window():
     assert "Bosqich #" in script
     assert "Kirish refs:" in script
     assert "Chiqish refs:" in script
-    assert 'fetch("/api/prototype/run/stream"' in script
+    assert 'fetch(apiUrl("/api/prototype/run/stream")' in script
 
 
 
 def test_frontend_uses_server_sent_events_for_real_window_progress():
     script = Path("frontend/app.js").read_text(encoding="utf-8")
 
-    assert 'fetch("/api/prototype/run/stream"' in script
+    assert 'fetch(apiUrl("/api/prototype/run/stream")' in script
     assert "async function readPrototypeProgress(response)" in script
     assert 'eventName === "stage"' in script
     assert "liveWindowTrace" in script
