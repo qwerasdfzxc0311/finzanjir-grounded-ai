@@ -28,7 +28,7 @@ def test_json_parser_accepts_plain_and_fenced_json():
     assert LLMGateway._parse_json('{"search_queries":["firibgarlik zanjiri"]}') == {
         "search_queries": ["firibgarlik zanjiri"]
     }
-    fenced = chr(96) * 3 + 'json\\n{"ok":true}\\n' + chr(96) * 3
+    fenced = chr(96) * 3 + "json" + chr(10) + '{"ok":true}' + chr(10) + chr(96) * 3
     assert LLMGateway._parse_json(fenced) == {"ok": True}
 
 
