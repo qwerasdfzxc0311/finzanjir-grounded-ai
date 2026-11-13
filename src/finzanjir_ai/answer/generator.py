@@ -121,13 +121,18 @@ class GroundedAnswerGenerator:
 
         # Never dump a very long canonical narrative as if it were a composed
         # answer when the model provider is unavailable.
-        if any(len(item.statement) > self.MAX_RAW_FALLBACK_STATEMENT_CHARS for item in grounded_items):
+        # Use concise grounded records when the model is unavailable; omit long source
+        # passages instead of refusing even when a short authoritative answer exists.
+        fallback_items = [
+            item for item in grounded_items
+            if len(item.statement) <= self.MAX_RAW_FALLBACK_STATEMENT_CHARS
+        ]
+        if not fallback_items:
             refs = tuple(item.record_id for item in grounded_items)
             return AnswerResult(
                 answer=(
-                    "Loyiha bilimlar bazasidan tegishli bo'lishi mumkin bo'lgan manba topildi, "
-                    "ammo hozir ravon va aniq javob tuzish uchun AI modeli javob bermadi. "
-                    "Uzun manba matnini xom holda ko'rsatib, uni tayyor javob deb adashtirmayman. "
+                    "Loyiha bilimlar bazasidan tegishli manba topildi, ammo hozir AI modeli "
+                    "ravon javob tuza olmadi. Uzun manba matnini xom holda ko'rsatmayman. "
                     "Manba ID: " + ", ".join(refs)
                 ),
                 confidence=confidence,
@@ -137,14 +142,16 @@ class GroundedAnswerGenerator:
                 provider_status=provider_status,
             )
 
-        answer = "Loyiha bilimlar bazasidagi tasdiqlangan ma'lumotlar:\n\n" + "\n\n".join(
-            f"{index}. {item.statement}" for index, item in enumerate(grounded_items, start=1)
+        answer = "Tasdiqlangan bilimlar asosida:\n\n" + "\n\n".join(
+            f"{index}. {item.statement}" for index, item in enumerate(fallback_items, start=1)
         )
+        if len(fallback_items) < len(grounded_items):
+            answer += "\n\nIzoh: uzun manba matnlari xom holda chiqarilmadi; javob qisqa tasdiqlangan yozuvlarga tayandi."
         return AnswerResult(
             answer=answer,
             confidence=confidence,
             abstained=False,
-            citations=tuple(item.record_id for item in grounded_items),
+            citations=tuple(item.record_id for item in fallback_items),
             generation_mode="deterministic_fallback",
             provider_status=provider_status,
         )
