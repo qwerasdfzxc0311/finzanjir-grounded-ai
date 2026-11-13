@@ -30,6 +30,7 @@ Required only on the API service (never the frontend):
 
 - `GEMINI_API_KEY`
 - `OPENROUTER_API_KEY`
+- `TAVILY_API_KEY` (only needed for the separate external research endpoint)
 
 Optional:
 
@@ -84,7 +85,7 @@ Do not pad answers. A longer answer is only better when it adds relevant, suppor
 
 ### D. Tavily and external research isolation
 
-Tavily is a web-search source, not a language model and not a project knowledge authority. Use it only in a separate external-research flow for general/current information. Return URLs and source metadata, and label the results as external research. Do not merge Tavily snippets into the canonical FINZANJIR corpus automatically. A human-reviewed ingestion step is required before any external source can become project knowledge.
+Tavily is a web-search source, not a language model and not a project knowledge authority. This change exposes it through a separate `POST /api/research/search` endpoint for general/current research. It returns source URLs and snippets labelled as external web research; it does not alter the FINZANJIR AI answer endpoint. Common personal/payment identifiers are rejected before a Tavily request. Do not merge Tavily snippets into the canonical FINZANJIR corpus automatically. A human-reviewed ingestion step is required before any external source can become project knowledge.
 
 ## Evaluation plan
 
