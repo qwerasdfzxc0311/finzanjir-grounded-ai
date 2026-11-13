@@ -174,7 +174,10 @@ def _extractive_grounded_fallback(query: str, items: list[Any], *, max_sentences
             current = best_by_stage.get(stage)
             if current is None or (score, record_id, sentence) > (current[0], current[3], current[2]):
                 best_by_stage[stage] = entry
-        selected = [best_by_stage[stage] for stage in sorted(best_by_stage)][:max_sentences]
+        # A complete process may have more than the default six general-answer
+        # sentences. Include every grounded stage found, with a hard safety cap.
+        process_limit = max(max_sentences, min(8, len(best_by_stage)))
+        selected = [best_by_stage[stage] for stage in sorted(best_by_stage)][:process_limit]
     else:
         ranked.sort(key=lambda value: (-value[0], value[3], value[2]))
         selected = ranked[:max_sentences]
