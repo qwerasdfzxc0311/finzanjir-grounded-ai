@@ -7,7 +7,7 @@ from threading import RLock
 from finzanjir_ai.answer.generator import AnswerResult, GroundedAnswerGenerator
 from finzanjir_ai.answer.providers import LLMGateway
 from finzanjir_ai.knowledge.index import KnowledgeIndex
-from finzanjir_ai.retrieval.grounding import GroundedContext, GroundedContextAssembler
+from finzanjir_ai.retrieval.grounding import GroundedContext, GroundedContextAssembler, GroundedContextItem
 from finzanjir_ai.retrieval.hybrid import HybridRetriever, RetrievalResult
 from finzanjir_ai.retrieval.rerank import QueryExpander, Reranker
 from finzanjir_ai.runtime.context import RuntimeContext
@@ -99,6 +99,32 @@ class FINZANJIRAI:
                     grounded_context=profile,
                     runtime_context=runtime,
                 )
+
+        if query_intent == "project_overview":
+            record = self.index.get_record("project_0001")
+            items = ()
+            if record is not None:
+                items = (GroundedContextItem(
+                    record_id=record.record_id,
+                    concept_id=record.concept_id,
+                    statement=record.statement,
+                    score=1.0,
+                    provenance=record.provenance,
+                    evidence=record.evidence,
+                    aliases=record.aliases,
+                ),)
+            overview_context = GroundedContext(items=items)
+            runtime = RuntimeContext.from_refs(
+                knowledge_refs=tuple(item.record_id for item in items),
+                runtime_refs=runtime_refs,
+                working_memory_scope=working_memory_scope,
+            )
+            answer = self.answer_generator.generate(query, overview_context)
+            return OrchestrationResult(
+                answer=answer,
+                grounded_context=overview_context,
+                runtime_context=runtime,
+            )
 
         # Multi-query retrieval: the original question has the highest weight;
         # local alias rewrites and model-proposed rewrites expand recall only.
