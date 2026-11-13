@@ -31,3 +31,9 @@ def test_author_question_expansion_adds_author_search_hints_only():
     expanded = QueryExpander(build_knowledge_index([])).expand("FINZANJIR muallifi kim?")
     assert any("Salamat Smaylov" in item for item in expanded)
     assert any("tarjimai holi" in item for item in expanded)
+
+    name_expanded = QueryExpander(build_knowledge_index([])).expand(
+        "Salamat Smaylov haqida aytib ber"
+    )
+    assert any("Salamat Smaylov" in item for item in name_expanded)
+    assert any("qiziqishlari astronomiya kimyo" in item for item in name_expanded)
