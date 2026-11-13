@@ -155,7 +155,12 @@ class GroundedAnswerGenerator:
                         provider_status="ready",
                     )
 
-        if language != "uz":
+        same_language_non_project_evidence = bool(grounded_items) and all(
+            not item.record_id.startswith(("project_", "author_"))
+            and detect_query_language(item.statement) == language
+            for item in grounded_items
+        )
+        if language != "uz" and not same_language_non_project_evidence:
             return AnswerResult(
                 answer=self.LANGUAGE_UNAVAILABLE_MESSAGES.get(language, self.LANGUAGE_UNAVAILABLE_MESSAGES["uz"]),
                 confidence=confidence,
