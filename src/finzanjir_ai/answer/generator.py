@@ -52,7 +52,7 @@ class GroundedAnswerGenerator:
             ),
             prompt=(
                 "Savol: " + query + "\n\n"
-                'JSON shakli: {"answer":"tushunarli javob","uncertainty":"mavjud bo'lsa izoh"}'
+                "JSON shakli: {\"answer\":\"tushunarli javob\",\"uncertainty\":\"mavjud bo'lsa izoh\"}"
             ),
             max_output_tokens=1200,
         )
