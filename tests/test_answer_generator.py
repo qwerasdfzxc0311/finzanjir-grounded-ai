@@ -161,7 +161,7 @@ def test_long_grounded_sources_are_explained_with_relevant_extractive_fallback()
     source = (
         "Shubhali signal aniqlanganda, bu holat avtomatik ravishda aybdorlik isboti hisoblanmaydi. "
         "Signal tegishli dalillar va tranzaksiya konteksti bilan tekshiriladi. "
-        "Zarur bo'lsa, holat vakolatli mutaxassis tomonidan ko'rib chiqiladi. "
+        "Shubhali signal zarur bo'lsa, vakolatli mutaxassis tomonidan ko'rib chiqiladi. "
         "Har qanday bank cheklovi faqat qonuniy asos va bankning vakolatli tartibida qabul qilinadi. "
     ) * 30
     context = GroundedContext(items=(GroundedContextItem(
