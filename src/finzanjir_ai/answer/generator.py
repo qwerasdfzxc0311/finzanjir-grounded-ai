@@ -121,13 +121,18 @@ class GroundedAnswerGenerator:
 
         # Never dump a very long canonical narrative as if it were a composed
         # answer when the model provider is unavailable.
-        if any(len(item.statement) > self.MAX_RAW_FALLBACK_STATEMENT_CHARS for item in grounded_items):
+        # Use concise grounded records when the model is unavailable; omit long source
+        # passages instead of refusing even when a short authoritative answer exists.
+        fallback_items = [
+            item for item in grounded_items
+            if len(item.statement) <= self.MAX_RAW_FALLBACK_STATEMENT_CHARS
+        ]
+        if not fallback_items:
             refs = tuple(item.record_id for item in grounded_items)
             return AnswerResult(
                 answer=(
-                    "Loyiha bilimlar bazasidan tegishli bo'lishi mumkin bo'lgan manba topildi, "
-                    "ammo hozir ravon va aniq javob tuzish uchun AI modeli javob bermadi. "
-                    "Uzun manba matnini xom holda ko'rsatib, uni tayyor javob deb adashtirmayman. "
+                    "Loyiha bilimlar bazasidan tegishli manba topildi, ammo hozir AI modeli "
+                    "ravon javob tuza olmadi. Uzun manba matnini xom holda ko'rsatmayman. "
                     "Manba ID: " + ", ".join(refs)
                 ),
                 confidence=confidence,
@@ -137,14 +142,16 @@ class GroundedAnswerGenerator:
                 provider_status=provider_status,
             )
 
-        answer = "Loyiha bilimlar bazasidagi tasdiqlangan ma'lumotlar:\n\n" + "\n\n".join(
-            f"{index}. {item.statement}" for index, item in enumerate(grounded_items, start=1)
+        answer = "Tasdiqlangan bilimlar asosida:\n\n" + "\n\n".join(
+            f"{index}. {item.statement}" for index, item in enumerate(fallback_items, start=1)
         )
+        if len(fallback_items) < len(grounded_items):
+            answer += "\n\nIzoh: uzun manba matnlari xom holda chiqarilmadi; javob qisqa tasdiqlangan yozuvlarga tayandi."
         return AnswerResult(
             answer=answer,
             confidence=confidence,
             abstained=False,
-            citations=tuple(item.record_id for item in grounded_items),
+            citations=tuple(item.record_id for item in fallback_items),
             generation_mode="deterministic_fallback",
             provider_status=provider_status,
         )
@@ -161,19 +168,6 @@ class GroundedAnswerGenerator:
                 "aliases": list(getattr(item, "aliases", ()))[:20],
                 "provenance": [str(source)[:300] for source in item.provenance[:5]],
             })
-        from finzanjir_ai.orchestration.intent import classify_query_intent
-
-        author_question = classify_query_intent(query) == "author"
-        author_guidance = (
-            " Bu savol muallif haqida: faqat berilgan muallifga oid dalillardan foydalaning. "
-            "Muallifning tarjimai holi, shaxsiy qiziqishlari, loyiha yaratish sabablari va "
-            "loyiha haqidagi tahliliy fikrlarini bir-biridan ajrating. Muallifning fikri yoki "
-            "niyatini hujjatda aynan tasdiqlanmagan bo'lsa, o'zingizcha talqin qilmang. "
-            "Muallifning shaxsiy hayoti haqida dalilda yo'q ma'lumotni taxmin qilmang. "
-            "Agar ism mos kelgani uchungina dalil topilgan bo'lsa, uni savolga javob deb hisoblamang. "
-            "Yetarli muallif dalili bo'lmasa, qaysi ma'lumot yetishmayotganini ochiq ayting."
-            if author_question else ""
-        )
         system = (
             "Siz FINZANJIR loyihasining bilimlarga tayangan yordamchisisiz. "
             "Faqat berilgan tasdiqlangan loyiha dalillaridan foydalaning. "
@@ -185,7 +179,7 @@ class GroundedAnswerGenerator:
             "to'qimang. Fakt, taklif, taxmin va tasdiqlanmagan masalalarni aniq ajrating. "
             "Agar dalil savolning faqat bir qismini yoritsa, shu chegarani ochiq ayting. "
             "Yashirin fikrlash zanjirini emas, tekshiriladigan qisqa asos va xulosani bering. "
-            "Faqat JSON qaytaring." + author_guidance
+            "Faqat JSON qaytaring."
         )
         prompt = (
             "Foydalanuvchi savoli:\n" + query + "\n\n"
