@@ -761,6 +761,7 @@ function generationModeLabel(mode) {
     general_knowledge_unavailable: "Umumiy bilim modeli sozlanmagan",
     general_knowledge_provider_failed: "Umumiy bilim modeli javob bermadi",
     blocked_sensitive: "Maxfiylik sabab so'rov tashqi modelga yuborilmadi",
+    assistant_identity: "FINZANJIR AI yordamchisining o'zini tanishtirish javobi",
   };
   return labels[mode] || "";
 }

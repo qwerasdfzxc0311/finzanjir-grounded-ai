@@ -33,7 +33,7 @@ def classify_query_intent(query: str) -> str:
     if not normalized:
         return "project"
     if any(re.search(pattern, normalized) for pattern in _ASSISTANT_IDENTITY_PATTERNS):
-        return "project"
+        return "assistant_identity"
     tokens = set(normalized.split())
     author_markers = {
         "muallif", "muallifi", "muallifning", "yaratuvchi", "asoschi",
