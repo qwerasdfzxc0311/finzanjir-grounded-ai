@@ -40,7 +40,7 @@ _LANGUAGE_MARKERS = {
 def detect_query_language(query: str) -> str:
     """Conservative language routing for the five supported project languages."""
     value = query.casefold()
-    tokens = set(re.findall(r"[^\\W\\d_]+", value, flags=re.UNICODE))
+    tokens = set(re.findall(r"[^\W\d_]+", value, flags=re.UNICODE))
     if re.search(r"[әіңғқөұүһ]", value):
         kaa_hits = len(tokens & _LANGUAGE_MARKERS["kaa"])
         kk_hits = len(tokens & _LANGUAGE_MARKERS["kk"])
