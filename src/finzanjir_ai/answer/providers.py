@@ -19,6 +19,7 @@ class LLMGateway:
     def __init__(self, environ: dict[str, str] | None = None) -> None:
         self.environ = environ if environ is not None else os.environ
         self.last_status = "not_attempted"
+        self.last_provider_failures: list[dict[str, str]] = []
 
     def configured_providers(self) -> tuple[str, ...]:
         preference = self.environ.get("FINZANJIR_LLM_PROVIDER", "auto").strip().casefold()
@@ -42,6 +43,7 @@ class LLMGateway:
             return None
 
         self.last_status = "provider_failed"
+        self.last_provider_failures = []
         for provider in providers:
             try:
                 raw = self._generate_with(provider, system, prompt, max_output_tokens)
@@ -49,9 +51,30 @@ class LLMGateway:
                 if isinstance(parsed, dict):
                     self.last_status = "ready"
                     return parsed
-            except (httpx.HTTPError, ValueError, KeyError, IndexError, TypeError):
-                # Keep provider diagnostics coarse; never expose response bodies or keys.
-                continue
+                self.last_provider_failures.append({
+                    "provider": provider,
+                    "status": "invalid_response",
+                })
+            except httpx.HTTPStatusError as exc:
+                code = exc.response.status_code
+                if code in (401, 403):
+                    category = "authentication_or_permission_failed"
+                elif code == 429:
+                    category = "rate_limited"
+                elif code >= 500:
+                    category = "provider_unavailable"
+                else:
+                    category = "request_rejected"
+                self.last_provider_failures.append({"provider": provider, "status": category})
+            except httpx.TimeoutException:
+                self.last_provider_failures.append({"provider": provider, "status": "timeout"})
+            except httpx.NetworkError:
+                self.last_provider_failures.append({"provider": provider, "status": "network_error"})
+            except httpx.HTTPError:
+                self.last_provider_failures.append({"provider": provider, "status": "network_error"})
+            except (ValueError, KeyError, IndexError, TypeError):
+                # Never expose provider response bodies, exception text, or keys.
+                self.last_provider_failures.append({"provider": provider, "status": "invalid_response"})
         return None
 
     def _generate_with(self, provider: str, system: str, prompt: str, max_output_tokens: int) -> str:

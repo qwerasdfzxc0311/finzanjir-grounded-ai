@@ -190,6 +190,7 @@ def answer(request: AIAnswerRequest) -> dict[str, Any]:
         "abstained": result.answer.abstained,
         "generation_mode": result.answer.generation_mode,
         "provider_status": result.answer.provider_status,
+        "provider_diagnostics": list(getattr(ai_engine().language_model, "last_provider_failures", ())),
         "knowledge_refs": list(result.answer.citations),
         "provenance": [
             str(source)

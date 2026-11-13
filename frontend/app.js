@@ -755,6 +755,12 @@ function generationModeLabel(mode) {
     fallback_refused_long_source: "Model javobi yo‘q · uzun manba xom holda chiqarilmadi",
     no_grounded_evidence: "Mos tasdiqlangan dalil topilmadi",
     insufficient_evidence: "Dalil yetarli emas",
+    author_deterministic_fallback: "Muallifning tasdiqlangan ma'lumotlaridan tuzilgan javob · AI model ishlamadi",
+    author_insufficient_evidence: "Muallif haqida mos tasdiqlangan dalil topilmadi",
+    general_knowledge_model: "Umumiy bilim AI javobi · FINZANJIR hujjatlaridan tashqari",
+    general_knowledge_unavailable: "Umumiy bilim modeli sozlanmagan",
+    general_knowledge_provider_failed: "Umumiy bilim modeli javob bermadi",
+    blocked_sensitive: "Maxfiylik sabab so'rov tashqi modelga yuborilmadi",
   };
   return labels[mode] || "";
 }
@@ -770,7 +776,23 @@ function providerStatusLabel(status) {
   return labels[status] || "";
 }
 
-function appendChatMessage(role, content, refs = [], mode = "", providerStatus = "") {
+function providerDiagnosticLabel(item) {
+  const providerNames = {gemini: "Gemini", openrouter: "OpenRouter"};
+  const statusLabels = {
+    authentication_or_permission_failed: "kalit yoki ruxsat xatosi",
+    rate_limited: "so'rovlar limiti vaqtincha oshib ketgan",
+    provider_unavailable: "provayder vaqtincha ishlamayapti",
+    request_rejected: "so'rov rad etildi",
+    timeout: "javob kutish vaqti tugadi",
+    network_error: "tarmoq ulanishi xatosi",
+    invalid_response: "provayderdan yaroqsiz javob keldi",
+  };
+  const provider = providerNames[item?.provider] || "AI provayderi";
+  const status = statusLabels[item?.status] || "aniqlanmagan xato";
+  return provider + " — " + status;
+}
+
+function appendChatMessage(role, content, refs = [], mode = "", providerStatus = "", providerDiagnostics = []) {
   const log = document.querySelector("#aiChatLog");
   if (!log) return;
   const item = element("article", "chat-message " + (role === "user" ? "chat-user" : "chat-assistant"));
@@ -784,6 +806,10 @@ function appendChatMessage(role, content, refs = [], mode = "", providerStatus =
   if (modeLabel) item.appendChild(element("small", "chat-refs", "Javob rejimi: " + modeLabel));
   const providerLabel = providerStatusLabel(providerStatus);
   if (providerLabel) item.appendChild(element("small", "chat-refs", "AI ulanishi: " + providerLabel));
+  if (providerDiagnostics.length) {
+    const diagnosticText = providerDiagnostics.map(providerDiagnosticLabel).join("; ");
+    item.appendChild(element("small", "chat-refs", "Ulanish diagnostikasi: " + diagnosticText));
+  }
   log.appendChild(item);
   log.scrollTop = log.scrollHeight;
 }
@@ -855,8 +881,9 @@ function renderWindowInteractive(windowId) {
         const refs = Array.isArray(body.knowledge_refs) ? body.knowledge_refs : [];
         const mode = body.generation_mode || "";
         const providerStatus = body.provider_status || "not_attempted";
-        aiConversation.push({role:"assistant", content:answer, refs, mode, providerStatus});
-        appendChatMessage("assistant", answer, refs, mode, providerStatus);
+        const providerDiagnostics = Array.isArray(body.provider_diagnostics) ? body.provider_diagnostics : [];
+        aiConversation.push({role:"assistant", content:answer, refs, mode, providerStatus, providerDiagnostics});
+        appendChatMessage("assistant", answer, refs, mode, providerStatus, providerDiagnostics);
         if (body.abstained) appendChatMessage("assistant", "Eslatma: mavjud dalillar yetarli bo‘lmagani uchun javob cheklangan.");
       } catch (error) {
         aiConversation.push({role:"assistant", content:"Xatolik: " + error.message});
