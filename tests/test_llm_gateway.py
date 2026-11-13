@@ -5,6 +5,7 @@ def test_gateway_is_disabled_without_server_keys():
     gateway = LLMGateway(environ={})
     assert gateway.configured_providers() == ()
     assert gateway.generate_json(system="system", prompt="prompt") is None
+    assert gateway.last_status == "not_configured"
 
 
 def test_gateway_prefers_gemini_and_keeps_openrouter_as_fallback():
