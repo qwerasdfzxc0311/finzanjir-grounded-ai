@@ -31,6 +31,8 @@ def test_synthetic_provenance_chain_links_records_and_verifies_in_order():
     assert report["errors"] == []
     assert report["signature_verified"] is False
     assert report["source_authenticated"] is False
+    assert report["payload_digest_verified"] is False
+    assert report["opaque_ids_semantically_verified"] is False
     assert report["durable"] is False
     assert report["truthfulness_proven"] is False
 
@@ -104,3 +106,18 @@ def test_provenance_records_are_returned_as_detached_copies():
 
     assert chain.records()[0]["source"] == "synthetic-source"
     assert chain.verify()["valid"] is True
+
+
+
+def test_provenance_verifier_rejects_unexpected_fields_and_invalid_hash_shape():
+    chain = SyntheticEvidenceProvenanceChain()
+    _append(chain)
+    records = [dict(item) for item in chain.records()]
+    records[0]["raw_account_number"] = "not-allowed"
+    records[0]["record_hash"] = "not-a-hash"
+
+    report = chain.verify(records)
+
+    reasons = {item["reason"] for item in report["errors"]}
+    assert "unexpected_fields" in reasons
+    assert "invalid_record_hash" in reasons
