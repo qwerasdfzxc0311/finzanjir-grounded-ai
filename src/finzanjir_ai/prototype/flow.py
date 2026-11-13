@@ -9,7 +9,7 @@ from finzanjir_ai.case.manager import CaseManager
 from finzanjir_ai.cross_bank.matcher import CrossBankMatcher
 from finzanjir_ai.knowledge.index import KnowledgeIndex, build_index_from_document
 from finzanjir_ai.knowledge.loader import load_canonical_knowledge
-from finzanjir_ai.orchestration.engine import get_finzanjir_ai
+from finzanjir_ai.orchestration.engine import FINZANJIRAI, get_finzanjir_ai
 from finzanjir_ai.risk.pipeline import process_transaction
 from finzanjir_ai.risk.thresholds import ThresholdManager
 
