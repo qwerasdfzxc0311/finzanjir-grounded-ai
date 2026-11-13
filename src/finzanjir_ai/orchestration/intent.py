@@ -58,14 +58,15 @@ def is_project_overview_query(query: str) -> bool:
     """Keep broad 'what is FINZANJIR?' questions on the single mission record."""
     normalized = normalize_query_for_intent(query)
     tokens = set(normalized.split())
-    if "finzanjir" not in tokens:
+    if not ({"finzanjir", "финзанжир"} & tokens):
         return False
     phrases = (
-        "nima", "haqida", "aytib ber", "tushuntir", "qanday loyiha",
-        "что такое", "о проекте", "расскажи о", "объясни",
-        "what is", "tell me about", "explain", "project overview",
-        "деген не", "туралы", "айтып бер", "түсіндір", "жоба",
-        "degen ne", "haqqinda", "aytip ber", "túsindir", "joybar",
+        "finzanjir nima", "finzanjir haqida", "finzanjirning maqsadi",
+        "finzanjir qanday loyiha", "финзанжир нима", "финзанжир ҳақида",
+        "что такое finzanjir", "расскажи о finzanjir", "о finzanjir",
+        "what is finzanjir", "tell me about finzanjir", "about finzanjir",
+        "finzanjir деген не", "finzanjir туралы", "finzanjir қандай жоба",
+        "finzanjir degen ne", "finzanjir haqqında", "finzanjir joybar",
     )
     return any(phrase in normalized for phrase in phrases)
 
