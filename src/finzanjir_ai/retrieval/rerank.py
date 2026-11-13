@@ -8,8 +8,8 @@ from finzanjir_ai.knowledge.index import KnowledgeIndex
 
 
 _IDENTITY_QUERY_HINTS = (
-    "FINZANJIR moliyaviy xavfsizlik firibgarlikdan himoya",
-    "FINZANJIR firibgarlik zanjiri tahlili",
+    "FINZANJIR moliyaviy xavfsizlik firibgarlik zanjiri",
+    "FINZANJIR maqsad vazifa himoya bank",
     "moliyaviy xavflarni aniqlash fuqarolar mablag'ini himoya qilish",
 )
 
