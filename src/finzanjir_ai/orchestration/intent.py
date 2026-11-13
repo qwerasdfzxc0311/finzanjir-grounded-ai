@@ -41,12 +41,16 @@ def detect_query_language(query: str) -> str:
     """Conservative language routing for the five supported project languages."""
     value = query.casefold()
     tokens = set(re.findall(r"[^\W\d_]+", value, flags=re.UNICODE))
+    kaa_hits = len(tokens & _LANGUAGE_MARKERS["kaa"])
+    kk_hits = len(tokens & _LANGUAGE_MARKERS["kk"])
     if re.search(r"[әіңғқөұүһ]", value):
-        kaa_hits = len(tokens & _LANGUAGE_MARKERS["kaa"])
-        kk_hits = len(tokens & _LANGUAGE_MARKERS["kk"])
         return "kaa" if kaa_hits > kk_hits else "kk"
     if re.search(r"[ўҳ]", value) or tokens & {"нима", "лойиҳа", "учун", "керак", "мақсад", "фуқаро", "молиявий"}:
         return "uz"
+    if kaa_hits > kk_hits and kaa_hits:
+        return "kaa"
+    if kk_hits:
+        return "kk"
     if re.search(r"[а-яё]", value):
         return "ru"
     scores = {language: len(tokens & markers) for language, markers in _LANGUAGE_MARKERS.items()}
