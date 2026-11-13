@@ -348,7 +348,7 @@ def test_signal_process_fallback_orders_only_source_supported_process_stages():
     assert result.abstained is False
     assert result.generation_mode == "extractive_grounded_fallback"
     expected = [
-        "Shubhali signal aniqlanganda",
+        "Shubhali signal aniqlanadi",
         "Dalillar tekshiriladi",
         "Risk Score va Threshold",
         "Case threshold",
