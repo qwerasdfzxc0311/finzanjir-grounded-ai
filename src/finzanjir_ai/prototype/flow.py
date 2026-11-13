@@ -9,7 +9,7 @@ from finzanjir_ai.case.manager import CaseManager
 from finzanjir_ai.cross_bank.matcher import CrossBankMatcher
 from finzanjir_ai.knowledge.index import KnowledgeIndex, build_index_from_document
 from finzanjir_ai.knowledge.loader import load_canonical_knowledge
-from finzanjir_ai.orchestration.engine import FINZANJIRAI
+from finzanjir_ai.orchestration.engine import get_finzanjir_ai
 from finzanjir_ai.risk.pipeline import process_transaction
 from finzanjir_ai.risk.thresholds import ThresholdManager
 
@@ -171,7 +171,7 @@ class SystemFlow:
                 )),
             )
             emit("finzanjir_ai", "RUNNING", "Canonical knowledge va runtime dalillari bilan izoh tayyorlanmoqda.", input_refs=shadow_runtime_refs)
-            ai = FINZANJIRAI(knowledge_index).answer(
+            ai = get_finzanjir_ai(knowledge_index).answer(
                 "Why was this risk result kept in Shadow Mode?",
                 runtime_refs=shadow_runtime_refs,
                 working_memory_scope=transaction["transaction_id"],
@@ -312,7 +312,7 @@ class SystemFlow:
             )
             if value
         )
-        ai = FINZANJIRAI(knowledge_index).answer(
+        ai = get_finzanjir_ai(knowledge_index).answer(
             "Why does case escalation require evidence?",
             runtime_refs=runtime_refs,
             working_memory_scope=case["case_id"],
