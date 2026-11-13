@@ -29,7 +29,7 @@ def normalize_query_for_intent(query: str) -> str:
 
 
 _LANGUAGE_MARKERS = {
-    "uz": {"nima", "haqida", "uchun", "kerak", "loyiha", "moliyaviy", "firibgarlik", "fuqaro", "maqsad", "tahlil", "xavf", "нима", "лойиҳа", "учун", "керак", "мақсад", "фуқаро", "молиявий"},
+    "uz": {"nima", "haqida", "uchun", "kerak", "loyiha", "moliyaviy", "firibgarlik", "fuqaro", "maqsad", "tahlil", "xavf", "va", "muhim", "нима", "лойиҳа", "учун", "керак", "мақсад", "фуқаро", "молиявий"},
     "ru": {"что", "такое", "проект", "расскажи", "объясни", "зачем", "финансовый", "мошенничество", "граждан"},
     "en": {"what", "is", "about", "tell", "explain", "project", "financial", "fraud", "citizen", "purpose", "the", "and", "why", "how", "does", "can", "card", "bank", "false", "positive", "negative", "important", "mean", "means", "risk", "signal"},
     "kk": {"жоба", "қаржы", "алаяқтық", "азамат", "туралы", "мақсат", "деген", "не", "zhoba", "qarzhy", "azamat", "turaly", "maqset", "ushin"},
