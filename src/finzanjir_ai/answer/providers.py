@@ -61,7 +61,7 @@ class LLMGateway:
                     "maxOutputTokens": max_output_tokens,
                 },
             }
-            response = httpx.post(url, params={"key": key}, json=payload, timeout=timeout)
+            response = httpx.post(url, headers={"x-goog-api-key": key}, json=payload, timeout=timeout)
             response.raise_for_status()
             body = response.json()
             return body["candidates"][0]["content"]["parts"][0]["text"]
