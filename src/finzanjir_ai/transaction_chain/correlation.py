@@ -132,7 +132,7 @@ class TransactionChainCorrelator:
                 if not isinstance(value, str) or not value.strip():
                     missing.append(field)
             if event.get("data_mode") != "synthetic":
-                missing.append("data_mode=synthetic")
+                raise ValueError(f"event {event_id} must use synthetic data_mode")
             if missing and not allow_incomplete:
                 raise ValueError(f"event {event_id} is incomplete: {missing[0]}")
 
@@ -183,7 +183,7 @@ class TransactionChainCorrelator:
                 if not isinstance(link.get(field), str) or not link[field].strip()
             ]
             if link.get("data_mode") != "synthetic":
-                missing.append("data_mode=synthetic")
+                raise ValueError(f"link {link_id} must use synthetic data_mode")
             if missing and not allow_incomplete:
                 raise ValueError(f"link {link_id} is incomplete: {missing[0]}")
             if missing:
