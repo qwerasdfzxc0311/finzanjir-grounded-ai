@@ -21,6 +21,22 @@ class GroundedAnswerGenerator:
     ABSTENTION_THRESHOLD = 0.35
     MAX_RAW_FALLBACK_STATEMENT_CHARS = 1200
 
+
+    PROJECT_OVERVIEW_ANSWERS = {
+        "uz": "FINZANJIR — moliyaviy firibgarlik va shubhali pul oqimlari xavfini aniqlash hamda tahlil qilishga qaratilgan loyiha. Uning maqsadi fuqarolarning qonuniy tranzaksiyalari va mablag'lariga asossiz zarar yetmasligiga yordam berishdir. Loyiha banklar bilan qonuniy hamkorlik, dalilga asoslangan signallar, fuqaro murojaatlari va ma'lumotlar maxfiyligini yagona tizimning o'zaro bog'liq qismlari deb ko'radi. Bu loyiha maqsadi; barcha imkoniyatlar hozirgi prototipda to'liq joriy etilgan degani emas.",
+        "ru": "FINZANJIR — проект, направленный на выявление и анализ рисков финансового мошенничества и подозрительных денежных потоков. Его цель — помогать защищать законные операции и средства граждан от необоснованного ущерба. Проект рассматривает законное сотрудничество с банками, сигналы на основе доказательств, обращения граждан и конфиденциальность данных как взаимосвязанные части одной системы. Это заявленная цель проекта, а не утверждение, что все функции уже реализованы в прототипе.",
+        "en": "FINZANJIR is a project designed to identify and analyze financial-fraud risks and suspicious money flows while helping protect citizens' legitimate transactions and funds from unjustified harm. It treats lawful cooperation with banks, evidence-based signals, citizen appeals, and data privacy as connected parts of one system. This describes the project's stated goal; it does not mean every capability is already implemented in the prototype.",
+        "kk": "FINZANJIR — қаржылық алаяқтық тәуекелдері мен күмәнді ақша ағындарын анықтап, талдауға бағытталған жоба. Оның мақсаты — азаматтардың заңды операциялары мен қаражатына негізсіз зиян келмеуіне көмектесу. Жоба банктермен заңды ынтымақтастықты, дәлелге сүйенген сигналдарды, азаматтардың өтініштерін және деректер құпиялылығын бір жүйенің өзара байланысты бөліктері ретінде қарастырады. Бұл жобаның көзделген мақсаты; барлық мүмкіндік қазіргі прототипте толық іске асқан деген сөз емес.",
+        "kaa": "FINZANJIR — finanslıq alayaqlıqlar qáwipin hám gúmanlı pul aǵımların anıqlaw hám tallawǵa baǵdarlanǵan joybar. Onıń maqseti — puqaralardıń nızamlı operaciyaları hám qarjılarına tiykarсыз zıyan jetpewine járdemlesiw. Joybar bankler menen nızamlı birge islesiwdi, dálilge tiykarlanǵan signallardı, puqaralardıń múrájatların hám maǵlıwmatlardıń qupıyalılıǵın bir-biri menen baylanıslı bólekler dep qaraydı. Bul joybardıń maqseti; barlıq múmkinshilikler házirgi prototipte tolıq iske asırılǵan degeni emes.",
+    }
+    LANGUAGE_UNAVAILABLE_MESSAGES = {
+        "uz": "Tegishli loyiha dalili topildi, ammo hozir javobni ishonchli va ravon tuzish uchun AI modeli ishlamayapti. Noto'g'ri yoki boshqa tildagi matn bermaslik uchun javobni chekladim.",
+        "ru": "Подходящий материал проекта найден, но сейчас модель ИИ недоступна для подготовки надежного и связного ответа. Чтобы не выдавать неточный текст или ответ на другом языке, я ограничиваю ответ.",
+        "en": "Relevant project evidence was found, but the AI model is currently unavailable to compose a reliable answer. I am limiting the response rather than returning unrelated or untranslated text.",
+        "kk": "Жобаның тиісті дерегі табылды, бірақ қазір сенімді әрі түсінікті жауап құрастыру үшін AI моделі қолжетімсіз. Қатысы жоқ немесе басқа тілдегі мәтінді бермеу үшін жауапты шектедім.",
+        "kaa": "Joybardıń tiyisli dálili tabıldı, biraq házir isenimli hám túsinikli juwap dúziw ushın AI modeli islempedi. Basqa tildegi yamasa qatısı joq tekstti bermew ushın juwaptı shekledim.",
+    }
+
     def __init__(self, provider: Any | None = None) -> None:
         self.provider = provider
 
@@ -119,7 +135,18 @@ class GroundedAnswerGenerator:
                         provider_status="ready",
                     )
 
-        from finzanjir_ai.orchestration.intent import classify_query_intent
+        from finzanjir_ai.orchestration.intent import classify_query_intent, detect_query_language
+
+        language = detect_query_language(query)
+        if classify_query_intent(query) == "project_overview":
+            return AnswerResult(
+                answer=self.PROJECT_OVERVIEW_ANSWERS.get(language, self.PROJECT_OVERVIEW_ANSWERS["uz"]),
+                confidence=confidence,
+                abstained=False,
+                citations=tuple(item.record_id for item in grounded_items if item.record_id == "project_0001"),
+                generation_mode="project_overview_localized",
+                provider_status=provider_status,
+            )
 
         if classify_query_intent(query) == "author":
             author_items = [
@@ -203,6 +230,16 @@ class GroundedAnswerGenerator:
                 abstained=True,
                 citations=refs,
                 generation_mode="fallback_refused_long_source",
+                provider_status=provider_status,
+            )
+
+        if language != "uz":
+            return AnswerResult(
+                answer=self.LANGUAGE_UNAVAILABLE_MESSAGES.get(language, self.LANGUAGE_UNAVAILABLE_MESSAGES["uz"]),
+                confidence=confidence,
+                abstained=True,
+                citations=tuple(item.record_id for item in grounded_items),
+                generation_mode="language_safe_abstention",
                 provider_status=provider_status,
             )
 
