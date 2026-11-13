@@ -119,6 +119,51 @@ class GroundedAnswerGenerator:
                         provider_status="ready",
                     )
 
+        from finzanjir_ai.orchestration.intent import classify_query_intent
+
+        if classify_query_intent(query) == "author":
+            author_items = [
+                item for item in grounded_items
+                if item.record_id.startswith("author_")
+            ]
+            normalized_query = query.casefold().replace("’", "'").replace("ʻ", "'")
+            if any(term in normalized_query for term in ("nima uchun", "nega", "sabab", "motivatsiya", "maqsad", "g'oya")):
+                preferred_ids = {"author_0004"}
+            elif any(term in normalized_query for term in ("qiziq", "bolalik", "astronom", "kimyo")):
+                preferred_ids = {"author_0003"}
+            elif any(term in normalized_query for term in ("qachon", "qayer", "tug'il", "tugilgan", "yoshi")):
+                preferred_ids = {"author_0002"}
+            elif any(term in normalized_query for term in ("kim", "ismi", "ism")) and "haqida" not in normalized_query:
+                preferred_ids = {"author_0001"}
+            else:
+                preferred_ids = set()
+
+            selected = [
+                item for item in author_items
+                if not preferred_ids or item.record_id in preferred_ids
+            ]
+            if not selected:
+                return AnswerResult(
+                    answer="Muallif haqida savol tushunildi, ammo tasdiqlangan muallif ma'lumotlari orasidan aynan shu savolga mos dalil topilmadi.",
+                    confidence=0.0,
+                    abstained=True,
+                    citations=(),
+                    generation_mode="author_insufficient_evidence",
+                    provider_status=provider_status,
+                )
+            answer = "Muallif haqidagi tasdiqlangan ma'lumotlar:\n\n" + "\n\n".join(
+                f"{index}. {item.statement}"
+                for index, item in enumerate(selected, start=1)
+            )
+            return AnswerResult(
+                answer=answer,
+                confidence=confidence,
+                abstained=False,
+                citations=tuple(item.record_id for item in selected),
+                generation_mode="author_deterministic_fallback",
+                provider_status=provider_status,
+            )
+
         # Never dump a very long canonical narrative as if it were a composed
         # answer when the model provider is unavailable.
         if any(len(item.statement) > self.MAX_RAW_FALLBACK_STATEMENT_CHARS for item in grounded_items):

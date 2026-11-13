@@ -41,7 +41,8 @@ class FINZANJIRAI:
     ) -> OrchestrationResult:
         # Clear general-knowledge questions must not be rejected merely because
         # the closed FINZANJIR project corpus contains no answer for them.
-        if classify_query_intent(query) == "general_knowledge":
+        query_intent = classify_query_intent(query)
+        if query_intent == "general_knowledge":
             runtime = RuntimeContext.from_refs(
                 knowledge_refs=(),
                 runtime_refs=runtime_refs,
@@ -68,6 +69,10 @@ class FINZANJIRAI:
                     by_id[result.record_id] = result
 
         ranked = self.reranker.rerank(query, tuple(by_id.values()))
+        if query_intent == "author":
+            # Author questions use the separately confirmed biography layer only.
+            # Similar names in project documents are not sufficient biographical evidence.
+            ranked = tuple(item for item in ranked if item.record_id.startswith("author_"))
         grounded = self.grounder.assemble(
             ranked,
             query=query,
