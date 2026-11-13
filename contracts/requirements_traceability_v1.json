@@ -43,7 +43,7 @@
         "Durable evidence store va provenance replay"
       ],
       "evidence_scope": "synthetic_prototype_only",
-      "blocked_external": false
+      "external_dependencies_present": true
     },
     {
       "requirement_id": "REQ-002",
@@ -66,7 +66,7 @@
         "Mustaqil data-quality baholash"
       ],
       "evidence_scope": "synthetic_prototype_only",
-      "blocked_external": true
+      "external_dependencies_present": true
     },
     {
       "requirement_id": "REQ-003",
@@ -89,7 +89,7 @@
         "Counter-evidence va uncertainty modelini mustaqil baholash"
       ],
       "evidence_scope": "synthetic_prototype_only",
-      "blocked_external": true
+      "external_dependencies_present": true
     },
     {
       "requirement_id": "REQ-004",
@@ -113,7 +113,7 @@
         "Ikkinchi mustaqil ko‘rik va operatsion correction workflow"
       ],
       "evidence_scope": "synthetic_prototype_only",
-      "blocked_external": true
+      "external_dependencies_present": true
     },
     {
       "requirement_id": "REQ-005",
@@ -137,7 +137,7 @@
         "Tasdiqlangan rollout va rollback boshqaruvi"
       ],
       "evidence_scope": "synthetic_prototype_only",
-      "blocked_external": false
+      "external_dependencies_present": true
     },
     {
       "requirement_id": "REQ-006",
@@ -161,7 +161,7 @@
         "DLP, huquqiy disclosure workflow va data-sharing kelishuvi"
       ],
       "evidence_scope": "synthetic_prototype_only",
-      "blocked_external": true
+      "external_dependencies_present": true
     },
     {
       "requirement_id": "REQ-007",
@@ -183,7 +183,7 @@
         "Production monitoring, rollback automation va incident integratsiyasi"
       ],
       "evidence_scope": "synthetic_prototype_only",
-      "blocked_external": false
+      "external_dependencies_present": true
     },
     {
       "requirement_id": "REQ-008",
@@ -207,7 +207,7 @@
         "Banklararo graph uchun qonuniy ruxsat"
       ],
       "evidence_scope": "synthetic_prototype_only",
-      "blocked_external": true
+      "external_dependencies_present": true
     },
     {
       "requirement_id": "REQ-009",
@@ -229,7 +229,7 @@
         "Tasdiqlangan bildirishnoma kanali/SLA va vakolatli caseworker"
       ],
       "evidence_scope": "synthetic_prototype_only",
-      "blocked_external": true
+      "external_dependencies_present": true
     },
     {
       "requirement_id": "REQ-010",
@@ -252,7 +252,7 @@
         "Huquqiy asos, purpose limitation va data-subject rights workflow"
       ],
       "evidence_scope": "synthetic_prototype_only",
-      "blocked_external": true
+      "external_dependencies_present": true
     },
     {
       "requirement_id": "REQ-011",
@@ -274,7 +274,7 @@
         "Forensic retention va mustaqil incident drill"
       ],
       "evidence_scope": "synthetic_prototype_only",
-      "blocked_external": true
+      "external_dependencies_present": true
     },
     {
       "requirement_id": "REQ-012",
@@ -298,7 +298,7 @@
         "Knowledge approval workflow va drift monitoring"
       ],
       "evidence_scope": "synthetic_prototype_only",
-      "blocked_external": true
+      "external_dependencies_present": true
     },
     {
       "requirement_id": "REQ-013",
@@ -322,7 +322,7 @@
         "Real labeled data bilan precision/recall va subgroup harm assessment"
       ],
       "evidence_scope": "synthetic_prototype_only",
-      "blocked_external": true
+      "external_dependencies_present": true
     },
     {
       "requirement_id": "REQ-014",
@@ -344,7 +344,7 @@
         "Mustaqil security assessment va operational acceptance"
       ],
       "evidence_scope": "synthetic_prototype_only",
-      "blocked_external": true
+      "external_dependencies_present": true
     },
     {
       "requirement_id": "REQ-015",
@@ -366,7 +366,7 @@
         "Kelishilgan SLO/SLA, capacity plan va real monitoring"
       ],
       "evidence_scope": "synthetic_prototype_only",
-      "blocked_external": true
+      "external_dependencies_present": true
     },
     {
       "requirement_id": "REQ-016",
@@ -389,7 +389,7 @@
         "Sababiy ta’sir va oldi olingan zarar bo‘yicha tekshirilgan natijalar"
       ],
       "evidence_scope": "synthetic_prototype_only",
-      "blocked_external": true
+      "external_dependencies_present": true
     }
   ],
   "global_open_requirements": [
