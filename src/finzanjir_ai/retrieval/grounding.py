@@ -61,7 +61,7 @@ class GroundedContext:
 class GroundedContextAssembler:
     MIN_LEXICAL_RELEVANCE = 0.35
     MIN_RETRIEVAL_SCORE = 0.38
-    MIN_QUERY_RELEVANCE = 0.60
+    MIN_QUERY_RELEVANCE = 0.75
 
     def __init__(self, index: KnowledgeIndex) -> None:
         self.index = index
