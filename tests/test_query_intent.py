@@ -46,6 +46,8 @@ def test_finzanjir_overview_is_a_dedicated_intent_not_a_broad_retrieval():
     assert classify_query_intent("FINZANJIR haqida aytib ber") == "project_overview"
     assert classify_query_intent("What is FINZANJIR?") == "project_overview"
     assert classify_query_intent("Что такое FINZANJIR?") == "project_overview"
+    assert classify_query_intent("ФИНЗАНЖИР нима?") == "project_overview"
+    assert classify_query_intent("FINZANJIR nima uchun bank kartasini bloklaydi?") == "project"
     assert classify_query_intent("FINZANJIR картаны өзі блоктай ала ма?") == "project"
 
 
