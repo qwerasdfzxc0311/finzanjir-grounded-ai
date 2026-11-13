@@ -37,17 +37,28 @@ class QueryExpander:
         ):
             expanded.extend(_IDENTITY_QUERY_HINTS)
 
-        if len(query_terms) >= 2:
-            for record in self.index.records:
-                for alias in record.aliases:
-                    alias_terms = set(meaningful_tokens(alias))
-                    if not alias_terms:
-                        continue
-                    overlap = len(query_terms & alias_terms)
-                    exact_phrase = alias.casefold().strip() in original.casefold()
-                    if exact_phrase or overlap >= 2:
-                        expanded.extend(record.aliases)
-                        break
+        alias_record_ids: dict[str, set[str]] = {}
+        for record in self.index.records:
+            for alias in record.aliases:
+                for token in set(meaningful_tokens(alias)):
+                    alias_record_ids.setdefault(token, set()).add(record.record_id)
+
+        for record in self.index.records:
+            for alias in record.aliases:
+                alias_terms = set(meaningful_tokens(alias))
+                if not alias_terms:
+                    continue
+                overlap = len(query_terms & alias_terms)
+                exact_phrase = alias.casefold().strip() in original.casefold()
+                unique_specific_term = (
+                    len(query_terms) == 1
+                    and "finzanjir" not in query_terms
+                    and len(alias_record_ids.get(next(iter(query_terms)), set())) == 1
+                    and bool(query_terms & alias_terms)
+                )
+                if exact_phrase or overlap >= 2 or unique_specific_term:
+                    expanded.extend(record.aliases)
+                    break
 
         return tuple(dict.fromkeys(term for term in expanded if term))
 
