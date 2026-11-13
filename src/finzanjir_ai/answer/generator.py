@@ -28,6 +28,9 @@ def _semantic_groups(value: str) -> set[str]:
         "card": {"karta", "card", "cards"},
         "signal": {"signal", "indikator", "belgi", "shubhali", "suspicious"},
         "fraud": {"firibgar", "firibgarlik", "fraud", "scam"},
+        "link": {"bog'lanish", "boglanish", "aloqa", "linked", "cross", "graph", "grafik", "cross-match"},
+        "transaction": {"tranzaksiya", "tranzaksiyalar", "transaction", "transactions", "oqim"},
+        "review": {"review", "ko'rik", "tekshiruv", "tekshir", "mutaxassis", "inson", "vakolatli"},
         "process": {
             "case", "evidence", "dalil", "risk", "tekshiruv", "tekshirish",
             "tekshiriladi", "vakolatli", "bank", "audit", "review",
@@ -63,7 +66,7 @@ def _process_stage(sentence: str) -> int | None:
         # Authorized human review
         (4, ("human review", "inson", "mutaxassis", "vakolatli"), ("review", "ko'rib", "ko'rik")),
         # Bank decision boundary
-        (5, ("bank",), ("qaror", "cheklov", "blok", "decision")),
+        (5, ("bank",), ("qaror", "cheklov", "blok", "decision", "qabul")),
         # Audit and feedback
         (6, ("audit", "feedback"), ("qayd", "tarix", "event", "feedback")),
     )
@@ -92,7 +95,7 @@ def _is_relevant_extractive_sentence(
             and bool({"signal", "protect"} & sentence_groups)
         ) or (
             "signal" in sentence_groups
-            and bool({"review", "case", "fraud"} & sentence_groups)
+            and bool({"funds", "review", "case", "fraud"} & sentence_groups)
         )
         if not (direct_protection or supporting_mechanism):
             return False
