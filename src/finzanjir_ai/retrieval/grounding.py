@@ -96,13 +96,12 @@ class GroundedContextAssembler:
                 continue
 
             if query_candidates:
-                record_tokens = set(meaningful_tokens(
-                    record.statement + " " + " ".join(record.aliases)
-                ))
-                relevance = max(
-                    len(candidate & record_tokens) / len(candidate)
-                    for candidate in query_candidates
-                )
+                # HybridRetriever has already measured weighted coverage of the
+                # query terms against this exact record (including aliases).
+                # Re-tokenizing the record here can disagree with the retrieval
+                # score for colloquial Uzbek forms and incorrectly discard a
+                # strongly retrieved, author-confirmed principle.
+                relevance = result.lexical_score
                 if relevance < self.MIN_QUERY_RELEVANCE:
                     continue
 
