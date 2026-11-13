@@ -24,7 +24,7 @@ _ASSISTANT_IDENTITY_PATTERNS = (
 
 def normalize_query_for_intent(query: str) -> str:
     value = query.casefold().replace("ʻ", "'").replace("’", "'")
-    tokens = re.findall(r"[^\\W\\d_]+", value, flags=re.UNICODE)
+    tokens = re.findall(r"[^\W\d_]+", value, flags=re.UNICODE)
     return " ".join(_WORD_FIXES.get(token, token) for token in tokens)
 
 
