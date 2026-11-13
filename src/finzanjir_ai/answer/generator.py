@@ -67,6 +67,8 @@ class GroundedAnswerGenerator:
         )
 
     def _generate_with_model(self, query: str, items: list[Any]) -> tuple[str, tuple[str, ...]] | None:
+        if hasattr(self.provider, "can_send_text") and not self.provider.can_send_text(query):
+            return None
         evidence = []
         for item in items:
             evidence.append({
