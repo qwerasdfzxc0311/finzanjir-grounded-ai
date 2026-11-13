@@ -23,7 +23,7 @@ def test_grounded_answer_abstains_without_grounded_context():
     assert result.abstained is True
     assert result.confidence == 0
     assert result.citations == ()
-    assert "yetarli" in result.answer.casefold()
+    assert "does not contain enough verified evidence" in result.answer.casefold()
 
 
 def test_grounded_answer_abstains_when_context_has_no_supported_evidence():
