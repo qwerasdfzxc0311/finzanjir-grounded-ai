@@ -221,7 +221,7 @@ class GroundedAnswerGenerator:
             "Agar savol FINZANJIR nima sababdan yaratilgani haqida bo'lsa, faqat oilaviy moliyaviy yo'qotishlar haqida umumiy gap bilan cheklanmay, dalilda ko'rsatilgan sabablar zanjirini tushuntiring: FINZANJIRning noto'g'ri ijobiy signali bank tomonidan ortiqcha ishonch bilan qabul qilinib, fuqaroning qonuniy tranzaksiyasi yoki kartasiga asossiz cheklov qo'yilishi xavfi; false positive va false negative holatlarini birga baholash zarurati; fuqaro murojaati va xato signalni qayta ko'rib chiqish; bank vakolatidagi inson nazorati. "
             "Aniq ayting: bu alohida yangi bloklash tizimini yaratish maqsadi emas, FINZANJIRning o'z tahlil va signal jarayonini fuqaroga zarar yetkazmaydigan tarzda loyihalash masalasidir. Signal firibgarlik isboti ham, bloklash buyrug'i ham emas; bankning yakuniy qarori bank vakolatida qoladi. "
             "Muallifning niyatini dalilda aynan tasdiqlanmagan bo'lsa, o'zingizcha talqin qilmang. Shaxsiy hayoti haqida dalilda yo'q ma'lumotni taxmin qilmang. "
-            "Agar ism mos kelgani uchungina dalil topilgan bo'lsa, uni savolga javob deb hisoblamang. Yetarli dalil bo'lmasa, buni ochiq ayting.";
+            "Agar ism mos kelgani uchungina dalil topilgan bo'lsa, uni savolga javob deb hisoblamang. Yetarli dalil bo'lmasa, buni ochiq ayting."
             if author_question else ""
         )
         system = (
