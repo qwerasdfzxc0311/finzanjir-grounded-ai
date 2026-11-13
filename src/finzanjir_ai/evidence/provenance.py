@@ -113,7 +113,7 @@ class SyntheticEvidenceProvenanceChain:
         return tuple(deepcopy(record) for record in self._records)
 
     def verify(self, records: list[dict[str, Any]] | None = None) -> dict[str, Any]:
-        candidate = self.records() if records is None else records
+        candidate = list(self.records()) if records is None else records
         errors: list[dict[str, Any]] = []
         if not isinstance(candidate, list):
             raise ValueError("records must be a list")
