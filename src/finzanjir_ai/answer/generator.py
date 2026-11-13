@@ -2,9 +2,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import json
+import re
 from typing import Any
 
 from finzanjir_ai.retrieval.grounding import GroundedContext, is_grounded_evidence
+from finzanjir_ai.retrieval.text import meaningful_tokens
 
 
 @dataclass(frozen=True)
@@ -15,6 +17,53 @@ class AnswerResult:
     citations: tuple[str, ...]
     generation_mode: str = "deterministic_fallback"
     provider_status: str = "not_attempted"
+
+
+def _extractive_grounded_fallback(query: str, items: list[Any], *, max_sentences: int = 6) -> tuple[str, tuple[str, ...]]:
+    """Build a readable, source-faithful fallback from relevant sentences.
+
+    This is deliberately extractive: it may select and order source sentences,
+    but it never invents a bridge, capability, process step or causal claim.
+    """
+    query_terms = set(meaningful_tokens(query))
+    ranked: list[tuple[float, str, str]] = []
+    seen: set[str] = set()
+
+    for item in items:
+        source = str(item.statement or "")
+        fragments = re.split(r"(?<=[.!?;])\s+|[\r\n]+", source)
+        alias_terms = set(meaningful_tokens(" ".join(getattr(item, "aliases", ()))))
+        for fragment in fragments:
+            sentence = fragment.strip(" \t-•")
+            if len(sentence) < 24:
+                continue
+            clauses = re.split(r"(?<=[,，])\s+", sentence) if len(sentence) > 700 else [sentence]
+            for clause in clauses:
+                candidate = clause.strip()
+                if len(candidate) < 24 or len(candidate) > 700:
+                    continue
+                normalized = " ".join(meaningful_tokens(candidate))
+                if not normalized or normalized in seen:
+                    continue
+                overlap = len(query_terms & set(normalized.split()))
+                alias_match = bool(query_terms & alias_terms)
+                if overlap == 0 and not alias_match:
+                    continue
+                relevance = overlap / max(1, len(query_terms))
+                score = relevance + (0.025 * max(0.0, min(1.0, float(item.score))))
+                ranked.append((score, candidate, item.record_id))
+                seen.add(normalized)
+
+    ranked.sort(key=lambda value: (-value[0], value[2], value[1]))
+    selected = ranked[:max_sentences]
+    if not selected:
+        return "", ()
+
+    answer = "Manbalarda topilgan tasdiqlangan ma'lumotlar:\n\n" + "\n\n".join(
+        f"{index}. {sentence}" for index, (_, sentence, _) in enumerate(selected, start=1)
+    )
+    citations = tuple(dict.fromkeys(record_id for _, _, record_id in selected))
+    return answer, citations
 
 
 class GroundedAnswerGenerator:
@@ -256,21 +305,33 @@ class GroundedAnswerGenerator:
                     provider_status=provider_status,
                 )
 
-        # Never dump a very long canonical narrative as if it were a composed
-        # answer when the model provider is unavailable.
+        # When the model is unavailable, extract only query-relevant sentences
+        # from long grounded records. Never expose a raw multi-page source dump.
         if any(len(item.statement) > self.MAX_RAW_FALLBACK_STATEMENT_CHARS for item in grounded_items):
+            extractive_answer, extractive_citations = _extractive_grounded_fallback(
+                query, grounded_items
+            )
+            if extractive_answer:
+                return AnswerResult(
+                    answer=extractive_answer,
+                    confidence=confidence,
+                    abstained=False,
+                    citations=extractive_citations,
+                    generation_mode="extractive_grounded_fallback",
+                    provider_status=provider_status,
+                )
             refs = tuple(item.record_id for item in grounded_items)
             return AnswerResult(
                 answer=(
-                    "Loyiha bilimlar bazasidan tegishli bo'lishi mumkin bo'lgan manba topildi, "
-                    "ammo hozir ravon va aniq javob tuzish uchun AI modeli javob bermadi. "
-                    "Uzun manba matnini xom holda ko'rsatib, uni tayyor javob deb adashtirmayman. "
+                    "Tegishli bo'lishi mumkin bo'lgan manba topildi, ammo undan savolga "
+                    "bevosita javob beradigan jumlalarni ishonchli ajratib bo'lmadi. "
+                    "Noto'g'ri xulosa chiqarmaslik uchun javobni chekladim. "
                     "Manba ID: " + ", ".join(refs)
                 ),
                 confidence=confidence,
                 abstained=True,
                 citations=refs,
-                generation_mode="fallback_refused_long_source",
+                generation_mode="fallback_refused_unmatched_long_source",
                 provider_status=provider_status,
             )
 

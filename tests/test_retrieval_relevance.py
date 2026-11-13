@@ -58,3 +58,31 @@ def test_generic_question_without_meaningful_terms_does_not_accept_arbitrary_rec
     assert result.grounded_context.items == ()
     assert result.answer.abstained is True
     assert result.answer.citations == ()
+
+
+
+def test_project_questions_never_retrieve_author_biography_as_project_evidence():
+    index = build_knowledge_index([
+        _record(
+            "project_0002",
+            "FINZANJIR fuqarolarning pul oqimlarini tahlil qilib, qonuniy mablag'larini firibgarlik xavfidan himoya qilishga yordam beradi.",
+            ["fuqarolar pulini himoya qilish", "moliyaviy xavfsizlik"],
+        ),
+        _record(
+            "author_0004",
+            "Muallif FINZANJIR g'oyasini oilaviy yo'qotishlar va fuqarolar mablag'ini himoya qilish istagi sabab boshlagan.",
+            ["muallif motivatsiyasi", "loyiha yaratilish sababi"],
+        ),
+    ])
+
+    result = FINZANJIRAI(index).answer(
+        "FINZANJIR fuqarolar pulini qanday himoya qiladi?",
+        runtime_refs=(),
+        working_memory_scope="project-author-layer-isolation",
+    )
+
+    refs = tuple(item.record_id for item in result.grounded_context.items)
+    assert "author_0004" not in refs
+    assert "project_0002" in refs
+    assert result.answer.citations
+    assert "author_0004" not in result.answer.citations
