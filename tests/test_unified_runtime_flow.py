@@ -283,6 +283,7 @@ def test_flow_emits_real_ordered_stage_callbacks_for_synthetic_review():
         "COMPLETED",
         "DISABLED",
         "SYNTHETIC_REVIEW_ONLY",
+        "COMPLETED",
         "ABSTAINED" if result["ai"].answer.abstained else "COMPLETED",
         "SYNTHETIC_STATUS_ONLY",
         "PARTIAL",
