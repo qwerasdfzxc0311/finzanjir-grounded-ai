@@ -84,5 +84,5 @@ def test_author_motivation_question_selects_only_motivation_evidence():
     assert "false negative" in result.answer.answer
     assert "fuqaro murojaati" in result.answer.answer
     assert "alohida" in result.answer.answer
-    assert "bloklash buyrug'i emas" in result.answer.answer
+    assert "bloklash buyrug'i deb qabul qilmaslik" in result.answer.answer
     assert "2003-yil" not in result.answer.answer
