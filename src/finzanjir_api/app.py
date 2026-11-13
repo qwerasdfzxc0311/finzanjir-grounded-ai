@@ -146,6 +146,12 @@ def knowledge_index() -> KnowledgeIndex:
     return build_system_flow().demo_knowledge_index()
 
 
+@lru_cache(maxsize=1)
+def ai_engine() -> FINZANJIRAI:
+    # Retrieval statistics are precomputed once for the canonical corpus.
+    return FINZANJIRAI(knowledge_index())
+
+
 @app.get("/api/health")
 def health() -> dict[str, str]:
     return {"status": "ok", "service": "finzanjir-grounded-ai"}
@@ -172,7 +178,7 @@ def answer(request: AIAnswerRequest) -> dict[str, Any]:
         raise HTTPException(status_code=422, detail="Question must not be empty")
 
     scope = request.working_memory_scope or (request.runtime_refs[0] if request.runtime_refs else "conversation")
-    result = FINZANJIRAI(knowledge_index()).answer(
+    result = ai_engine().answer(
         question,
         runtime_refs=tuple(request.runtime_refs),
         working_memory_scope=scope,
