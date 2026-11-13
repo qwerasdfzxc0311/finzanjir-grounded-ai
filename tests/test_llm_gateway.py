@@ -40,3 +40,10 @@ def test_query_expansion_filters_empty_and_original_question(monkeypatch):
         lambda **kwargs: {"search_queries": ["  ", "pulni himoyalash", "SAVOL", "pulni himoyalash"]},
     )
     assert gateway.expand_question("SAVOL") == ("pulni himoyalash",)
+
+
+def test_gateway_keeps_common_personal_and_payment_identifiers_out_of_provider_calls():
+    assert not LLMGateway.can_send_text("Karta raqami 8600 1234 5678 9012")
+    assert not LLMGateway.can_send_text("Telefon +998 90 123 45 67")
+    assert not LLMGateway.can_send_text("Email user@example.com")
+    assert LLMGateway.can_send_text("FINZANJIR firibgarlik zanjirini qanday aniqlaydi?")
