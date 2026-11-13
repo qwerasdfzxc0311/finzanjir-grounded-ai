@@ -18,6 +18,7 @@ class LLMGateway:
 
     def __init__(self, environ: dict[str, str] | None = None) -> None:
         self.environ = environ if environ is not None else os.environ
+        self.last_status = "not_attempted"
 
     def configured_providers(self) -> tuple[str, ...]:
         preference = self.environ.get("FINZANJIR_LLM_PROVIDER", "auto").strip().casefold()
@@ -35,14 +36,21 @@ class LLMGateway:
         return tuple(providers)
 
     def generate_json(self, *, system: str, prompt: str, max_output_tokens: int = 1800) -> dict[str, Any] | None:
-        for provider in self.configured_providers():
+        providers = self.configured_providers()
+        if not providers:
+            self.last_status = "not_configured"
+            return None
+
+        self.last_status = "provider_failed"
+        for provider in providers:
             try:
                 raw = self._generate_with(provider, system, prompt, max_output_tokens)
                 parsed = self._parse_json(raw)
                 if isinstance(parsed, dict):
+                    self.last_status = "ready"
                     return parsed
             except (httpx.HTTPError, ValueError, KeyError, IndexError, TypeError):
-                # Provider errors are deliberately not exposed to the end user.
+                # Keep provider diagnostics coarse; never expose response bodies or keys.
                 continue
         return None
 
@@ -110,6 +118,7 @@ class LLMGateway:
 
     def expand_question(self, question: str) -> tuple[str, ...]:
         if not self.can_send_text(question):
+            self.last_status = "blocked_sensitive"
             return ()
         result = self.generate_json(
             system=(
