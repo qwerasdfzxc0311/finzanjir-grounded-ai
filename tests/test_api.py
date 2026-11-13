@@ -45,6 +45,9 @@ def test_ai_endpoint_answers_from_grounded_knowledge():
     else:
         assert body["abstained"] is True
         assert body["knowledge_refs"] == []
+    assert body["provider_status"] in {
+        "ready", "not_configured", "provider_failed", "blocked_sensitive", "not_attempted"
+    }
     assert "confidence" in body
     assert "provenance" in body
 

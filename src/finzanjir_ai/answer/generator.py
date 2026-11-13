@@ -14,6 +14,7 @@ class AnswerResult:
     abstained: bool
     citations: tuple[str, ...]
     generation_mode: str = "deterministic_fallback"
+    provider_status: str = "not_attempted"
 
 
 class GroundedAnswerGenerator:
@@ -32,6 +33,7 @@ class GroundedAnswerGenerator:
                 abstained=True,
                 citations=(),
                 generation_mode="no_grounded_evidence",
+                provider_status="not_attempted",
             )
 
         items = context.items[:8]
@@ -46,18 +48,28 @@ class GroundedAnswerGenerator:
                 abstained=True,
                 citations=(),
                 generation_mode="insufficient_evidence",
+                provider_status="not_attempted",
             )
 
+        provider_status = (
+            "not_configured" if self.provider is None
+            else getattr(self.provider, "last_status", "not_attempted")
+        )
         if self.provider is not None:
-            generated = self._generate_with_model(query, grounded_items)
-            if generated is not None:
-                return AnswerResult(
-                    answer=generated[0],
-                    confidence=confidence,
-                    abstained=False,
-                    citations=generated[1],
-                    generation_mode="model",
-                )
+            if hasattr(self.provider, "can_send_text") and not self.provider.can_send_text(query):
+                provider_status = "blocked_sensitive"
+            else:
+                generated = self._generate_with_model(query, grounded_items)
+                provider_status = getattr(self.provider, "last_status", "provider_failed")
+                if generated is not None:
+                    return AnswerResult(
+                        answer=generated[0],
+                        confidence=confidence,
+                        abstained=False,
+                        citations=generated[1],
+                        generation_mode="model",
+                        provider_status="ready",
+                    )
 
         # Never dump a very long canonical narrative as if it were a composed
         # answer when the model provider is unavailable.
@@ -74,6 +86,7 @@ class GroundedAnswerGenerator:
                 abstained=True,
                 citations=refs,
                 generation_mode="fallback_refused_long_source",
+                provider_status=provider_status,
             )
 
         answer = "Loyiha bilimlar bazasidagi tasdiqlangan ma'lumotlar:\n\n" + "\n\n".join(
@@ -85,6 +98,7 @@ class GroundedAnswerGenerator:
             abstained=False,
             citations=tuple(item.record_id for item in grounded_items),
             generation_mode="deterministic_fallback",
+            provider_status=provider_status,
         )
 
     def _generate_with_model(self, query: str, items: list[Any]) -> tuple[str, tuple[str, ...]] | None:

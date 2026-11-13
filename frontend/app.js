@@ -759,7 +759,18 @@ function generationModeLabel(mode) {
   return labels[mode] || "";
 }
 
-function appendChatMessage(role, content, refs = [], mode = "") {
+function providerStatusLabel(status) {
+  const labels = {
+    ready: "Model javob berdi",
+    not_configured: "AI kaliti serverda sozlanmagan",
+    provider_failed: "AI provayderidan javob olinmadi",
+    blocked_sensitive: "Maxfiylik sabab so‘rov modelga yuborilmadi",
+    not_attempted: "Modelga murojaat qilinmadi",
+  };
+  return labels[status] || "";
+}
+
+function appendChatMessage(role, content, refs = [], mode = "", providerStatus = "") {
   const log = document.querySelector("#aiChatLog");
   if (!log) return;
   const item = element("article", "chat-message " + (role === "user" ? "chat-user" : "chat-assistant"));
@@ -770,7 +781,9 @@ function appendChatMessage(role, content, refs = [], mode = "") {
     item.appendChild(citationLine);
   }
   const modeLabel = generationModeLabel(mode);
-  if (modeLabel) item.appendChild(element("small", "chat-refs", modeLabel));
+  if (modeLabel) item.appendChild(element("small", "chat-refs", "Javob rejimi: " + modeLabel));
+  const providerLabel = providerStatusLabel(providerStatus);
+  if (providerLabel) item.appendChild(element("small", "chat-refs", "AI ulanishi: " + providerLabel));
   log.appendChild(item);
   log.scrollTop = log.scrollHeight;
 }
@@ -799,7 +812,9 @@ function renderWindowInteractive(windowId) {
         item.append(element("span", "chat-role", message.role === "user" ? "Siz" : "FINZANJIR AI"), element("p", "", message.content));
         if (message.refs?.length) item.appendChild(element("small", "chat-refs", "Bilim manbalari: " + message.refs.join(", ")));
         const modeLabel = generationModeLabel(message.mode);
-        if (modeLabel) item.appendChild(element("small", "chat-refs", modeLabel));
+        if (modeLabel) item.appendChild(element("small", "chat-refs", "Javob rejimi: " + modeLabel));
+        const providerLabel = providerStatusLabel(message.providerStatus);
+        if (providerLabel) item.appendChild(element("small", "chat-refs", "AI ulanishi: " + providerLabel));
         log.appendChild(item);
       });
     }
@@ -839,8 +854,9 @@ function renderWindowInteractive(windowId) {
         const answer = body.answer || "Dalilga tayangan javob qaytmadi.";
         const refs = Array.isArray(body.knowledge_refs) ? body.knowledge_refs : [];
         const mode = body.generation_mode || "";
-        aiConversation.push({role:"assistant", content:answer, refs, mode});
-        appendChatMessage("assistant", answer, refs, mode);
+        const providerStatus = body.provider_status || "not_attempted";
+        aiConversation.push({role:"assistant", content:answer, refs, mode, providerStatus});
+        appendChatMessage("assistant", answer, refs, mode, providerStatus);
         if (body.abstained) appendChatMessage("assistant", "Eslatma: mavjud dalillar yetarli bo‘lmagani uchun javob cheklangan.");
       } catch (error) {
         aiConversation.push({role:"assistant", content:"Xatolik: " + error.message});
