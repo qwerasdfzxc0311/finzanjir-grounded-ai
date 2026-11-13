@@ -11,6 +11,7 @@ from finzanjir_ai.retrieval.grounding import GroundedContext, GroundedContextAss
 from finzanjir_ai.retrieval.hybrid import HybridRetriever, RetrievalResult
 from finzanjir_ai.retrieval.rerank import QueryExpander, Reranker
 from finzanjir_ai.runtime.context import RuntimeContext
+from finzanjir_ai.orchestration.intent import classify_query_intent
 
 
 @dataclass(frozen=True)
@@ -38,6 +39,21 @@ class FINZANJIRAI:
         working_memory_scope: str,
         top_k: int = 8,
     ) -> OrchestrationResult:
+        # Clear general-knowledge questions must not be rejected merely because
+        # the closed FINZANJIR project corpus contains no answer for them.
+        if classify_query_intent(query) == "general_knowledge":
+            runtime = RuntimeContext.from_refs(
+                knowledge_refs=(),
+                runtime_refs=runtime_refs,
+                working_memory_scope=working_memory_scope,
+            )
+            answer = self.answer_generator.generate_general_knowledge(query)
+            return OrchestrationResult(
+                answer=answer,
+                grounded_context=GroundedContext(items=()),
+                runtime_context=runtime,
+            )
+
         # Model rewrites and local aliases are search hints only. All facts still
         # come from the canonical corpus and must pass grounding/relevance checks.
         model_queries = self.language_model.expand_question(query)
