@@ -55,6 +55,7 @@ def test_query_language_detection_supports_project_languages_and_uzbek_scripts()
     from finzanjir_ai.orchestration.intent import detect_query_language
 
     assert detect_query_language("FINZANJIR nima?") == "uz"
+    assert detect_query_language("FINZANJIR bank kartasini o‘zi bloklay oladimi?") == "uz"
     assert detect_query_language("ФИНЗАНЖИР нима?") == "uz"
     assert detect_query_language("Что такое FINZANJIR?") == "ru"
     assert detect_query_language("What is FINZANJIR?") == "en"
