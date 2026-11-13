@@ -15,14 +15,6 @@ GROUNDED_EVIDENCE_STATUSES = frozenset({
     "supported",
 })
 
-UNVERIFIED_STATUS_MARKERS = (
-    "tasdiqlanmagan",
-    "unverified",
-    "proposal",
-    "taklif",
-    "ochiq masala",
-)
-
 
 def is_grounded_evidence(evidence: Any) -> bool:
     if not isinstance(evidence, dict) or evidence.get("status") not in GROUNDED_EVIDENCE_STATUSES:
@@ -36,10 +28,10 @@ def is_grounded_evidence(evidence: Any) -> bool:
 
 
 def is_grounded_record(evidence: Any, statement: str) -> bool:
-    if not is_grounded_evidence(evidence):
-        return False
-    normalized = str(statement).casefold()
-    return not any(marker in normalized for marker in UNVERIFIED_STATUS_MARKERS)
+    # Verification metadata is authoritative. Do not reject a supported
+    # principle merely because its wording discusses uncertainty, proposals,
+    # or unverified suspicions as a concept.
+    return is_grounded_evidence(evidence)
 
 
 @dataclass(frozen=True)
@@ -59,12 +51,31 @@ class GroundedContext:
 
 
 class GroundedContextAssembler:
-    MIN_LEXICAL_RELEVANCE = 0.35
+    MIN_LEXICAL_RELEVANCE = 0.50
     MIN_RETRIEVAL_SCORE = 0.38
-    MIN_QUERY_RELEVANCE = 0.75
+    MIN_RELATIVE_QUERY_RELEVANCE = 0.90
 
     def __init__(self, index: KnowledgeIndex) -> None:
         self.index = index
+
+    def assemble_entity(self, entity_id: str, *, max_items: int = 8) -> GroundedContext:
+        """Resolve a canonical entity to its explicitly linked, verified fact records."""
+        items = []
+        for record in self.index.records_for_entity(entity_id):
+            if not is_grounded_record(record.evidence, record.statement):
+                continue
+            items.append(GroundedContextItem(
+                record_id=record.record_id,
+                concept_id=record.concept_id,
+                statement=record.statement,
+                score=1.0,
+                provenance=record.provenance,
+                evidence=record.evidence,
+                aliases=record.aliases,
+            ))
+            if len(items) >= max_items:
+                break
+        return GroundedContext(items=tuple(items))
 
     def assemble(
         self,
@@ -85,6 +96,7 @@ class GroundedContextAssembler:
         if query and not query_candidates:
             return GroundedContext(items=())
 
+        eligible = []
         for result in results:
             if (
                 result.lexical_score < self.MIN_LEXICAL_RELEVANCE
@@ -94,17 +106,21 @@ class GroundedContextAssembler:
             record = self.index.get_record(result.record_id)
             if record is None or not is_grounded_record(record.evidence, record.statement):
                 continue
+            eligible.append((result, record))
 
-            if query_candidates:
-                record_tokens = set(meaningful_tokens(
-                    record.statement + " " + " ".join(record.aliases)
-                ))
-                relevance = max(
-                    len(candidate & record_tokens) / len(candidate)
-                    for candidate in query_candidates
-                )
-                if relevance < self.MIN_QUERY_RELEVANCE:
-                    continue
+        # Compare candidates against the strongest match for this same query.
+        # The lexical floor prevents a single generic word such as "evidence"
+        # from grounding an otherwise unsupported question.
+        best_ranked_score = max(
+            (result.score for result, _ in eligible),
+            default=0.0,
+        )
+        for result, record in eligible:
+            if query_candidates and (
+                best_ranked_score <= 0.0
+                or result.score < best_ranked_score * self.MIN_RELATIVE_QUERY_RELEVANCE
+            ):
+                continue
 
             items.append(GroundedContextItem(
                 record_id=record.record_id,

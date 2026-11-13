@@ -6,6 +6,8 @@
   "records": [
     {
       "id": "author_0001",
+      "entity_id": "person:salamat_smaylov",
+      "facet": "identity",
       "concept_id": "author_identity_salamat_smaylov",
       "canonical_concept_id": "author_identity_salamat_smaylov",
       "statement": "FINZANJIR loyihasining muallifi Salamat Smaylov.",
@@ -35,6 +37,8 @@
     },
     {
       "id": "author_0002",
+      "entity_id": "person:salamat_smaylov",
+      "facet": "birth_details",
       "concept_id": "author_birth_details_salamat_smaylov",
       "canonical_concept_id": "author_birth_details_salamat_smaylov",
       "statement": "Muallif Salamat Smaylov 2003-yil 10-aprelda Qoraqalpog'iston Respublikasi, Qanliko'l tumanida tug'ilgan.",
@@ -63,6 +67,8 @@
     },
     {
       "id": "author_0003",
+      "entity_id": "person:salamat_smaylov",
+      "facet": "interests",
       "concept_id": "author_childhood_interests_salamat_smaylov",
       "canonical_concept_id": "author_childhood_interests_salamat_smaylov",
       "statement": "Muallif bolaligidan astronomiya, kimyo, turli sohalarni o'rganish, koinot va atrof-muhitni bilishga qiziqqan.",
@@ -98,15 +104,31 @@
     },
     {
       "id": "author_0004",
+      "entity_id": "person:salamat_smaylov",
+      "facet": "project_motivation",
       "concept_id": "author_motivation_finzanjir",
       "canonical_concept_id": "author_motivation_finzanjir",
-      "statement": "Muallif FINZANJIR g'oyasini oilasidagi moliyaviy yo'qotishlar va bank cheklovlari sabab fuqarolar o'z mablag'laridan foydalana olmay qolishi mumkinligi haqidagi tashvishlar fonida shakllantirgan. Uning maqsadi yaqinlari va boshqa fuqarolar bunday qiyinchiliklarga duch kelishining oldini olishga yordam berishdir.",
+      "statement": "Muallif FINZANJIR g'oyasini oilasidagi moliyaviy yo'qotishlar, firibgarlik xavfi va fuqarolar bank cheklovlari sabab o'z mablag'laridan foydalana olmay qolishi mumkinligi haqidagi tashvishlar fonida bosqichma-bosqich shakllantirgan. Tarixiy ishchi hujjatda dastlabki g'oya torroq — «Kiber Qalqon» nomi ostida karta xavfsizligi va himoyasi atrofida bo'lgani, keyinchalik esa moliyaviy xavfni erta aniqlash, ogohlantirish, tekshiruv, vakolatli javob va hodisadan keyingi tiklashni qamrab oladigan kengroq FINZANJIR konsepsiyasiga aylangani qayd etiladi. Hujjatda oilaviy suhbatda Qozog'istonda ishlab topilgan pul yuborilgach bir ayolning kartasi bloklangani haqidagi hikoya muallifda muhim savol tug'dirgani aytiladi; bu hikoyaning karta nega bloklangani mustaqil tekshirilmagan, shuning uchun uni bank xatosining isbotlangan fakti deb ko'rsatish mumkin emas. Ammo u muallifni moliyaviy xavfni aniqlashga qaratilgan tizimning o'zi begunoh fuqaroning qonuniy operatsiyasiga zarar yetkazmasligi uchun qanday ishlashi kerakligi haqida o'ylashga undagan. G'oyaning muhim sababi — FINZANJIRning o'zi chiqargan noto'g'ri ijobiy (false positive) signal bank tomonidan ortiqcha ishonch bilan qabul qilinib, fuqaroning qonuniy tranzaksiyasi yoki kartasiga asossiz cheklov qo'yilishi xavfini imkon qadar kamaytirishdir. Bu FINZANJIRdan tashqari yangi bloklash tizimini yaratish maqsadi emas; FINZANJIRning o'z tahlil, signal va Case jarayonlarini fuqaroga zarar yetkazmaydigan qilib loyihalash masalasidir. Shu sababli false positive va false negative holatlarini birgalikda o'lchash, signalni firibgarlik isboti yoki bloklash buyrug'i deb qabul qilmaslik, bank vakolatidagi inson ko'rigini saqlash, fuqaro murojaati va e'tirozini ko'rib chiqish, xato signallar sababini tahlil qilish va tuzatish muhim. Muallif 100 foiz xatosizlikni kafolatlashni emas, bunday xatolar ehtimolini jiddiy kamaytirish va yuz bergan xatolardan tizimli ravishda saboq olishni maqsad qiladi.",
       "aliases": [
         "muallif nima uchun FINZANJIRni yaratgan",
         "FINZANJIR g'oyasi qanday paydo bo'lgan",
         "loyiha motivatsiyasi",
         "Salamat Smaylov maqsadi",
-        "muallifning shaxsiy sababi"
+        "muallifning shaxsiy sababi",
+        "false positive",
+        "false negative",
+        "qonuniy tranzaksiyani bloklash xavfi",
+        "noto'g'ri signal",
+        "fuqaro murojaati",
+        "bank signalga ortiqcha ishonishi",
+        "FINZANJIR nima sababdan paydo bo'lgan",
+        "FINZANJIRning yaratilish tarixi",
+        "Kiber Qalqon nima edi",
+        "nega Kiber Qalqon FINZANJIRga aylandi",
+        "muallifning FINZANJIRni yaratishdagi asosiy maqsadi",
+        "nega qonuniy tranzaksiyalarni himoya qilish muhim",
+        "muallifni false positive haqida o'ylashga nima undagan",
+        "FINZANJIR nima uchun fuqarolarning qonuniy to'lovlarini himoya qilishi kerak"
       ],
       "evidence": {
         "status": "project_source",
@@ -114,10 +136,25 @@
       },
       "provenance": [
         {
-          "source_type": "author_provided_profile",
-          "source_id": "author_profile_v1",
-          "authority": "project_author",
-          "version": "1.0"
+          "source_type": "project_archive_document",
+          "source_id": "FINZANJIR_KONSEPSIYA_V14.pdf",
+          "authority": "project_author_supplied_archive",
+          "version": "V14",
+          "sections": "Loyiha muallifining motivatsiyasi; Nega sun'iy ong kerak; loyiha asoslari"
+        },
+        {
+          "source_type": "project_archive_document",
+          "source_id": "FINZANJIR_Tarixiy_Ishchi_Hujjat!.pdf",
+          "authority": "project_author_supplied_archive",
+          "version": "historical_working_document",
+          "sections": "Kiber Qalqon g'oyasi; bloklangan karta haqidagi hikoya; noto'g'ri qaror xavfi; false positive va false negative"
+        },
+        {
+          "source_type": "project_archive_document",
+          "source_id": "FINZANJIR_EKSPERTIZA_TUZATISH_FALSE_POSITIVE_V2.docx",
+          "authority": "project_author_supplied_archive",
+          "version": "V2",
+          "sections": "ommaviy false-positive zarar zanjiri; signal bloklash buyrug'i emas"
         }
       ],
       "reconciliation": {

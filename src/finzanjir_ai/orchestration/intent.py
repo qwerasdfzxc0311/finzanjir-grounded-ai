@@ -47,3 +47,15 @@ def classify_query_intent(query: str) -> str:
     if "toshbaqa" in tokens and tokens & _GENERAL_LIFESPAN_MARKERS:
         return "general_knowledge"
     return "project"
+
+
+def is_author_overview_query(query: str) -> bool:
+    """Detect a request for a whole person profile, not one biography facet."""
+    normalized = normalize_query_for_intent(query)
+    overview_phrases = (
+        "haqida aytib ber", "haqida malumot", "tarjimai hol", "biografiya",
+        "batafsil aytib", "tolqroq malumot", "tell me about", "who is",
+    )
+    return classify_query_intent(query) == "author" and any(
+        phrase in normalized for phrase in overview_phrases
+    )

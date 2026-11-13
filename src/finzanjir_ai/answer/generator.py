@@ -151,10 +151,13 @@ class GroundedAnswerGenerator:
                     generation_mode="author_insufficient_evidence",
                     provider_status=provider_status,
                 )
-            answer = "Muallif haqidagi tasdiqlangan ma'lumotlar:\n\n" + "\n\n".join(
-                f"{index}. {item.statement}"
-                for index, item in enumerate(selected, start=1)
-            )
+            if preferred_ids == {"author_0004"} and len(selected) == 1:
+                answer = selected[0].statement
+            else:
+                answer = "Muallif haqidagi tasdiqlangan ma'lumotlar:\n\n" + "\n\n".join(
+                    f"{index}. {item.statement}"
+                    for index, item in enumerate(selected, start=1)
+                )
             return AnswerResult(
                 answer=answer,
                 confidence=confidence,
@@ -227,7 +230,14 @@ class GroundedAnswerGenerator:
             "va tabiiy lotin yozuvidan foydalaning. Javobni bir-ikki jumla bilan cheklamang: "
             "savolga qarab tushuncha, qanday ishlashi, nima uchun kerakligi, qayerda qo'llanishi, "
             "chegaralari va muhim misollarni izohlang. Lekin dalilda bo'lmagan tafsilotni "
-            "to'qimang. Fakt, taklif, taxmin va tasdiqlanmagan masalalarni aniq ajrating. "
+            "to'qimang. Fakt, muallif bildirgan talab, kelajakdagi taklif, prototipda amalda bor imkoniyat "
+            "va huquqiy jihatdan hali tasdiqlanishi kerak bo'lgan masalalarni aniq ajrating. "
+            "FINZANJIR fuqaroning o'zini firibgar deb topmaydi: signal, Risk yoki Case aybdorlik isboti "
+            "ham, bloklash buyrug'i ham emas. FINZANJIR bank kartasini o'zi bloklamaydi va bank vakolatini "
+            "almashtirmaydi. Fuqaro murojaati, qayta ko'rib chiqish, false positive va false negative, "
+            "ma'lumotlarni minimallashtirish hamda bank-fuqaro ishonchi o'zaro bog'liq tamoyillardir. "
+            "Fuqaro ilovasidagi karta holati, blok sababi va tezkor yechim ko'rsatish kabi imkoniyatlarni "
+            "faqat kelajakdagi talab sifatida ayting, agar dalil ularning amalda joriy etilganini ko'rsatmasa. "
             "Agar dalil savolning faqat bir qismini yoritsa, shu chegarani ochiq ayting. "
             "Yashirin fikrlash zanjirini emas, tekshiriladigan qisqa asos va xulosani bering. "
             "Faqat JSON qaytaring." + author_guidance

@@ -17,7 +17,7 @@ from starlette.staticfiles import StaticFiles
 
 from finzanjir_ai.knowledge.index import KnowledgeIndex
 from finzanjir_ai.prototype.flow import build_system_flow
-from finzanjir_ai.orchestration.engine import FINZANJIRAI
+from finzanjir_ai.orchestration.engine import FINZANJIRAI, get_finzanjir_ai
 from finzanjir_ai.research.tavily import TavilySearchClient
 from finzanjir_ai.risk.shadow import evaluate_shadow_batch, evaluate_detector_shadow_batch
 from finzanjir_ai.risk.scenarios import build_synthetic_case_signal_events
@@ -178,7 +178,8 @@ def answer(request: AIAnswerRequest) -> dict[str, Any]:
         raise HTTPException(status_code=422, detail="Question must not be empty")
 
     scope = request.working_memory_scope or (request.runtime_refs[0] if request.runtime_refs else "conversation")
-    result = ai_engine().answer(
+    engine = get_finzanjir_ai(knowledge_index())
+    result = engine.answer(
         question,
         runtime_refs=tuple(request.runtime_refs),
         working_memory_scope=scope,
@@ -190,7 +191,7 @@ def answer(request: AIAnswerRequest) -> dict[str, Any]:
         "abstained": result.answer.abstained,
         "generation_mode": result.answer.generation_mode,
         "provider_status": result.answer.provider_status,
-        "provider_diagnostics": list(getattr(ai_engine().language_model, "last_provider_failures", ())),
+        "provider_diagnostics": list(getattr(engine.language_model, "last_provider_failures", ())),
         "knowledge_refs": list(result.answer.citations),
         "provenance": [
             str(source)

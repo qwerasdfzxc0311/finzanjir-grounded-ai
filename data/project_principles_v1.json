@@ -1,0 +1,294 @@
+{
+  "profile_id": "project_principles_v1",
+  "profile_type": "project_principles",
+  "language": "uz",
+  "authority": "project_author_supplied",
+  "records": [
+    {
+      "id": "project_0001",
+      "concept_id": "finzanjir_integrated_mission",
+      "canonical_concept_id": "finzanjir_integrated_mission",
+      "statement": "Muallif ta'riflagan FINZANJIRning asosiy vazifasi — moliyaviy firibgarlik va shubhali pul oqimlari xavfini aniqlash hamda tahlil qilish bilan bir vaqtda fuqarolarning qonuniy tranzaksiyalari va mablag'lariga asossiz zarar yetmasligini ta'minlashga intilishdir. Fuqaro xavfsizligi, bank bilan qonuniy hamkorlik, signal va Case sifati, murojaatlar, ma'lumotlar maxfiyligi va qonuniy amaliyotlar yagona o'zaro bog'langan tizim sifatida ko'rilishi kerak. Bitta qismni e'tiborsiz qoldirish boshqalarga va butun tizim ishonchiga zarar yetkazishi mumkin. Bu muallif bildirgan asosiy loyiha talabi; barcha qismlar prototipda to'liq joriy etilgan degani emas.",
+      "aliases": [
+        "FINZANJIR nima",
+        "FINZANJIR nima uchun kerak",
+        "FINZANJIRning asosiy vazifasi",
+        "FINZANJIR nima qilmoqchi",
+        "loyiha maqsadi",
+        "FINZANJIRning bosh maqsadi",
+        "fuqaro va bank xavfsizligi",
+        "yagona tizim sifatida FINZANJIR"
+      ],
+      "evidence": {
+        "status": "project_source",
+        "verification": "author_confirmed",
+        "scope": "author_stated_project_principle"
+      },
+      "provenance": [
+        {
+          "source_type": "author_provided_current_conversation",
+          "source_id": "2026-11-13_user_project_principles",
+          "authority": "project_author",
+          "version": "1.0"
+        }
+      ],
+      "reconciliation": {
+        "status": "author_confirmed",
+        "scope": "project_mission_and_system_principles"
+      }
+    },
+    {
+      "id": "project_0002",
+      "concept_id": "finzanjir_no_guilt_determination",
+      "canonical_concept_id": "finzanjir_no_guilt_determination",
+      "statement": "FINZANJIR fuqaroning o'zini firibgar yoki jinoyatchi deb topmasligi kerak. Shubhali signal, Risk natijasi yoki Case — tekshirish va baholash uchun belgi yoki jarayon; ular o'z-o'zidan aybdorlik isboti, huquqiy xulosa yoki bankka bloklash buyrug'i emas. Fuqaroga nisbatan hurmatli, xolis va neytral til ishlatilishi, tasdiqlanmagan gumon fakt sifatida ko'rsatilmasligi kerak.",
+      "aliases": [
+        "FINZANJIR fuqaroni firibgar deb topadimi",
+        "shubhali signal aybdorlikni isbotlaydimi",
+        "Case ochilsa fuqaro firibgarmi",
+        "fuqaroni ayblamaslik",
+        "signal jinoyat isbotimi",
+        "risk natijasi bloklash buyrug'imi"
+      ],
+      "evidence": {
+        "status": "project_source",
+        "verification": "author_confirmed",
+        "scope": "author_stated_project_principle"
+      },
+      "provenance": [
+        {
+          "source_type": "author_provided_current_conversation",
+          "source_id": "2026-11-13_user_project_principles",
+          "authority": "project_author",
+          "version": "1.0"
+        }
+      ],
+      "reconciliation": {
+        "status": "author_confirmed",
+        "scope": "non_accusatory_signal_and_case"
+      }
+    },
+    {
+      "id": "project_0003",
+      "concept_id": "finzanjir_false_positive_negative",
+      "canonical_concept_id": "finzanjir_false_positive_negative",
+      "statement": "FINZANJIR signal mexanizmlarida false positive va false negative xatolarini birgalikda hisobga olish kerak. False positive — qonuniy operatsiyani xato ravishda shubhali deb belgilash; false negative — haqiqiy xavfni aniqlamay o'tkazib yuborish. Faqat ko'proq signal chiqarish yoki faqat xato signalni kamaytirish yetarli emas: aniqlash sifati, fuqaroga yetadigan zarar, dalil sifati, qayta ko'rib chiqish va xatodan keyingi tuzatish birgalikda baholanishi kerak. Hech bir model 100 foiz xatosiz deb taqdim etilmaydi.",
+      "aliases": [
+        "false positive nima",
+        "false negative nima",
+        "fals f",
+        "fals n",
+        "noto'g'ri ijobiy",
+        "noto'g'ri salbiy",
+        "qonuniy tranzaksiyani xato aniqlash",
+        "xato signal va o'tkazib yuborilgan firibgarlik"
+      ],
+      "evidence": {
+        "status": "project_source",
+        "verification": "author_confirmed",
+        "scope": "author_stated_project_principle"
+      },
+      "provenance": [
+        {
+          "source_type": "author_provided_current_conversation",
+          "source_id": "2026-11-13_user_project_principles",
+          "authority": "project_author",
+          "version": "1.0"
+        }
+      ],
+      "reconciliation": {
+        "status": "author_confirmed",
+        "scope": "signal_quality_and_harm_reduction"
+      }
+    },
+    {
+      "id": "project_0004",
+      "concept_id": "finzanjir_bank_authority_boundary",
+      "canonical_concept_id": "finzanjir_bank_authority_boundary",
+      "statement": "FINZANJIR bank bilan hamkorlik qiladigan tizim bo'lishi kerak, bank ustidan turadigan yoki bank vakolatlarini o'ziga oladigan tizim emas. FINZANJIR bank kartasini o'zi bloklamasligi, bank qarorini o'zboshimchalik bilan o'zgartirmasligi va bankning vakolatli jarayonlarini almashtirmasligi kerak. Signal yoki tahlil natijasi bankka zarur bo'lsa ko'rib chiqish uchun yetkazilishi mumkin; har qanday amaliy cheklov yoki qaror tegishli qonuniy asos va bankning vakolatli tartibida qabul qilinadi. Aniq almashinuv tartibi hamkorlik va huquqiy kelishuvlarda belgilanadi.",
+      "aliases": [
+        "FINZANJIR kartani bloklay oladimi",
+        "bank o'rniga qaror qabul qiladimi",
+        "bank vakolatini oladimi",
+        "bank bilan hamkorlik",
+        "bloklash qarorini kim qabul qiladi",
+        "FINZANJIR bankni boshqaradimi"
+      ],
+      "evidence": {
+        "status": "project_source",
+        "verification": "author_confirmed",
+        "scope": "author_stated_project_principle"
+      },
+      "provenance": [
+        {
+          "source_type": "author_provided_current_conversation",
+          "source_id": "2026-11-13_user_project_principles",
+          "authority": "project_author",
+          "version": "1.0"
+        }
+      ],
+      "reconciliation": {
+        "status": "author_confirmed",
+        "scope": "bank_authority_and_cooperation"
+      }
+    },
+    {
+      "id": "project_0005",
+      "concept_id": "finzanjir_citizen_application",
+      "canonical_concept_id": "finzanjir_citizen_application",
+      "statement": "Muallif ko'zlagan fuqaro ilovasi fuqaroga o'z kartasi yoki unga tegishli holat bo'yicha ruxsat etilgan ma'lumotni ko'rish, xavfli vaziyatlar nimani anglatishini tushunish va kerakli murojaat yo'lini topishda yordam berishi kerak. Agar bank o'z vakolatidagi qaror bilan kartani cheklagan bo'lsa va bu holatni FINZANJIR orqali ko'rsatish qonuniy hamda kelishilgan bo'lsa, ilova cheklov holatini, bank tasdiqlagan sabab yoki tushuntirishni va keyingi qadamlarni ko'rsatishi mumkin. FINZANJIR bank tasdiqlamagan sababni o'zi to'qimasligi, bank qarorini o'zi chiqarmasligi kerak. Bu kelajakdagi maqsad va hamkorlikka bog'liq talab; hozirgi prototipda haqiqiy karta holatini ko'rsatish funksiyasi bor degani emas.",
+      "aliases": [
+        "fuqaro ilovasi nima qiladi",
+        "fuqaro o'z kartasini ko'radimi",
+        "karta bloklangan holatini ko'rsatish",
+        "nima sababdan karta bloklanganini bilish",
+        "fuqaroga xavfni tushuntirish",
+        "fuqaro kabineti FINZANJIR"
+      ],
+      "evidence": {
+        "status": "project_source",
+        "verification": "author_confirmed",
+        "scope": "future_product_requirement"
+      },
+      "provenance": [
+        {
+          "source_type": "author_provided_current_conversation",
+          "source_id": "2026-11-13_user_project_principles",
+          "authority": "project_author",
+          "version": "1.0"
+        }
+      ],
+      "reconciliation": {
+        "status": "author_confirmed",
+        "scope": "citizen_app_future_requirement"
+      }
+    },
+    {
+      "id": "project_0006",
+      "concept_id": "finzanjir_appeal_resolution_apology",
+      "canonical_concept_id": "finzanjir_appeal_resolution_apology",
+      "statement": "Fuqaro qonuniy operatsiyasi xato signal sabab shubhali deb ko'rilgan yoki bank tomonidan cheklov qo'llangan deb hisoblasa, tushunarli va tezkor murojaat qilish, holatni qayta ko'rib chiqish, zarur hujjat yoki izohni taqdim etish va natijani kuzatish yo'li bo'lishi kerak. Murojaat bankning vakolatli ko'rib chiqish jarayoniga qonuniy tartibda yo'naltiriladi; FINZANJIR qarorni o'zi bekor qilmaydi. Xato aniqlansa, sabab tahlil qilinishi, tuzatish kiritilishi, fuqaroga hurmat bilan tushuntirish berilishi va FINZANJIR sababli noqulaylik yuzaga kelgan bo'lsa, uzr so'rash ko'zda tutiladi. Murojaatlar taklif va tizimni yaxshilash manbasi ham bo'lishi mumkin.",
+      "aliases": [
+        "fuqaro murojaati",
+        "shikoyat qilish",
+        "karta xato bloklangan bo'lsa nima qilish kerak",
+        "qonuniy tranzaksiya cheklansa",
+        "tezkor hal qilish yo'li",
+        "FINZANJIR uzr so'rashi",
+        "e'tiroz va apellyatsiya",
+        "fuqaro takliflari"
+      ],
+      "evidence": {
+        "status": "project_source",
+        "verification": "author_confirmed",
+        "scope": "future_product_requirement"
+      },
+      "provenance": [
+        {
+          "source_type": "author_provided_current_conversation",
+          "source_id": "2026-11-13_user_project_principles",
+          "authority": "project_author",
+          "version": "1.0"
+        }
+      ],
+      "reconciliation": {
+        "status": "author_confirmed",
+        "scope": "appeals_redress_and_feedback"
+      }
+    },
+    {
+      "id": "project_0007",
+      "concept_id": "finzanjir_data_minimization_security",
+      "canonical_concept_id": "finzanjir_data_minimization_security",
+      "statement": "FINZANJIR imkon qadar minimal, aniq maqsad uchun zarur bo'lgan ma'lumot bilan ishlashi kerak. Barcha bank yoki fuqaro ma'lumotlarini yig'ish maqsad emas: har bir ma'lumot turi uchun nima sababdan kerakligi, kim ko'rishi, qancha muddat saqlanishi, kimga va qaysi qonuniy asosda uzatilishi aniqlanishi lozim. Minimal ma'lumot bilan ishlash ham katta mas'uliyat talab qiladi. Ortiqcha ma'lumot yig'maslik fuqaroda 'hamma ma'lumotim kuzatilmoqda' degan xavotirni, bankda esa 'FINZANJIR bank ichidagi hamma narsani ko'rmoqchi' degan ishonchsizlikni kamaytirishga yordam beradi. Kirish nazorati, shifrlash, audit, saqlash muddatlari, hodisaga javob va xavfsiz o'chirish kabi himoyalar huquqiy va texnik tekshiruvdan o'tishi kerak.",
+      "aliases": [
+        "minimal ma'lumot",
+        "ma'lumotlarni minimallashtirish",
+        "FINZANJIR barcha bank ma'lumotlarini yig'adimi",
+        "bank sirini himoya qilish",
+        "fuqaro ma'lumotlari maxfiyligi",
+        "hakerlik xavfi",
+        "ma'lumotlar xavfsizligi"
+      ],
+      "evidence": {
+        "status": "project_source",
+        "verification": "author_confirmed",
+        "scope": "author_stated_project_principle"
+      },
+      "provenance": [
+        {
+          "source_type": "author_provided_current_conversation",
+          "source_id": "2026-11-13_user_project_principles",
+          "authority": "project_author",
+          "version": "1.0"
+        }
+      ],
+      "reconciliation": {
+        "status": "author_confirmed",
+        "scope": "privacy_and_data_minimization"
+      }
+    },
+    {
+      "id": "project_0008",
+      "concept_id": "finzanjir_cross_bank_cooperation",
+      "canonical_concept_id": "finzanjir_cross_bank_cooperation",
+      "statement": "Banklararo tahlil yoki bitta bank bilan hamkorlikda FINZANJIR faqat kelishilgan, qonuniy va maqsadga mos doirada ishlashi kerak. Hamkorlarga uzatiladigan ma'lumotlar xavfsiz, cheklangan va vazifani bajarish uchun zarur minimal hajmda bo'lishi ko'zda tutiladi. Xom bank ichki ma'lumotlari yoki fuqaroning ortiqcha shaxsiy ma'lumotlarini erkin tarqatish loyiha maqsadi emas. Qaysi signal yoki ko'rsatkich uzatilishi, kimga, qanday himoya bilan va qaysi vakolat asosida uzatilishi banklar bilan kelishuv va amaldagi qonunchilikka bog'liq. Hamkorlikning texnik imkoniyati uning avtomatik ravishda huquqiy ruxsatga ega ekanini anglatmaydi.",
+      "aliases": [
+        "banklararo tahlil",
+        "cross bank",
+        "bank bilan ma'lumot almashish",
+        "hamkorlarga signal uzatish",
+        "banklararo hamkorlik",
+        "minimal xavfsiz ma'lumot almashinuvi"
+      ],
+      "evidence": {
+        "status": "project_source",
+        "verification": "author_confirmed",
+        "scope": "author_stated_project_principle"
+      },
+      "provenance": [
+        {
+          "source_type": "author_provided_current_conversation",
+          "source_id": "2026-11-13_user_project_principles",
+          "authority": "project_author",
+          "version": "1.0"
+        }
+      ],
+      "reconciliation": {
+        "status": "author_confirmed",
+        "scope": "controlled_interbank_cooperation"
+      }
+    },
+    {
+      "id": "project_0009",
+      "concept_id": "finzanjir_detection_limits_and_future",
+      "canonical_concept_id": "finzanjir_detection_limits_and_future",
+      "statement": "FINZANJIR barcha drop-karta holatlarini yoki barcha firibgarlik usullarini aniqlay oladi deb va'da bermasligi kerak. Firibgarlar usullarini o'zgartirishi, ma'lumotlar cheklangan yoki signal noaniq bo'lishi mumkin. Shu sababli tizim aniqlagan va aniqlay olmagan holatlar chegarasini ochiq tushuntirishi, noma'lum vaziyatni isbotlangan faktga aylantirmasligi, yangi mexanizmlar va modullarni bosqichma-bosqich, sinov va mustaqil baholash bilan kengaytirishi kerak. Kelajakdagi fuqaro ilovasi, murojaatlar, signal va Case yaxshilanishlari ham shu xavfsizlik, qonuniylik va minimal ma'lumot tamoyillariga bo'ysunadi.",
+      "aliases": [
+        "FINZANJIR barcha drop kartalarni topadimi",
+        "drop karta aniqlash cheklovlari",
+        "hamma firibgarlikni aniqlay oladimi",
+        "kelajakda yangi modullar",
+        "loyihani kengaytirish",
+        "aniqlash chegaralari"
+      ],
+      "evidence": {
+        "status": "project_source",
+        "verification": "author_confirmed",
+        "scope": "author_stated_project_principle"
+      },
+      "provenance": [
+        {
+          "source_type": "author_provided_current_conversation",
+          "source_id": "2026-11-13_user_project_principles",
+          "authority": "project_author",
+          "version": "1.0"
+        }
+      ],
+      "reconciliation": {
+        "status": "author_confirmed",
+        "scope": "detection_limits_and_future_expansion"
+      }
+    }
+  ]
+}
