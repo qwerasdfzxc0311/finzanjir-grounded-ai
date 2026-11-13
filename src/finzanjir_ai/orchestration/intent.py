@@ -29,11 +29,11 @@ def normalize_query_for_intent(query: str) -> str:
 
 
 _LANGUAGE_MARKERS = {
-    "uz": {"nima", "haqida", "uchun", "kerak", "loyiha", "moliyaviy", "firibgarlik", "fuqaro", "maqsad", "tahlil", "xavf"},
+    "uz": {"nima", "haqida", "uchun", "kerak", "loyiha", "moliyaviy", "firibgarlik", "fuqaro", "maqsad", "tahlil", "xavf", "нима", "лойиҳа", "учун", "керак", "мақсад", "фуқаро", "молиявий"},
     "ru": {"что", "такое", "проект", "расскажи", "объясни", "зачем", "финансовый", "мошенничество", "граждан"},
     "en": {"what", "is", "about", "tell", "explain", "project", "financial", "fraud", "citizen", "purpose"},
     "kk": {"жоба", "қаржы", "алаяқтық", "азамат", "туралы", "мақсат", "деген", "не", "zhoba", "qarzhy", "azamat", "turaly", "maqset", "ushin"},
-    "kaa": {"joybar", "qarjı", "puqara", "haqqında", "haqqinda", "maqset", "qáwip", "degen", "ushın", "ushin", "maǵlıwmat"},
+    "kaa": {"joybar", "qarjı", "puqara", "haqqında", "haqqinda", "maqset", "qáwip", "degen", "ushın", "ushin", "maǵlıwmat", "joybar", "мақсет", "пуқара", "ҳаққында", "қаўип"},
 }
 
 
@@ -45,6 +45,8 @@ def detect_query_language(query: str) -> str:
         kaa_hits = len(tokens & _LANGUAGE_MARKERS["kaa"])
         kk_hits = len(tokens & _LANGUAGE_MARKERS["kk"])
         return "kaa" if kaa_hits > kk_hits else "kk"
+    if re.search(r"[ўҳ]", value) or tokens & {"нима", "лойиҳа", "учун", "керак", "мақсад", "фуқаро", "молиявий"}:
+        return "uz"
     if re.search(r"[а-яё]", value):
         return "ru"
     scores = {language: len(tokens & markers) for language, markers in _LANGUAGE_MARKERS.items()}
