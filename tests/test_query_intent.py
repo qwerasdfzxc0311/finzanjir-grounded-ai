@@ -79,3 +79,16 @@ def test_bank_card_blocking_questions_are_detected_as_specific_authority_queries
     assert is_bank_authority_query("Может ли FINZANJIR заблокировать карту?")
     assert classify_query_intent("FINZANJIR nima?") == "project_overview"
     assert not is_bank_authority_query("FINZANJIR nima?")
+
+
+
+def test_citizen_funds_protection_query_uses_specific_local_search_variants():
+    from finzanjir_ai.knowledge.index import build_knowledge_index
+    from finzanjir_ai.retrieval.rerank import QueryExpander
+
+    expanded = QueryExpander(build_knowledge_index([])).expand(
+        "FINZANJIR fuqarolar pulini qanday himoya qiladi?"
+    )
+    assert any("qonuniy mablag'lari" in value for value in expanded)
+    assert any("shubhali pul oqimlarini" in value for value in expanded)
+    assert "FINZANJIR moliyaviy xavfsizlik firibgarlik zanjiri" not in expanded
