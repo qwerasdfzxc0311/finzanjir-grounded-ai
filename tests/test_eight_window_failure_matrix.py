@@ -271,3 +271,60 @@ def test_asgi_http_disconnect_after_first_stage_does_not_cancel_synthetic_worker
             release_worker.set()
 
     asyncio.run(exercise())
+
+
+def test_stream_synthetic_bank_preflight_failure_marks_first_window_failed(monkeypatch):
+    payload = _payload("TX-FAIL-SYNTHETIC-BANK-001")
+    payload["synthetic"] = False
+
+    response = client.post("/api/prototype/run/stream", json=payload)
+
+    frames = _frames(response)
+    stages = [data for name, data in frames if name == "stage"]
+    errors = [data for name, data in frames if name == "error"]
+    results = [data for name, data in frames if name == "result"]
+    assert response.status_code == 200
+    assert [item["window_id"] for item in stages] == list(WINDOWS)
+    assert [item["status"] for item in stages] == ["FAILED"] + ["NOT_RUN"] * 7
+    assert stages[0]["sequence"] == 1
+    assert errors == [{
+        "status_code": 400,
+        "detail": "The prototype flow accepts only explicitly synthetic transactions.",
+    }]
+    assert results == []
+
+
+def test_stream_human_case_failure_marks_case_window_failed_and_stops_later_windows(monkeypatch):
+    def fail_open_case(*_args, **_kwargs):
+        raise RuntimeError("synthetic case manager unavailable")
+
+    monkeypatch.setattr("finzanjir_ai.prototype.flow.CaseManager.open_case", fail_open_case)
+    response = client.post(
+        "/api/prototype/run/stream",
+        json=_payload("TX-FAIL-HUMAN-CASE-001"),
+    )
+    _assert_stopped_at(response, "human_case")
+
+
+def test_stream_finzanjir_ai_failure_marks_ai_window_failed_and_stops_later_windows(monkeypatch):
+    def fail_answer(*_args, **_kwargs):
+        raise RuntimeError("synthetic grounded answer unavailable")
+
+    monkeypatch.setattr("finzanjir_ai.prototype.flow.FINZANJIRAI.answer", fail_answer)
+    response = client.post(
+        "/api/prototype/run/stream",
+        json=_payload("TX-FAIL-AI-001"),
+    )
+    _assert_stopped_at(response, "finzanjir_ai")
+
+
+def test_stream_layers_16_failure_marks_architecture_window_failed(monkeypatch):
+    def fail_layer_trace(*_args, **_kwargs):
+        raise RuntimeError("synthetic layer registry unavailable")
+
+    monkeypatch.setattr("finzanjir_ai.prototype.flow.SystemFlow._layer_trace", fail_layer_trace)
+    response = client.post(
+        "/api/prototype/run/stream",
+        json=_payload("TX-FAIL-LAYERS-16-001"),
+    )
+    _assert_stopped_at(response, "layers_16")
