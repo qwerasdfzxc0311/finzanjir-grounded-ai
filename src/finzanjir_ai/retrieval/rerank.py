@@ -45,11 +45,17 @@ _MULTI_CARD_FRAUD_QUERY_HINTS = (
 
 _SIGNAL_PROCESS_QUERY_HINTS = (
     "signal aniqlangandan keyin Evidence Risk Score Case va audit bosqichlari",
-    "shubhali signalni dalillar bilan tekshirish va Case ochish",
+    "Transaction → Signal → Evidence → Risk → Threshold → Case → HumanDecision → AuditEvent",
+    "signal aniqlangandan keyin Evidence tekshiruvi Risk Score va Threshold baholash",
+    "shubhali signalni dalillar bilan tekshirish risk darajasini baholash va Case ochish",
+    "Case escalation threshold bajarilgandan keyin vakolatli Human Review",
     "vakolatli mutaxassis inson ko'rigi va bankning qaror qabul qilish tartibi",
+    "bankning qaror qabul qilish tartibi",
+    "bankning qonuniy qarori va vakolatli bank jarayoni HumanDecision",
+    "AuditEvent qaror tarixi va fuqaro feedback qayta ko'rib chiqish",
     "FINZANJIR signalni bankka ko'rib chiqish uchun yuboradi bank vakolatini almashtirmaydi",
     "risk indikatori avtomatik bloklash buyrug'i yoki aybdorlik isboti emas",
-    "source validation normalization context signal evidence risk case human review audit feedback",
+    "source validation normalization context signal evidence risk threshold case human review bank decision audit feedback",
 )
 
 

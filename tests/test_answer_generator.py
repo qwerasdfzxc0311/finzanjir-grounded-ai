@@ -264,3 +264,99 @@ def test_signal_followup_fallback_prefers_review_process_not_only_general_warnin
     assert "vakolatli mutaxassis dalillarni ko'rib chiqadi" in result.answer
     assert "Bank o'z vakolatidagi qarorni" in result.answer
     assert "avtomatik ravishda aybdorlik isboti" not in result.answer
+
+
+def test_multi_card_fallback_excludes_unrelated_card_app_and_credential_sentences():
+    source = (
+        "Fraud Graph karta, hisob, telefon, qurilma va qabul qiluvchi o'rtasidagi bog'lanishlarni ko'rsatadi. "
+        "Bog'langan tranzaksiyalar Cross-Match orqali aniqlanib, umumiy pul oqimi tahlil qilinadi. "
+        "Mening kartalarim fuqaroga qonuniy integratsiya orqali taqdim etilgan kartalarni ko'rsatadi. "
+        "Tizim real bank API, CVV, OTP, parol yoki real pul bilan ishlamaydi. "
+    ) * 20
+    context = GroundedContext(items=(GroundedContextItem(
+        record_id="ck-multi-card",
+        concept_id="multi-card-fraud-graph",
+        statement=source,
+        score=0.95,
+        provenance=({"source": "canonical-v0.6"},),
+        evidence={"status": "supported"},
+    ),))
+
+    result = GroundedAnswerGenerator(FailedProvider()).generate(
+        "Agar firibgar pulni bir nechta karta orqali o'tkazsa, FINZANJIR buni qanday tushunadi?",
+        context,
+    )
+
+    assert result.abstained is False
+    assert "Fraud Graph" in result.answer
+    assert "Cross-Match" in result.answer
+    assert "Mening kartalarim" not in result.answer
+    assert "CVV, OTP" not in result.answer
+
+
+def test_funds_protection_fallback_combines_primary_and_supporting_evidence():
+    source = (
+        "FINZANJIR fuqarolarning qonuniy mablag'lari va tranzaksiyalariga asossiz zarar yetmasligiga yordam beradi. "
+        "Shubhali pul oqimlarini aniqlash va tahlil qilish fuqarolar mablag'ini himoya qilish mexanizmlaridan biridir. "
+        "Daromad modelining huquqiy va etik cheklovlari fuqarolar manfaatlarini himoya qilish tamoyillaridan ustun qo'yilmasligi kerak. "
+    ) * 20
+    context = GroundedContext(items=(GroundedContextItem(
+        record_id="ck-funds-protection",
+        concept_id="citizen-funds-protection",
+        statement=source,
+        score=0.96,
+        provenance=({"source": "canonical-v0.6"},),
+        evidence={"status": "supported"},
+    ),))
+
+    result = GroundedAnswerGenerator(FailedProvider()).generate(
+        "FINZANJIR fuqarolar pulini qanday himoya qiladi?",
+        context,
+    )
+
+    assert result.abstained is False
+    assert "qonuniy mablag'lari" in result.answer
+    assert "Shubhali pul oqimlarini aniqlash" in result.answer
+    assert "Daromad modelining" not in result.answer
+
+
+def test_signal_process_fallback_orders_only_source_supported_process_stages():
+    source = (
+        "Bank o'z vakolatidagi qarorni qonuniy asos va vakolatli tartib bo'yicha qabul qiladi. "
+        "AuditEvent va feedback natijalari audit izida qayd etiladi. "
+        "Case threshold bajarilganda ochiladi. "
+        "Risk Score va Threshold qiymati dalillar asosida baholanadi. "
+        "Vakolatli mutaxassis Human Review jarayonida dalillarni ko'rib chiqadi. "
+        "Dalillar tekshiriladi va tranzaksiya konteksti bilan solishtiriladi. "
+        "Shubhali signal aniqlanadi va keyingi tahlil uchun qayd etiladi. "
+        "Shubhali signal avtomatik ravishda aybdorlik isboti hisoblanmaydi. "
+    ) * 20
+    context = GroundedContext(items=(GroundedContextItem(
+        record_id="ck-process-stages",
+        concept_id="signal-followup-process",
+        statement=source,
+        score=0.95,
+        provenance=({"source": "canonical-v0.6"},),
+        evidence={"status": "supported"},
+    ),))
+
+    result = GroundedAnswerGenerator(FailedProvider()).generate(
+        "Shubhali signal topilgandan keyin qanday jarayon bo'ladi va bank nima qiladi?",
+        context,
+    )
+
+    assert result.abstained is False
+    assert result.generation_mode == "extractive_grounded_fallback"
+    expected = [
+        "Shubhali signal aniqlanadi",
+        "Dalillar tekshiriladi",
+        "Risk Score va Threshold",
+        "Case threshold",
+        "Human Review",
+        "Bank o'z vakolatidagi qarorni",
+        "AuditEvent va feedback",
+    ]
+    assert all(value in result.answer for value in expected), result.answer
+    positions = [result.answer.index(value) for value in expected]
+    assert positions == sorted(positions)
+    assert "avtomatik aybdorlik isboti" not in result.answer

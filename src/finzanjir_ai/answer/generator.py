@@ -28,6 +28,9 @@ def _semantic_groups(value: str) -> set[str]:
         "card": {"karta", "card", "cards"},
         "signal": {"signal", "indikator", "belgi", "shubhali", "suspicious"},
         "fraud": {"firibgar", "firibgarlik", "fraud", "scam"},
+        "link": {"bog'lanish", "boglanish", "aloqa", "linked", "cross", "graph", "grafik", "cross-match"},
+        "transaction": {"tranzaksiya", "tranzaksiyalar", "transaction", "transactions", "oqim"},
+        "review": {"review", "ko'rik", "tekshiruv", "tekshir", "mutaxassis", "inson", "vakolatli"},
         "process": {
             "case", "evidence", "dalil", "risk", "tekshiruv", "tekshirish",
             "tekshiriladi", "vakolatli", "bank", "audit", "review",
@@ -48,6 +51,77 @@ def _semantic_groups(value: str) -> set[str]:
     return result
 
 
+def _process_stage(sentence: str) -> int | None:
+    """Map an evidence sentence to a documented process stage without adding facts."""
+    value = sentence.casefold().replace("’", "'").replace("ʻ", "'")
+    # A non-accusatory principle is important, but it is not a process step.
+    if "aybdorlik isboti" in value or "guilt" in value:
+        return None
+    stages = (
+        # Signal identification
+        (0, ("signal", "shubhali signal"), ("aniql", "topil", "paydo")),
+        # Evidence review / validation
+        (1, ("evidence", "dalil"), ("tekshir", "solishtir", "review", "ko'rib")),
+        # Risk and threshold assessment
+        (2, ("risk", "threshold"), ("score", "ball", "bahola", "chegara")),
+        # Case creation / recording
+        (3, ("case",), ("ochil", "qayd", "escalat", "yurit")),
+        # Authorized human review
+        (4, ("human review", "inson", "mutaxassis", "vakolatli"), ("review", "ko'rib", "ko'rik")),
+        # Bank decision boundary
+        (5, ("bank",), ("qaror", "cheklov", "blok", "decision", "qabul")),
+        # Audit and feedback
+        (6, ("audit", "feedback"), ("qayd", "tarix", "event", "feedback")),
+    )
+    matched = [
+        stage for stage, subjects, actions in stages
+        if any(subject in value for subject in subjects)
+        and any(action in value for action in actions)
+    ]
+    if not matched:
+        return None
+    # A sentence describing a later action is assigned to that action, so a
+    # combined signal/risk sentence does not incorrectly occupy the first slot.
+    return max(matched)
+
+
+def _is_relevant_extractive_sentence(
+    query_groups: set[str],
+    sentence_groups: set[str],
+    sentence: str,
+) -> bool:
+    """Require a coherent topic match, not a single incidental keyword."""
+    if {"funds", "protect"}.issubset(query_groups):
+        direct_protection = {"funds", "protect"}.issubset(sentence_groups)
+        supporting_mechanism = (
+            "fraud" in sentence_groups
+            and bool({"signal", "protect"} & sentence_groups)
+        ) or (
+            "signal" in sentence_groups
+            and bool({"funds", "review", "case", "fraud"} & sentence_groups)
+        )
+        if not (direct_protection or supporting_mechanism):
+            return False
+
+    if {"card", "fraud"}.issubset(query_groups):
+        linked_card_evidence = (
+            "card" in sentence_groups
+            and bool({"fraud", "link", "transaction"} & sentence_groups)
+        ) or (
+            {"link", "transaction"}.issubset(sentence_groups)
+        ) or (
+            {"fraud", "transaction"}.issubset(sentence_groups)
+        )
+        if not linked_card_evidence:
+            return False
+
+    if "signal" in query_groups and "process" in query_groups:
+        if _process_stage(sentence) is None:
+            return False
+
+    return True
+
+
 def _extractive_grounded_fallback(query: str, items: list[Any], *, max_sentences: int = 6) -> tuple[str, tuple[str, ...]]:
     """Build a readable, source-faithful fallback from relevant sentences.
 
@@ -56,7 +130,7 @@ def _extractive_grounded_fallback(query: str, items: list[Any], *, max_sentences
     """
     query_terms = set(meaningful_tokens(query)) - {"finzanjir"}
     query_groups = _semantic_groups(query)
-    ranked: list[tuple[float, str, str]] = []
+    ranked: list[tuple[float, int, str, str]] = []
     seen: set[str] = set()
 
     for item in items:
@@ -78,39 +152,43 @@ def _extractive_grounded_fallback(query: str, items: list[Any], *, max_sentences
                 overlap = len(query_terms & set(normalized.split()))
                 alias_match = bool(query_terms & alias_terms)
                 sentence_groups = _semantic_groups(candidate)
-                # For a citizen/funds protection question, do not select a
-                # generic sentence about the project or author that mentions
-                # "citizen" and "protection" but says nothing about funds.
-                if {"funds", "protect"}.issubset(query_groups):
-                    required_groups = {"funds", "protect"}
-                    if "citizen" in query_groups:
-                        required_groups.add("citizen")
-                    if not required_groups.issubset(sentence_groups):
-                        continue
-                if "signal" in query_groups:
-                    if "process" in query_groups:
-                        if "process" not in sentence_groups:
-                            continue
-                    elif "signal" not in sentence_groups:
-                        continue
-                semantic_overlap = len(query_groups & sentence_groups)
-                if overlap == 0 and not alias_match and semantic_overlap == 0:
+                if not _is_relevant_extractive_sentence(query_groups, sentence_groups, candidate):
+                    continue
+                if overlap == 0 and not alias_match and not (query_groups & sentence_groups):
                     continue
                 relevance = overlap / max(1, len(query_terms))
-                relevance += 0.15 * semantic_overlap
+                relevance += 0.15 * len(query_groups & sentence_groups)
                 score = relevance + (0.025 * max(0.0, min(1.0, float(item.score))))
-                ranked.append((score, candidate, item.record_id))
+                stage = _process_stage(candidate) if {"signal", "process"}.issubset(query_groups) else -1
+                ranked.append((score, stage if stage is not None else -1, candidate, item.record_id))
                 seen.add(normalized)
 
-    ranked.sort(key=lambda value: (-value[0], value[2], value[1]))
-    selected = ranked[:max_sentences]
+    if {"signal", "process"}.issubset(query_groups):
+        # Process answers must follow the sequence represented by the source
+        # evidence. Keep the best grounded sentence for each available stage.
+        best_by_stage: dict[int, tuple[float, int, str, str]] = {}
+        for entry in ranked:
+            score, stage, sentence, record_id = entry
+            if stage < 0:
+                continue
+            current = best_by_stage.get(stage)
+            if current is None or (score, record_id, sentence) > (current[0], current[3], current[2]):
+                best_by_stage[stage] = entry
+        # A complete process may have more than the default six general-answer
+        # sentences. Include every grounded stage found, with a hard safety cap.
+        process_limit = max(max_sentences, min(8, len(best_by_stage)))
+        selected = [best_by_stage[stage] for stage in sorted(best_by_stage)][:process_limit]
+    else:
+        ranked.sort(key=lambda value: (-value[0], value[3], value[2]))
+        selected = ranked[:max_sentences]
+
     if not selected:
         return "", ()
 
     answer = "Manbalarda topilgan tasdiqlangan ma'lumotlar:\n\n" + "\n\n".join(
-        f"{index}. {sentence}" for index, (_, sentence, _) in enumerate(selected, start=1)
+        f"{index}. {sentence}" for index, (_, _, sentence, _) in enumerate(selected, start=1)
     )
-    citations = tuple(dict.fromkeys(record_id for _, _, record_id in selected))
+    citations = tuple(dict.fromkeys(record_id for _, _, _, record_id in selected))
     return answer, citations
 
 
