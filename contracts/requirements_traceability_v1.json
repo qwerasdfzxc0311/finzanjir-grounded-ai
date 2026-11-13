@@ -1,0 +1,475 @@
+{
+  "schema_version": "1.0",
+  "title": "FINZANJIR 16 qatlam — ZIP REQ reyestri va kod dalillari",
+  "source_documents": [
+    "FINZANJIR_16_QATLAM_TALABLAR_VA_SINOVLAR_REYESTRI.pdf (V1, ZIP arxivi)",
+    "FINZANJIR_16_QATLAM_CHUQUR_TUSHUNTIRISH_V3_TUZATILGAN.docx (2026-10-17, ZIP arxivi)",
+    "FINZANJIR_BANK_INTEGRATSIYA_XAVFSIZLIK_AVTOMATLASHTIRISH_TEXNIK_ARXITEKTURA_V8.pdf",
+    "FINZANJIR_KONSEPSIYA_V14.pdf"
+  ],
+  "status_semantics": {
+    "PARTIAL": "Kod/test dalili mavjud, lekin kamida bitta qabul mezoni yoki tashqi shart bajarilmagan.",
+    "COMPLETE": "Faqat barcha tasdiqlangan qabul mezonlari aniq build/muhit/sana/dalil bilan yopilganda; ushbu reyestrda hozircha ishlatilmaydi.",
+    "BLOCKED_EXTERNAL": "Qonuniy ruxsat, bank kelishuvi, real deployment yoki mustaqil baholash talab qilinadi.",
+    "OPEN_DECISION": "Qabul mezoni, vakolatli rol yoki siyosat hali kelishilmagan."
+  },
+  "safety_invariants": [
+    "Signal firibgarlik isboti emas; risk balli aybdorlik hukmi emas; Case yakuniy hukm emas.",
+    "AI xulosasi bank yoki huquqiy qarorni almashtirmaydi.",
+    "Cross-Bank almashinuvi qonuniy va xavfsizlik ruxsatisiz o‘chiq qoladi.",
+    "Faqat sintetik test ma’lumoti; live-bank yoki production validatsiya da’vo qilinmaydi.",
+    "AI modeli/xulqini o‘zgartirish ushbu bosqich doirasidan tashqarida."
+  ],
+  "requirement_count": 16,
+  "layers": [
+    {
+      "requirement_id": "REQ-001",
+      "layer_id": "L01",
+      "label": "Dalil va ma’lumot kelib chiqishi",
+      "requirement": "Har bir muhim yozuvda manba, vaqt, olish usuli, versiya va identifikatorni kuzatish.",
+      "status": "PARTIAL",
+      "code_refs": [
+        "src/finzanjir_ai/risk/observations.py",
+        "src/finzanjir_ai/risk/scoring.py",
+        "contracts/event_contracts_v2.json"
+      ],
+      "test_refs": [
+        "tests/test_signal_observation_adapter.py",
+        "tests/test_multi_signal_scoring.py",
+        "tests/test_eight_window_failure_matrix.py"
+      ],
+      "remaining_gaps": [
+        "Tashqi manba autentifikatsiyasi/imzo tekshiruvi",
+        "Durable evidence store va provenance replay"
+      ],
+      "evidence_scope": "synthetic_prototype_only",
+      "blocked_external": false
+    },
+    {
+      "requirement_id": "REQ-002",
+      "layer_id": "L02",
+      "label": "Ma’lumot sifati va ishonchliligi",
+      "requirement": "To‘liqsizlik, eskirish, dublikat, tartibdan chiqish va zid qiymatlarni yashirmasdan belgilash.",
+      "status": "PARTIAL",
+      "code_refs": [
+        "src/finzanjir_ai/risk/observations.py",
+        "src/finzanjir_ai/risk/scoring.py"
+      ],
+      "test_refs": [
+        "tests/test_signal_observation_adapter.py",
+        "tests/test_multi_signal_scoring.py",
+        "tests/test_signal_deduplication_contract.py"
+      ],
+      "remaining_gaps": [
+        "Source-specific quality validation",
+        "Schema drift va freshness monitoring",
+        "Mustaqil data-quality baholash"
+      ],
+      "evidence_scope": "synthetic_prototype_only",
+      "blocked_external": true
+    },
+    {
+      "requirement_id": "REQ-003",
+      "layer_id": "L03",
+      "label": "Xavf va noaniqlikni boshqarish",
+      "requirement": "Risk score, evidence confidence, sabablar va yetishmayotgan dalillarni ajratish; ballni aybdorlik deb ko‘rsatmaslik.",
+      "status": "PARTIAL",
+      "code_refs": [
+        "src/finzanjir_ai/risk/scoring.py",
+        "src/finzanjir_ai/risk/thresholds.py",
+        "contracts/signal_registry_v1.json"
+      ],
+      "test_refs": [
+        "tests/test_multi_signal_scoring.py",
+        "tests/test_threshold_manager.py",
+        "tests/test_all_signal_synthetic_scenarios.py"
+      ],
+      "remaining_gaps": [
+        "Real etalon dataset bilan kalibrlash",
+        "Counter-evidence va uncertainty modelini mustaqil baholash"
+      ],
+      "evidence_scope": "synthetic_prototype_only",
+      "blocked_external": true
+    },
+    {
+      "requirement_id": "REQ-004",
+      "layer_id": "L04",
+      "label": "Inson nazorati va xatoni tuzatish",
+      "requirement": "Noaniq/yuqori ta’sirli holatlarni inson ko‘rigiga yo‘naltirish; oldingi va yangi qiymat izini saqlash.",
+      "status": "PARTIAL",
+      "code_refs": [
+        "src/finzanjir_ai/case/manager.py",
+        "src/finzanjir_ai/prototype/flow.py",
+        "src/finzanjir_ai/citizen_appeals.py"
+      ],
+      "test_refs": [
+        "tests/test_case_review.py",
+        "tests/test_case_decision_metadata.py",
+        "tests/test_citizen_appeals.py",
+        "tests/test_eight_window_failure_matrix.py"
+      ],
+      "remaining_gaps": [
+        "Haqiqiy identity/RBAC va reviewer vakolati",
+        "Ikkinchi mustaqil ko‘rik va operatsion correction workflow"
+      ],
+      "evidence_scope": "synthetic_prototype_only",
+      "blocked_external": true
+    },
+    {
+      "requirement_id": "REQ-005",
+      "layer_id": "L05",
+      "label": "Qoidalar va modellarni boshqarish",
+      "requirement": "Qoida/threshold versiyasi, o‘zgarish sababi, actor va old/new qiymatlarni kuzatish.",
+      "status": "PARTIAL",
+      "code_refs": [
+        "src/finzanjir_ai/risk/thresholds.py",
+        "src/finzanjir_ai/risk/registry.py",
+        "src/finzanjir_ai/audit/service.py"
+      ],
+      "test_refs": [
+        "tests/test_threshold_manager.py",
+        "tests/test_signal_registry_contract.py",
+        "tests/test_audit_kpi.py"
+      ],
+      "remaining_gaps": [
+        "Production proposer/approver RBAC va vazifalarni ajratish",
+        "Durable/tamper-evident audit",
+        "Tasdiqlangan rollout va rollback boshqaruvi"
+      ],
+      "evidence_scope": "synthetic_prototype_only",
+      "blocked_external": false
+    },
+    {
+      "requirement_id": "REQ-006",
+      "layer_id": "L06",
+      "label": "Ma’lumotni oshkor qilish va almashish nazorati",
+      "requirement": "Tashqi uzatishdan oldin maqsad, ruxsat, qabul qiluvchi va minimal maydonlarni tekshirish.",
+      "status": "PARTIAL",
+      "code_refs": [
+        "src/finzanjir_ai/data_sharing",
+        "src/finzanjir_ai/risk/observations.py",
+        "src/finzanjir_api/app.py"
+      ],
+      "test_refs": [
+        "tests/test_data_disclosure_sharing_control.py",
+        "tests/test_signal_observation_adapter.py",
+        "tests/test_api_security_baseline.py",
+        "tests/test_cross_bank.py"
+      ],
+      "remaining_gaps": [
+        "Server-side authenticated bank role va purpose authorization",
+        "DLP, huquqiy disclosure workflow va data-sharing kelishuvi"
+      ],
+      "evidence_scope": "synthetic_prototype_only",
+      "blocked_external": true
+    },
+    {
+      "requirement_id": "REQ-007",
+      "layer_id": "L07",
+      "label": "Avtomatik jarayonlar xavfsizligi",
+      "requirement": "Faqat ruxsatli amal; kill-switch, circuit-breaker, timeout va noaniq holatda xavfsiz to‘xtash.",
+      "status": "PARTIAL",
+      "code_refs": [
+        "src/finzanjir_ai/automation/policy.py",
+        "src/finzanjir_ai/prototype/flow.py"
+      ],
+      "test_refs": [
+        "tests/test_automation_safety_control.py",
+        "tests/test_unified_prototype.py",
+        "tests/test_eight_window_failure_matrix.py"
+      ],
+      "remaining_gaps": [
+        "Server-side persistent kill-switch va distributed circuit-breaker",
+        "Production monitoring, rollback automation va incident integratsiyasi"
+      ],
+      "evidence_scope": "synthetic_prototype_only",
+      "blocked_external": false
+    },
+    {
+      "requirement_id": "REQ-008",
+      "layer_id": "L08",
+      "label": "Tranzaksiya zanjiri va Case bog‘liqligi",
+      "requirement": "Transaction, Signal, Evidence, Risk, Threshold, Case va audit correlation identifikatorlarini bog‘lash.",
+      "status": "PARTIAL",
+      "code_refs": [
+        "src/finzanjir_ai/risk/pipeline.py",
+        "src/finzanjir_ai/case/manager.py",
+        "src/finzanjir_ai/prototype/flow.py",
+        "src/finzanjir_ai/transaction_chain"
+      ],
+      "test_refs": [
+        "tests/test_transaction_chain_case_correlation.py",
+        "tests/test_multi_signal_flow.py",
+        "tests/test_eight_window_failure_matrix.py"
+      ],
+      "remaining_gaps": [
+        "Ko‘p tranzaksiyali graph chain va replay",
+        "Banklararo graph uchun qonuniy ruxsat"
+      ],
+      "evidence_scope": "synthetic_prototype_only",
+      "blocked_external": true
+    },
+    {
+      "requirement_id": "REQ-009",
+      "layer_id": "L09",
+      "label": "Fuqaro shaffofligi va e’tiroz",
+      "requirement": "Fuqaro uchun tushunarli status va e’tiroz yo‘li; ichki/maxfiy yoki boshqa shaxs ma’lumotini oshkor qilmaslik.",
+      "status": "PARTIAL",
+      "code_refs": [
+        "src/finzanjir_ai/citizen_transparency.py",
+        "src/finzanjir_ai/citizen_appeals.py"
+      ],
+      "test_refs": [
+        "tests/test_citizen_transparency_appeal.py",
+        "tests/test_citizen_appeals.py",
+        "tests/test_api_synthetic_status.py"
+      ],
+      "remaining_gaps": [
+        "Authenticated citizen identity va faqat o‘z yozuvlariga kirish",
+        "Tasdiqlangan bildirishnoma kanali/SLA va vakolatli caseworker"
+      ],
+      "evidence_scope": "synthetic_prototype_only",
+      "blocked_external": true
+    },
+    {
+      "requirement_id": "REQ-010",
+      "layer_id": "L10",
+      "label": "Maxfiylik va ma’lumotlar hayotiy sikli",
+      "requirement": "Ma’lumot turi, maqsad, saqlash muddati, kirish va o‘chirish/arxivlash siyosatini boshqarish.",
+      "status": "PARTIAL",
+      "code_refs": [
+        "src/finzanjir_ai/privacy_data_lifecycle.py",
+        "contracts/event_envelope_v2.json"
+      ],
+      "test_refs": [
+        "tests/test_privacy_data_lifecycle.py",
+        "tests/test_event_contract_v2.py",
+        "tests/test_api_security_baseline.py"
+      ],
+      "remaining_gaps": [
+        "Durable retention/deletion job va o‘chirish dalili",
+        "At-rest/in-transit encryption, key management va hosting nazorati",
+        "Huquqiy asos, purpose limitation va data-subject rights workflow"
+      ],
+      "evidence_scope": "synthetic_prototype_only",
+      "blocked_external": true
+    },
+    {
+      "requirement_id": "REQ-011",
+      "layer_id": "L11",
+      "label": "Xavfsizlik hodisasiga javob",
+      "requirement": "Hodisa tasnifi, mas’ul, eskalatsiya, dalilni saqlash, tiklash va post-incident review.",
+      "status": "PARTIAL",
+      "code_refs": [
+        "src/finzanjir_ai/incident_response.py",
+        "src/finzanjir_ai/audit/service.py"
+      ],
+      "test_refs": [
+        "tests/test_incident_response.py",
+        "tests/test_eight_window_failure_matrix.py"
+      ],
+      "remaining_gaps": [
+        "Durable incident record va tamper-evident audit",
+        "Tasdiqlangan runbook, on-call egasi va eskalatsiya kanali",
+        "Forensic retention va mustaqil incident drill"
+      ],
+      "evidence_scope": "synthetic_prototype_only",
+      "blocked_external": true
+    },
+    {
+      "requirement_id": "REQ-012",
+      "layer_id": "L12",
+      "label": "Bilimlar bazasi va AI ishonchliligi",
+      "requirement": "AI javobini manbaga bog‘lash, dalil yetishmasa cheklash va tasdiqsiz authoritative bilimni o‘zgartirmaslik.",
+      "status": "PARTIAL",
+      "code_refs": [
+        "src/finzanjir_ai/knowledge_governance.py",
+        "src/finzanjir_ai/knowledge",
+        "src/finzanjir_ai/retrieval",
+        "src/finzanjir_ai/answer"
+      ],
+      "test_refs": [
+        "tests/test_knowledge_governance.py",
+        "tests/test_grounded_answer.py",
+        "tests/test_knowledge_contract.py"
+      ],
+      "remaining_gaps": [
+        "Multilingual/adversarial mustaqil baholash",
+        "Knowledge approval workflow va drift monitoring"
+      ],
+      "evidence_scope": "synthetic_prototype_only",
+      "blocked_external": true
+    },
+    {
+      "requirement_id": "REQ-013",
+      "layer_id": "L13",
+      "label": "Sinov va mustaqil baholash",
+      "requirement": "Har bir talabni test, kutilgan/haqiqiy natija va qayta tiklanadigan dalil bilan bog‘lash.",
+      "status": "PARTIAL",
+      "code_refs": [
+        "contracts/layers_v2.json",
+        "tests/",
+        "src/finzanjir_ai/architecture/layers.py"
+      ],
+      "test_refs": [
+        "tests/test_layer_registry.py",
+        "tests/test_layers_contract.py",
+        "tests/test_eight_window_failure_matrix.py",
+        "tests/test_replay_idempotency_disconnect_matrix.py"
+      ],
+      "remaining_gaps": [
+        "Mustaqil evaluator va tashqi ekspertiza",
+        "Real labeled data bilan precision/recall va subgroup harm assessment"
+      ],
+      "evidence_scope": "synthetic_prototype_only",
+      "blocked_external": true
+    },
+    {
+      "requirement_id": "REQ-014",
+      "layer_id": "L14",
+      "label": "Bank integratsiyasiga tayyorlik",
+      "requirement": "Integratsiyani faqat huquqiy/hamkorlik shartlari, API spetsifikatsiyasi, autentifikatsiya va sandbox tasdiqlanganda tayyor deb baholash.",
+      "status": "PARTIAL",
+      "code_refs": [
+        "src/finzanjir_ai/bank_integration_readiness.py",
+        "src/finzanjir_ai/data_sharing"
+      ],
+      "test_refs": [
+        "tests/test_bank_integration_readiness.py",
+        "tests/test_data_disclosure_sharing_control.py"
+      ],
+      "remaining_gaps": [
+        "Bank/PSP sandbox va tasdiqlangan API spec",
+        "Imzolangan MOU/data-sharing kelishuvi va legal purpose approval",
+        "Mustaqil security assessment va operational acceptance"
+      ],
+      "evidence_scope": "synthetic_prototype_only",
+      "blocked_external": true
+    },
+    {
+      "requirement_id": "REQ-015",
+      "layer_id": "L15",
+      "label": "Samaradorlik va quvvat",
+      "requirement": "Javob vaqti, xato ulushi, resurs, navbat, timeout va tiklanishni muhit/yuklama bilan o‘lchash.",
+      "status": "PARTIAL",
+      "code_refs": [
+        "src/finzanjir_ai/performance_capacity.py",
+        "src/finzanjir_api/app.py"
+      ],
+      "test_refs": [
+        "tests/test_performance_capacity.py",
+        "tests/test_eight_window_failure_matrix.py",
+        "tests/test_replay_idempotency_disconnect_matrix.py"
+      ],
+      "remaining_gaps": [
+        "Tasdiqlangan deployment muhitida repeatable load/stress/soak test",
+        "Kelishilgan SLO/SLA, capacity plan va real monitoring"
+      ],
+      "evidence_scope": "synthetic_prototype_only",
+      "blocked_external": true
+    },
+    {
+      "requirement_id": "REQ-016",
+      "layer_id": "L16",
+      "label": "Ta’sir va zarar kamayishini o‘lchash",
+      "requirement": "FP/FN, e’tiroz/tuzatish, kechikish va fuqaro zarari ko‘rsatkichlarini aniq denominator va metodika bilan o‘lchash.",
+      "status": "PARTIAL",
+      "code_refs": [
+        "src/finzanjir_ai/impact_harm_reduction.py",
+        "src/finzanjir_ai/independent_evaluation.py"
+      ],
+      "test_refs": [
+        "tests/test_impact_harm_reduction.py",
+        "tests/test_independent_evaluation.py",
+        "tests/test_shadow_evaluation.py"
+      ],
+      "remaining_gaps": [
+        "Bank bilan kelishilgan baseline/outcome va qonuniy pilot ma’lumoti",
+        "Mustaqil impact/fairness baholash",
+        "Sababiy ta’sir va oldi olingan zarar bo‘yicha tekshirilgan natijalar"
+      ],
+      "evidence_scope": "synthetic_prototype_only",
+      "blocked_external": true
+    }
+  ],
+  "global_open_requirements": [
+    {
+      "requirement_id": "REQ-017",
+      "label": "Traceability",
+      "status": "PARTIAL",
+      "evidence_refs": [
+        "contracts/requirements_traceability_v1.json",
+        "tests/test_requirement_traceability.py"
+      ]
+    },
+    {
+      "requirement_id": "REQ-018",
+      "label": "Security / denied disclosure",
+      "status": "PARTIAL",
+      "evidence_refs": [
+        "tests/test_data_disclosure_sharing_control.py",
+        "tests/test_api_security_baseline.py"
+      ]
+    },
+    {
+      "requirement_id": "REQ-019",
+      "label": "Repeatability",
+      "status": "PARTIAL",
+      "evidence_refs": [
+        "tests/test_replay_idempotency_disconnect_matrix.py"
+      ]
+    },
+    {
+      "requirement_id": "REQ-020",
+      "label": "Regression",
+      "status": "PARTIAL",
+      "evidence_refs": [
+        "GitHub Actions CI; tests/"
+      ]
+    },
+    {
+      "requirement_id": "REQ-021",
+      "label": "Privacy",
+      "status": "PARTIAL",
+      "evidence_refs": [
+        "tests/test_privacy_data_lifecycle.py"
+      ]
+    },
+    {
+      "requirement_id": "REQ-022",
+      "label": "Resilience",
+      "status": "PARTIAL",
+      "evidence_refs": [
+        "tests/test_eight_window_failure_matrix.py",
+        "tests/test_replay_idempotency_disconnect_matrix.py"
+      ]
+    },
+    {
+      "requirement_id": "REQ-023",
+      "label": "KPI",
+      "status": "PARTIAL",
+      "evidence_refs": [
+        "tests/test_audit_kpi.py",
+        "tests/test_impact_harm_reduction.py"
+      ]
+    },
+    {
+      "requirement_id": "REQ-024",
+      "label": "Release gate",
+      "status": "OPEN_DECISION",
+      "evidence_refs": [
+        "CI workflow and branch protection must be reviewed"
+      ],
+      "remaining_gaps": [
+        "Approved release-blocking policy and authorized exception role"
+      ]
+    }
+  ],
+  "review_metadata": {
+    "reviewed_on": "2026-11-13",
+    "base_branch": "main",
+    "base_commit": "c5f3088ce5ce39340db77626d20fc64079a008b8",
+    "review_type": "source_and_test_reference_crosswalk",
+    "independent_evaluation": false
+  }
+}
