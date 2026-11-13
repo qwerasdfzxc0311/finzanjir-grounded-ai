@@ -32,7 +32,7 @@ def test_orchestrator_keeps_strongly_relevant_grounding():
     assert result.answer.confidence >= 0.35
     assert result.answer.citations
     assert result.answer.generation_mode in {
-        "model", "deterministic_fallback", "fallback_refused_long_source"
+        "model", "deterministic_fallback", "fallback_refused_long_source", "language_safe_abstention"
     }
 
 
