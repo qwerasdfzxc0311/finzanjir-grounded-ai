@@ -161,6 +161,19 @@ class GroundedAnswerGenerator:
                 "aliases": list(getattr(item, "aliases", ()))[:20],
                 "provenance": [str(source)[:300] for source in item.provenance[:5]],
             })
+        from finzanjir_ai.orchestration.intent import classify_query_intent
+
+        author_question = classify_query_intent(query) == "author"
+        author_guidance = (
+            " Bu savol muallif haqida: faqat berilgan muallifga oid dalillardan foydalaning. "
+            "Muallifning tarjimai holi, shaxsiy qiziqishlari, loyiha yaratish sabablari va "
+            "loyiha haqidagi tahliliy fikrlarini bir-biridan ajrating. Muallifning fikri yoki "
+            "niyatini hujjatda aynan tasdiqlanmagan bo'lsa, o'zingizcha talqin qilmang. "
+            "Muallifning shaxsiy hayoti haqida dalilda yo'q ma'lumotni taxmin qilmang. "
+            "Agar ism mos kelgani uchungina dalil topilgan bo'lsa, uni savolga javob deb hisoblamang. "
+            "Yetarli muallif dalili bo'lmasa, qaysi ma'lumot yetishmayotganini ochiq ayting."
+            if author_question else ""
+        )
         system = (
             "Siz FINZANJIR loyihasining bilimlarga tayangan yordamchisisiz. "
             "Faqat berilgan tasdiqlangan loyiha dalillaridan foydalaning. "
@@ -172,7 +185,7 @@ class GroundedAnswerGenerator:
             "to'qimang. Fakt, taklif, taxmin va tasdiqlanmagan masalalarni aniq ajrating. "
             "Agar dalil savolning faqat bir qismini yoritsa, shu chegarani ochiq ayting. "
             "Yashirin fikrlash zanjirini emas, tekshiriladigan qisqa asos va xulosani bering. "
-            "Faqat JSON qaytaring."
+            "Faqat JSON qaytaring." + author_guidance
         )
         prompt = (
             "Foydalanuvchi savoli:\n" + query + "\n\n"
