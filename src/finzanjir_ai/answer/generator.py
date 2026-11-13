@@ -54,6 +54,9 @@ def _semantic_groups(value: str) -> set[str]:
 def _process_stage(sentence: str) -> int | None:
     """Map an evidence sentence to a documented process stage without adding facts."""
     value = sentence.casefold().replace("’", "'").replace("ʻ", "'")
+    # A non-accusatory principle is important, but it is not a process step.
+    if "aybdorlik isboti" in value or "guilt" in value:
+        return None
     stages = (
         # Signal identification
         (0, ("signal", "shubhali signal"), ("aniql", "topil", "paydo")),
