@@ -153,18 +153,21 @@
       "evidence_refs": [
         "src/finzanjir_ai/risk/pipeline.py",
         "src/finzanjir_ai/case/manager.py",
-        "src/finzanjir_ai/prototype/flow.py"
+        "src/finzanjir_ai/prototype/flow.py",
+        "src/finzanjir_ai/transaction_chain/correlation.py",
+        "tests/test_transaction_chain_case_correlation.py"
       ],
       "acceptance_criteria": [
         "Transaction, Signal, Evidence, Risk, Threshold va Case IDlari bog‘langan.",
         "AI runtime refs barcha signal/evidence refsni oladi.",
-        "Audit correlation_id transaction bilan bog‘langan."
+        "Audit correlation_id transaction bilan bog‘langan.",
+        "Synthetic multi-transaction graph connectivity is explicit and incomplete/disconnected chains cannot be marked complete."
       ],
       "remaining_work": [
-        "Ko‘p tranzaksiyali graph chain va replay.",
+        "Synthetic graph replay and versioned chain reconstruction.",
         "Banklararo graph uchun legal authorization."
       ],
-      "reviewed_at": "2026-11-12"
+      "reviewed_at": "2026-11-13"
     },
     {
       "id": "layer_09",
