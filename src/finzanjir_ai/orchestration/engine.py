@@ -82,20 +82,14 @@ class FINZANJIRAI:
                 runtime_context=runtime,
             )
 
-        # Model rewrites and local aliases are search hints only. All facts still
-        # come from the canonical corpus and must pass grounding/relevance checks.
+        # Retrieve candidate evidence from the user's actual question first.
+        # Rewritten/expanded queries may add hints in a later stage, but their
+        # scores must never replace direct-query relevance: doing so allowed
+        # loosely related records to answer unsupported questions.
         model_queries = self.language_model.expand_question(query)
         local_queries = self.expander.expand(query)
-        queries = tuple(dict.fromkeys((query, *model_queries, *local_queries)))
-
-        by_id: dict[str, RetrievalResult] = {}
-        for expanded in queries:
-            for result in self.retriever.search(expanded, top_k=top_k):
-                current = by_id.get(result.record_id)
-                if current is None or result.score > current.score:
-                    by_id[result.record_id] = result
-
-        ranked = self.reranker.rerank(query, tuple(by_id.values()))
+        direct_results = self.retriever.search(query, top_k=top_k)
+        ranked = self.reranker.rerank(query, direct_results)
         if query_intent == "author":
             # Author questions use the separately confirmed biography layer only.
             # Similar names in project documents are not sufficient biographical evidence.
