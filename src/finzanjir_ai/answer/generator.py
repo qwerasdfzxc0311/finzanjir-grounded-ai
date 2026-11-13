@@ -115,6 +115,19 @@ class GroundedAnswerGenerator:
                 provider_status="not_attempted",
             )
 
+        from finzanjir_ai.orchestration.intent import classify_query_intent, detect_query_language
+
+        language = detect_query_language(query)
+        if classify_query_intent(query) == "project_overview":
+            return AnswerResult(
+                answer=self.PROJECT_OVERVIEW_ANSWERS.get(language, self.PROJECT_OVERVIEW_ANSWERS["uz"]),
+                confidence=confidence,
+                abstained=False,
+                citations=tuple(item.record_id for item in grounded_items if item.record_id == "project_0001"),
+                generation_mode="project_overview_localized",
+                provider_status="not_attempted",
+            )
+
         provider_status = (
             "not_configured" if self.provider is None
             else getattr(self.provider, "last_status", "not_attempted")
@@ -135,16 +148,13 @@ class GroundedAnswerGenerator:
                         provider_status="ready",
                     )
 
-        from finzanjir_ai.orchestration.intent import classify_query_intent, detect_query_language
-
-        language = detect_query_language(query)
-        if classify_query_intent(query) == "project_overview":
+        if language != "uz":
             return AnswerResult(
-                answer=self.PROJECT_OVERVIEW_ANSWERS.get(language, self.PROJECT_OVERVIEW_ANSWERS["uz"]),
+                answer=self.LANGUAGE_UNAVAILABLE_MESSAGES.get(language, self.LANGUAGE_UNAVAILABLE_MESSAGES["uz"]),
                 confidence=confidence,
-                abstained=False,
-                citations=tuple(item.record_id for item in grounded_items if item.record_id == "project_0001"),
-                generation_mode="project_overview_localized",
+                abstained=True,
+                citations=tuple(item.record_id for item in grounded_items),
+                generation_mode="language_safe_abstention",
                 provider_status=provider_status,
             )
 
@@ -230,16 +240,6 @@ class GroundedAnswerGenerator:
                 abstained=True,
                 citations=refs,
                 generation_mode="fallback_refused_long_source",
-                provider_status=provider_status,
-            )
-
-        if language != "uz":
-            return AnswerResult(
-                answer=self.LANGUAGE_UNAVAILABLE_MESSAGES.get(language, self.LANGUAGE_UNAVAILABLE_MESSAGES["uz"]),
-                confidence=confidence,
-                abstained=True,
-                citations=tuple(item.record_id for item in grounded_items),
-                generation_mode="language_safe_abstention",
                 provider_status=provider_status,
             )
 
