@@ -5,7 +5,7 @@ from typing import Any
 
 from finzanjir_ai.knowledge.index import KnowledgeIndex
 from .hybrid import RetrievalResult
-from .text import meaningful_tokens
+from .text import meaningful_tokens, tokenize
 
 
 GROUNDED_EVIDENCE_STATUSES = frozenset({
@@ -51,7 +51,7 @@ class GroundedContext:
 
 
 class GroundedContextAssembler:
-    MIN_LEXICAL_RELEVANCE = 0.35
+    MIN_LEXICAL_RELEVANCE = 0.50
     MIN_RETRIEVAL_SCORE = 0.38
     MIN_RELATIVE_QUERY_RELEVANCE = 0.75
 
@@ -89,14 +89,30 @@ class GroundedContextAssembler:
                 continue
             eligible.append((result, record))
 
+        # Exact phrase aliases are stronger evidence than repeated product-name
+        # mentions in long narrative records. When a query explicitly matches an
+        # alias, keep those records and exclude incidental name-only matches.
+        normalized_query = " ".join(tokenize(query or ""))
+        exact_alias_matches = {
+            record.record_id
+            for _, record in eligible
+            if any(
+                (normalized_alias := " ".join(tokenize(alias)))
+                and normalized_alias in normalized_query
+                for alias in record.aliases
+            )
+        }
+
         # Compare candidates against the strongest match for this same query.
-        # An absolute 0.90 cutoff discarded valid English questions, while
-        # accepting long narratives that matched only generic repeated terms.
+        # The lexical floor prevents a single generic word such as "evidence"
+        # from grounding an otherwise unsupported question.
         best_lexical = max(
             (result.lexical_score for result, _ in eligible),
             default=0.0,
         )
         for result, record in eligible:
+            if exact_alias_matches and record.record_id not in exact_alias_matches:
+                continue
             if query_candidates and (
                 best_lexical <= 0.0
                 or result.lexical_score < best_lexical * self.MIN_RELATIVE_QUERY_RELEVANCE
