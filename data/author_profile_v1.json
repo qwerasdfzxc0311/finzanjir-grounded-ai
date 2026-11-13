@@ -1,0 +1,220 @@
+{
+  "profile_id": "finzanjir_author_profile_v1",
+  "description": "A separate, user-provided author knowledge layer. These records supplement but do not modify the canonical FINZANJIR technical corpus.",
+  "records": [
+    {
+      "id": "author_profile_0001",
+      "concept_id": "author_profile_identity",
+      "canonical_concept_id": "author_profile_identity",
+      "domain": "author_profile",
+      "title": "Muallifning shaxsi va yo‘nalishi",
+      "statement": "FINZANJIR loyihasi va FINZANJIR Sun’iy Ongining muallifi va yaratuvchisi — Smaylov Salamat Tangrbergen uli. Uning loyiha hujjatlarida ko‘rsatilgan asosiy yo‘nalishi kiberxavfsizlik va raqamli moliyaviy xavfsizlikdir.",
+      "language": "uz",
+      "aliases": [
+        "FINZANJIR muallifi kim",
+        "loyiha muallifi",
+        "FINZANJIR yaratuvchisi",
+        "asoschisi kim",
+        "Salamat Smaylov",
+        "Smaylov Salamat Tangrbergen uli",
+        "author identity",
+        "who created FINZANJIR"
+      ],
+      "evidence": {
+        "status": "source_derived",
+        "confidence": 1,
+        "sources": [
+          {
+            "source_id": "ck_000751",
+            "section": "Founder Identity"
+          },
+          {
+            "source_id": "ck_003249",
+            "section": "Loyiha muallifi"
+          }
+        ]
+      },
+      "provenance": [
+        {
+          "origin": "canonical_project_sources",
+          "source_ids": [
+            "ck_000751",
+            "ck_003249"
+          ]
+        }
+      ],
+      "reconciliation": {
+        "status": "supplemental_author_layer"
+      }
+    },
+    {
+      "id": "author_profile_0002",
+      "concept_id": "author_profile_interests",
+      "canonical_concept_id": "author_profile_interests",
+      "domain": "author_profile",
+      "title": "Muallifning qiziqishlari",
+      "statement": "Muallif ilgari astronomiya, kimyo, keng ko‘lamda bilim olish, koinot va atrof-muhitni o‘rganishga qiziqishini bildirgan. Bu ma’lumot muallifning o‘zi bergan profil ma’lumotiga asoslanadi.",
+      "language": "uz",
+      "aliases": [
+        "muallif nimalarga qiziqadi",
+        "muallifning qiziqishlari",
+        "astronomiya",
+        "kimyo",
+        "koinot",
+        "kosmos",
+        "atrof-muhitni o‘rganish",
+        "nimalarni o‘rganishni yoqtiradi",
+        "author interests",
+        "hobbies of the author"
+      ],
+      "evidence": {
+        "status": "established",
+        "confidence": 1,
+        "sources": [
+          {
+            "source_id": "FOUNDER_PROFILE_USER_PROVIDED",
+            "section": "Muallifning qiziqishlari"
+          }
+        ]
+      },
+      "provenance": [
+        {
+          "origin": "user_provided_author_profile",
+          "source_ids": [
+            "FOUNDER_PROFILE_USER_PROVIDED"
+          ],
+          "note": "Separate author profile; not a technical FINZANJIR claim."
+        }
+      ],
+      "reconciliation": {
+        "status": "supplemental_author_layer"
+      }
+    },
+    {
+      "id": "author_profile_0003",
+      "concept_id": "author_profile_motivation",
+      "canonical_concept_id": "author_profile_motivation",
+      "domain": "author_profile",
+      "title": "FINZANJIRni yaratish motivatsiyasi",
+      "statement": "Muallif FINZANJIRni moliyaviy qiyinchilik, firibgarlik yoki yetarli moliyaviy bilim bo‘lmagani sabab zarar ko‘rishi mumkin bo‘lgan odamlarga yordam berish istagi bilan boshlagan. Uning yondashuvida muammo chuqurlashishidan oldin xavfni aniqlash, fuqaroni ogohlantirish, xavf sababini sodda tushuntirish va zarar oqibatlarini kamaytirish muhim. Bu muallifning bayon qilingan motivatsiyasi; platformaning natijasi yoki kafolati emas.",
+      "language": "uz",
+      "aliases": [
+        "muallif nima uchun FINZANJIRni yaratgan",
+        "FINZANJIR g‘oyasi qayerdan kelgan",
+        "loyiha motivatsiyasi",
+        "muallifning maqsadi",
+        "nega bu loyiha boshlandi",
+        "yaratilish sababi",
+        "author motivation",
+        "why was FINZANJIR created"
+      ],
+      "evidence": {
+        "status": "source_derived",
+        "confidence": 1,
+        "sources": [
+          {
+            "source_id": "ck_003251",
+            "section": "Loyiha muallifining motivatsiyasi, brendi va ijtimoiy maqsadi"
+          },
+          {
+            "source_id": "src3_000023",
+            "section": "Muallif profili va motivatsiyasi"
+          }
+        ]
+      },
+      "provenance": [
+        {
+          "origin": "canonical_project_sources",
+          "source_ids": [
+            "ck_003251",
+            "src3_000023"
+          ]
+        }
+      ],
+      "reconciliation": {
+        "status": "supplemental_author_layer"
+      }
+    },
+    {
+      "id": "author_profile_0004",
+      "concept_id": "author_profile_vision",
+      "canonical_concept_id": "author_profile_vision",
+      "domain": "author_profile",
+      "title": "Muallifning uzoq muddatli qarashi",
+      "statement": "Muallif FINZANJIRni faqat bitta texnologik mahsulot emas, balki hayotiy tajribani foydali bilim va himoya vositalariga aylantirish, bilimni avlodlar o‘rtasida uzluksiz saqlash hamda insonlar bilan sun’iy ongning birga o‘rganishi va rivojlanishiga xizmat qilishi mumkin bo‘lgan uzoq muddatli yo‘nalish sifatida tasavvur qiladi. Bu kelajak haqidagi qarash bo‘lib, joriy prototipda bunday keng imkoniyatlar to‘liq amalga oshganini anglatmaydi.",
+      "language": "uz",
+      "aliases": [
+        "muallifning kelajak haqidagi qarashi",
+        "FINZANJIR kelajagi",
+        "muallif falsafasi",
+        "inson va sun’iy ong birga rivojlanishi",
+        "author vision",
+        "future vision"
+      ],
+      "evidence": {
+        "status": "source_derived",
+        "confidence": 1,
+        "sources": [
+          {
+            "source_id": "ck_003246",
+            "section": "Mission and Philosophy"
+          },
+          {
+            "source_id": "ck_003251",
+            "section": "Loyiha muallifining motivatsiyasi, brendi va ijtimoiy maqsadi"
+          }
+        ]
+      },
+      "provenance": [
+        {
+          "origin": "canonical_project_sources",
+          "source_ids": [
+            "ck_003246",
+            "ck_003251"
+          ]
+        }
+      ],
+      "reconciliation": {
+        "status": "supplemental_author_layer"
+      }
+    },
+    {
+      "id": "author_profile_0005",
+      "concept_id": "author_profile_project_evolution",
+      "canonical_concept_id": "author_profile_project_evolution",
+      "domain": "author_profile",
+      "title": "Loyiha g‘oyasining rivojlanishi",
+      "statement": "FINZANJIRning dastlabki ishchi nomi «Kiber Qalqon» bo‘lgan. Loyiha rivojlangani sari g‘oya faqat kiberxavfsizlikdan kengayib, fuqaro, ilova, risk tahlili, bank yoki to‘lov tashkiloti va hodisadan keyingi qonuniy javobni bog‘laydigan moliyaviy xavfsizlik zanjiri konsepsiyasiga aylangan. Shu sababli nom FINZANJIRga o‘zgartirilgan.",
+      "language": "uz",
+      "aliases": [
+        "Kiber Qalqondan FINZANJIRgacha",
+        "loyiha nomi qanday paydo bo‘lgan",
+        "FINZANJIR nomining tarixi",
+        "loyiha tarixi",
+        "project origin",
+        "how FINZANJIR started"
+      ],
+      "evidence": {
+        "status": "source_derived",
+        "confidence": 1,
+        "sources": [
+          {
+            "source_id": "src3_000027",
+            "section": "Loyiha nomining shakllanishi"
+          }
+        ]
+      },
+      "provenance": [
+        {
+          "origin": "canonical_project_sources",
+          "source_ids": [
+            "src3_000027"
+          ]
+        }
+      ],
+      "reconciliation": {
+        "status": "supplemental_author_layer"
+      }
+    }
+  ]
+}
