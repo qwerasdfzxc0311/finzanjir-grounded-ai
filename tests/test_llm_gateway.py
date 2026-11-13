@@ -1,3 +1,5 @@
+import httpx
+
 from finzanjir_ai.answer.providers import LLMGateway
 
 
@@ -48,3 +50,15 @@ def test_gateway_keeps_common_personal_and_payment_identifiers_out_of_provider_c
     assert not LLMGateway.can_send_text("Telefon +998 90 123 45 67")
     assert not LLMGateway.can_send_text("Email user@example.com")
     assert LLMGateway.can_send_text("FINZANJIR firibgarlik zanjirini qanday aniqlaydi?")
+
+
+
+def test_gateway_reports_provider_failure_without_exposing_provider_details(monkeypatch):
+    gateway = LLMGateway(environ={"GEMINI_API_KEY": "not-a-real-test-secret"})
+
+    def fail_request(*_args, **_kwargs):
+        raise httpx.ConnectError("synthetic provider outage")
+
+    monkeypatch.setattr(gateway, "_generate_with", fail_request)
+    assert gateway.generate_json(system="system", prompt="prompt") is None
+    assert gateway.last_status == "provider_failed"
