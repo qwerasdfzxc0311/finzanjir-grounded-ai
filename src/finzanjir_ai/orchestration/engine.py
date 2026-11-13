@@ -48,6 +48,19 @@ def _is_author_layer_record(record: Any) -> bool:
         if any(marker in sections for marker in author_section_markers):
             return True
 
+    aliases = " ".join(record.aliases).casefold()
+    if any(marker in aliases for marker in (
+        "muallifning kelajak haqidagi qarashi",
+        "muallif tarjimai holi",
+        "muallif motivatsiyasi",
+        "muallifning shaxsiy",
+        "muallifning qiziqishlari",
+        "muallif bolaligida",
+        "author profile",
+        "author biography",
+    )):
+        return True
+
     statement = record.statement.casefold()
     if any(marker in statement for marker in (
         "muallif rasmi", "muallif profili", "muallifning tarjimai holi",
