@@ -100,13 +100,19 @@
       "id": "author_0004",
       "concept_id": "author_motivation_finzanjir",
       "canonical_concept_id": "author_motivation_finzanjir",
-      "statement": "Muallif FINZANJIR g'oyasini oilasidagi moliyaviy yo'qotishlar va bank cheklovlari sabab fuqarolar o'z mablag'laridan foydalana olmay qolishi mumkinligi haqidagi tashvishlar fonida shakllantirgan. Uning maqsadi yaqinlari va boshqa fuqarolar bunday qiyinchiliklarga duch kelishining oldini olishga yordam berishdir.",
+      "statement": "Muallif FINZANJIR g'oyasini oilasidagi moliyaviy yo'qotishlar va bank cheklovlari sabab fuqarolar o'z mablag'laridan foydalana olmay qolishi mumkinligi haqidagi tashvishlar fonida shakllantirgan. G'oyaning muhim sababi — FINZANJIRning o'zi chiqargan noto'g'ri ijobiy (false positive) signal bank tomonidan ortiqcha ishonch bilan qabul qilinib, fuqaroning qonuniy tranzaksiyasi yoki kartasiga asossiz cheklov qo'yilishining oldini olish zarurati. Bu alohida, FINZANJIRdan tashqari yangi bloklash tizimini yaratish maqsadi emas; FINZANJIRning o'z tahlil va signal jarayonini fuqaroga zarar yetkazmaydigan tarzda loyihalash masalasidir. Shu sababli noto'g'ri ijobiy va noto'g'ri salbiy (false negative) holatlarni birgalikda baholash, signalni firibgarlik isboti yoki bloklash buyrug'i deb qabul qilmaslik, bank vakolatidagi inson ko'rigini saqlash, fuqaro murojaati va xato signal bo'yicha qayta ko'rib chiqish fikr-mulohazasidan foydalanish muhim. Maqsad — yaqinlari va boshqa fuqarolarni moliyaviy zarar hamda qonuniy mablag'laridan asossiz foydalana olmay qolish xavfidan himoya qilishga yordam berish.",
       "aliases": [
         "muallif nima uchun FINZANJIRni yaratgan",
         "FINZANJIR g'oyasi qanday paydo bo'lgan",
         "loyiha motivatsiyasi",
         "Salamat Smaylov maqsadi",
-        "muallifning shaxsiy sababi"
+        "muallifning shaxsiy sababi",
+        "false positive",
+        "false negative",
+        "qonuniy tranzaksiyani bloklash xavfi",
+        "noto'g'ri signal",
+        "fuqaro murojaati",
+        "bank signalga ortiqcha ishonishi"
       ],
       "evidence": {
         "status": "project_source",
