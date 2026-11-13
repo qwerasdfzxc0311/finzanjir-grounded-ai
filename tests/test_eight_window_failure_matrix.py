@@ -1,10 +1,15 @@
 """Synthetic-only failure injection matrix for the eight-window streaming flow."""
 
+import asyncio
 import json
+import sqlite3
+import threading
 
 from fastapi.testclient import TestClient
 
+import finzanjir_api.app as api_module
 from finzanjir_api.app import app
+from finzanjir_ai.case.manager import CaseManager
 from finzanjir_ai.risk.scenarios import build_synthetic_case_signal_events
 
 
@@ -138,3 +143,131 @@ def test_audit_kpi_window_records_complete_runtime_provenance_in_both_modes(monk
         assert set(audit_trace["input_refs"]) == previously_emitted_refs
         assert audit_events[1]["output_refs"] == audit_trace["output_refs"]
         assert audit_trace["output_refs"]
+
+
+def test_stream_citizen_window_failure_marks_citizen_failed_and_layers_not_run(monkeypatch):
+    original_apply = CaseManager.apply_human_decision
+
+    class BrokenCitizenStatus(dict):
+        def __bool__(self):
+            raise RuntimeError("synthetic citizen status serialization failure")
+
+    def fail_at_citizen_status(self, *args, **kwargs):
+        result = original_apply(self, *args, **kwargs)
+        result["citizen_status"] = BrokenCitizenStatus()
+        return result
+
+    monkeypatch.setattr(
+        "finzanjir_ai.prototype.flow.CaseManager.apply_human_decision",
+        fail_at_citizen_status,
+    )
+    response = client.post(
+        "/api/prototype/run/stream",
+        json=_payload("TX-FAIL-CITIZEN-001"),
+    )
+    _assert_stopped_at(response, "citizen")
+
+
+def test_stream_storage_failure_is_not_automatically_retried(monkeypatch):
+    class FailOnceRunStore:
+        def __init__(self):
+            self.calls = 0
+
+        def save(self, _summary):
+            self.calls += 1
+            raise sqlite3.OperationalError("synthetic storage busy")
+
+    store = FailOnceRunStore()
+    monkeypatch.setattr(api_module, "prototype_run_store", lambda: store)
+    response = client.post(
+        "/api/prototype/run/stream",
+        json=_payload("TX-STORAGE-NO-RETRY-001"),
+    )
+
+    frames = _frames(response)
+    errors = [data for name, data in frames if name == "error"]
+    results = [data for name, data in frames if name == "result"]
+    assert response.status_code == 200
+    assert store.calls == 1
+    assert errors == [{
+        "status_code": 503,
+        "detail": "Prototype run could not be safely saved.",
+    }]
+    assert results == []
+
+
+def test_asgi_http_disconnect_after_first_stage_does_not_cancel_synthetic_worker(monkeypatch):
+    persisted = threading.Event()
+    release_worker = threading.Event()
+    first_stage_seen = threading.Event()
+
+    class RecordingRunStore:
+        def save(self, _summary):
+            persisted.set()
+            return {"run_id": "run-asgi-disconnect-test"}
+
+    monkeypatch.setattr(api_module, "prototype_run_store", lambda: RecordingRunStore())
+    original_execute = api_module._execute_prototype
+
+    def gated_execute(transaction, *, on_stage=None):
+        def gated_on_stage(event):
+            if on_stage is not None:
+                on_stage(event)
+            if event.get("window_id") == "synthetic_bank" and event.get("status") == "RUNNING":
+                first_stage_seen.set()
+                release_worker.wait(5)
+
+        return original_execute(transaction, on_stage=gated_on_stage)
+
+    monkeypatch.setattr(api_module, "_execute_prototype", gated_execute)
+
+    async def exercise():
+        body = json.dumps(_payload("TX-ASGI-DISCONNECT-001")).encode()
+        request_sent = False
+        disconnect = asyncio.Event()
+        sent_bodies = []
+
+        async def receive():
+            nonlocal request_sent
+            if not request_sent:
+                request_sent = True
+                return {"type": "http.request", "body": body, "more_body": False}
+            await disconnect.wait()
+            return {"type": "http.disconnect"}
+
+        async def send(message):
+            if message["type"] == "http.response.body" and message.get("body"):
+                sent_bodies.append(message["body"])
+                if len(sent_bodies) == 1:
+                    release_worker.set()
+                    disconnect.set()
+
+        scope = {
+            "type": "http",
+            "asgi": {"version": "3.0", "spec_version": "2.3"},
+            "http_version": "1.1",
+            "method": "POST",
+            "scheme": "http",
+            "path": "/api/prototype/run/stream",
+            "raw_path": b"/api/prototype/run/stream",
+            "query_string": b"",
+            "root_path": "",
+            "headers": [
+                (b"host", b"testserver"),
+                (b"content-type", b"application/json"),
+                (b"content-length", str(len(body)).encode()),
+            ],
+            "client": ("127.0.0.1", 12345),
+            "server": ("testserver", 80),
+        }
+
+        try:
+            await asyncio.wait_for(app(scope, receive, send), timeout=5)
+            assert sent_bodies
+            assert b"event: stage" in sent_bodies[0]
+            assert await asyncio.to_thread(first_stage_seen.wait, 5)
+            assert await asyncio.to_thread(persisted.wait, 5)
+        finally:
+            release_worker.set()
+
+    asyncio.run(exercise())
