@@ -14,6 +14,47 @@ from finzanjir_ai.runtime.context import RuntimeContext
 from finzanjir_ai.orchestration.intent import classify_query_intent, is_author_overview_query
 
 
+def _is_author_layer_record(record: Any) -> bool:
+    """Identify author biography/motivation evidence by metadata, not ID prefix alone."""
+    if record is None:
+        return False
+    if record.record_id.startswith("author_"):
+        return True
+    if record.entity_id == "person:salamat_smaylov":
+        return True
+    if (record.facet or "").casefold() in {
+        "identity", "birth_details", "interests", "project_motivation",
+        "author_biography", "author_profile",
+    }:
+        return True
+
+    author_section_markers = (
+        "muallif profili",
+        "muallifning motivatsiyasi",
+        "loyiha muallifining motivatsiyasi",
+        "loyiha muallifining qarashi",
+        "muallifning qarashi",
+        "author profile",
+        "author biography",
+        "author motivation",
+    )
+    for source in record.provenance:
+        if not isinstance(source, dict):
+            continue
+        if source.get("source_type") == "author_provided_profile":
+            return True
+        sections = str(source.get("source_sections") or source.get("sections") or "").casefold()
+        if any(marker in sections for marker in author_section_markers):
+            return True
+
+    statement = record.statement.casefold()
+    if any(marker in statement for marker in (
+        "muallif rasmi", "muallif profili", "muallifning tarjimai holi",
+    )):
+        return True
+    return False
+
+
 @dataclass(frozen=True)
 class OrchestrationResult:
     answer: AnswerResult
@@ -176,13 +217,17 @@ class FINZANJIRAI:
         ranked = self.reranker.rerank(query, tuple(merged))
         if query_intent == "author":
             # Author questions use the separately confirmed biography layer only.
-            ranked = tuple(item for item in ranked if item.record_id.startswith("author_"))
+            ranked = tuple(
+                item for item in ranked
+                if _is_author_layer_record(self.index.get_record(item.record_id))
+            )
         else:
-            # Biography and personal-motivation records must never answer a
-            # project-mechanism question merely because they share broad words
-            # such as "money", "protection" or "fraud". Keep the author layer
-            # isolated unless the user explicitly asks about the author.
-            ranked = tuple(item for item in ranked if not item.record_id.startswith("author_"))
+            # Legacy V14/ZIP records may carry author material under ck_/src3_
+            # IDs. Isolate by entity, facet and provenance as well as ID.
+            ranked = tuple(
+                item for item in ranked
+                if not _is_author_layer_record(self.index.get_record(item.record_id))
+            )
         grounded = self.grounder.assemble(
             ranked,
             query=query,
