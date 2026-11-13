@@ -15,14 +15,6 @@ GROUNDED_EVIDENCE_STATUSES = frozenset({
     "supported",
 })
 
-UNVERIFIED_STATUS_MARKERS = (
-    "tasdiqlanmagan",
-    "unverified",
-    "proposal",
-    "taklif",
-    "ochiq masala",
-)
-
 
 def is_grounded_evidence(evidence: Any) -> bool:
     if not isinstance(evidence, dict) or evidence.get("status") not in GROUNDED_EVIDENCE_STATUSES:
@@ -36,10 +28,10 @@ def is_grounded_evidence(evidence: Any) -> bool:
 
 
 def is_grounded_record(evidence: Any, statement: str) -> bool:
-    if not is_grounded_evidence(evidence):
-        return False
-    normalized = str(statement).casefold()
-    return not any(marker in normalized for marker in UNVERIFIED_STATUS_MARKERS)
+    # Verification metadata is authoritative. Do not reject a supported
+    # principle merely because its wording discusses uncertainty, proposals,
+    # or unverified suspicions as a concept.
+    return is_grounded_evidence(evidence)
 
 
 @dataclass(frozen=True)
@@ -61,7 +53,7 @@ class GroundedContext:
 class GroundedContextAssembler:
     MIN_LEXICAL_RELEVANCE = 0.35
     MIN_RETRIEVAL_SCORE = 0.38
-    MIN_QUERY_RELEVANCE = 0.75
+    MIN_QUERY_RELEVANCE = 0.90
 
     def __init__(self, index: KnowledgeIndex) -> None:
         self.index = index
@@ -95,15 +87,8 @@ class GroundedContextAssembler:
             if record is None or not is_grounded_record(record.evidence, record.statement):
                 continue
 
-            if query_candidates:
-                # HybridRetriever has already measured weighted coverage of the
-                # query terms against this exact record (including aliases).
-                # Re-tokenizing the record here can disagree with the retrieval
-                # score for colloquial Uzbek forms and incorrectly discard a
-                # strongly retrieved, author-confirmed principle.
-                relevance = result.lexical_score
-                if relevance < self.MIN_QUERY_RELEVANCE:
-                    continue
+            if query_candidates and result.lexical_score < self.MIN_QUERY_RELEVANCE:
+                continue
 
             items.append(GroundedContextItem(
                 record_id=record.record_id,
