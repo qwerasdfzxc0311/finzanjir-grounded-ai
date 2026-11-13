@@ -50,7 +50,9 @@ class TransactionChainCorrelator:
 
         return {
             "complete": complete,
-            "final_proof": complete,
+            "chain_metadata_complete": complete,
+            "final_proof": False,
+            "proof_scope": "single_transaction_event_metadata_completeness_only_not_fraud_or_guilt",
             "events": normalized,
             "incomplete_event_ids": incomplete_event_ids,
         }
