@@ -182,6 +182,7 @@ def answer(request: AIAnswerRequest) -> dict[str, Any]:
         "answer": result.answer.answer,
         "confidence": result.answer.confidence,
         "abstained": result.answer.abstained,
+        "generation_mode": result.answer.generation_mode,
         "knowledge_refs": list(result.answer.citations),
         "provenance": [
             str(source)
