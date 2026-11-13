@@ -91,7 +91,9 @@ def test_complete_chain_exposes_source_time_reason_and_is_final_proof_eligible()
     )
 
     assert result["complete"] is True
-    assert result["final_proof"] is True
+    assert result["chain_metadata_complete"] is True
+    assert result["final_proof"] is False
+    assert result["proof_scope"] == "single_transaction_event_metadata_completeness_only_not_fraud_or_guilt"
     assert result["events"][1]["source"] == "case_manager"
     assert result["events"][1]["occurred_at"] == "2026-11-12T07:00:01Z"
     assert result["events"][1]["correlation_reason"] == "case opened from risk escalation"
