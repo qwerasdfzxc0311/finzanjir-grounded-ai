@@ -234,3 +234,33 @@ def test_extractive_fallback_rejects_citizen_protection_sentences_without_funds(
     assert result.generation_mode == "extractive_grounded_fallback"
     assert "qonuniy mablag'lari va tranzaksiyalariga" in result.answer
     assert "Daromad modelining huquqiy" not in result.answer
+
+
+
+def test_signal_followup_fallback_prefers_review_process_not_only_general_warning():
+    source = (
+        "Shubhali signal aniqlanganda, bu holat avtomatik ravishda aybdorlik isboti hisoblanmaydi. "
+        "Shubhali signal tegishli dalillar bilan tekshiriladi va Risk natijasi izohlanadi. "
+        "Case ochilgach, vakolatli mutaxassis dalillarni ko'rib chiqadi. "
+        "Bank o'z vakolatidagi qarorni qonuniy asos va ichki tartib bo'yicha qabul qiladi. "
+    ) * 25
+    context = GroundedContext(items=(GroundedContextItem(
+        record_id="ck-signal-followup",
+        concept_id="signal-followup-process",
+        statement=source,
+        score=0.95,
+        provenance=({"source": "canonical-v0.6"},),
+        evidence={"status": "supported"},
+    ),))
+
+    result = GroundedAnswerGenerator(FailedProvider()).generate(
+        "Shubhali signal paydo bo'lsa, keyin qaysi bosqichlar bo'ladi va bank nima qiladi?",
+        context,
+    )
+
+    assert result.abstained is False
+    assert result.generation_mode == "extractive_grounded_fallback"
+    assert "dalillar bilan tekshiriladi" in result.answer
+    assert "vakolatli mutaxassis dalillarni ko'rib chiqadi" in result.answer
+    assert "Bank o'z vakolatidagi qarorni" in result.answer
+    assert "avtomatik ravishda aybdorlik isboti" not in result.answer
