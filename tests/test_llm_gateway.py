@@ -62,3 +62,49 @@ def test_gateway_reports_provider_failure_without_exposing_provider_details(monk
     monkeypatch.setattr(gateway, "_generate_with", fail_request)
     assert gateway.generate_json(system="system", prompt="prompt") is None
     assert gateway.last_status == "provider_failed"
+
+
+
+def test_gateway_reports_safe_auth_failure_category(monkeypatch):
+    gateway = LLMGateway(environ={"GEMINI_API_KEY": "not-a-real-test-secret"})
+    request = httpx.Request("POST", "https://example.invalid")
+    response = httpx.Response(401, request=request)
+
+    def fail_request(*_args, **_kwargs):
+        raise httpx.HTTPStatusError("secret-bearing provider body must not leak", request=request, response=response)
+
+    monkeypatch.setattr(gateway, "_generate_with", fail_request)
+    assert gateway.generate_json(system="system", prompt="prompt") is None
+    assert gateway.last_status == "provider_failed"
+    assert gateway.last_provider_failures == [
+        {"provider": "gemini", "status": "authentication_or_permission_failed"}
+    ]
+    assert "secret-bearing" not in repr(gateway.last_provider_failures)
+
+
+def test_gateway_reports_rate_limit_category(monkeypatch):
+    gateway = LLMGateway(environ={"OPENROUTER_API_KEY": "not-a-real-test-secret"})
+    request = httpx.Request("POST", "https://example.invalid")
+    response = httpx.Response(429, request=request)
+
+    def fail_request(*_args, **_kwargs):
+        raise httpx.HTTPStatusError("rate limit", request=request, response=response)
+
+    monkeypatch.setattr(gateway, "_generate_with", fail_request)
+    assert gateway.generate_json(system="system", prompt="prompt") is None
+    assert gateway.last_provider_failures == [
+        {"provider": "openrouter", "status": "rate_limited"}
+    ]
+
+
+def test_gateway_reports_timeout_category(monkeypatch):
+    gateway = LLMGateway(environ={"GEMINI_API_KEY": "not-a-real-test-secret"})
+
+    def fail_request(*_args, **_kwargs):
+        raise httpx.ReadTimeout("private transport details")
+
+    monkeypatch.setattr(gateway, "_generate_with", fail_request)
+    assert gateway.generate_json(system="system", prompt="prompt") is None
+    assert gateway.last_provider_failures == [
+        {"provider": "gemini", "status": "timeout"}
+    ]
