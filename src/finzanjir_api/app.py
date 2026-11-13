@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import httpx
 from functools import lru_cache
 import os
 from pathlib import Path
@@ -17,6 +18,7 @@ from starlette.staticfiles import StaticFiles
 from finzanjir_ai.knowledge.index import KnowledgeIndex
 from finzanjir_ai.prototype.flow import build_system_flow
 from finzanjir_ai.orchestration.engine import FINZANJIRAI
+from finzanjir_ai.research.tavily import TavilySearchClient
 from finzanjir_ai.risk.shadow import evaluate_shadow_batch, evaluate_detector_shadow_batch
 from finzanjir_ai.risk.scenarios import build_synthetic_case_signal_events
 from finzanjir_ai.risk.detectors import synthetic_signal_detector
@@ -28,6 +30,11 @@ class AIAnswerRequest(BaseModel):
     question: str = Field(min_length=1, max_length=4000)
     runtime_refs: list[str] = Field(default_factory=list, max_length=64)
     working_memory_scope: str | None = Field(default=None, max_length=256)
+
+
+class ExternalResearchRequest(BaseModel):
+    query: str = Field(min_length=1, max_length=500)
+    max_results: int = Field(default=5, ge=1, le=8)
 
 
 class ShadowScenario(BaseModel):
@@ -183,6 +190,18 @@ def answer(request: AIAnswerRequest) -> dict[str, Any]:
         ],
         "runtime_refs": list(result.runtime_context.runtime_refs),
     }
+
+
+@app.post("/api/research/search")
+def external_research(request: ExternalResearchRequest) -> dict[str, Any]:
+    try:
+        return TavilySearchClient().search(request.query, max_results=request.max_results)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail="External research is not configured.") from exc
+    except httpx.HTTPError as exc:
+        raise HTTPException(status_code=502, detail="External research provider is temporarily unavailable.") from exc
 
 
 @app.post("/api/prototype/shadow-evaluate")

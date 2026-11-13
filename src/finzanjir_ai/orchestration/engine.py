@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from finzanjir_ai.answer.generator import AnswerResult, GroundedAnswerGenerator
+from finzanjir_ai.answer.providers import LLMGateway
 from finzanjir_ai.knowledge.index import KnowledgeIndex
 from finzanjir_ai.retrieval.grounding import GroundedContext, GroundedContextAssembler
 from finzanjir_ai.retrieval.hybrid import HybridRetriever, RetrievalResult
@@ -24,7 +25,8 @@ class FINZANJIRAI:
         self.expander = QueryExpander(index)
         self.reranker = Reranker(index)
         self.grounder = GroundedContextAssembler(index)
-        self.answer_generator = GroundedAnswerGenerator()
+        self.language_model = LLMGateway()
+        self.answer_generator = GroundedAnswerGenerator(self.language_model)
 
     def answer(
         self,
@@ -34,8 +36,11 @@ class FINZANJIRAI:
         working_memory_scope: str,
         top_k: int = 8,
     ) -> OrchestrationResult:
-        expanded_queries = self.expander.expand(query)
-        queries = expanded_queries or (query,)
+        # The model may rewrite/expand a difficult question, but it never supplies
+        # facts. Every candidate must still be retrieved from the canonical corpus.
+        model_queries = self.language_model.expand_question(query)
+        local_queries = self.expander.expand(query)
+        queries = tuple(dict.fromkeys((query, *model_queries, *local_queries)))
 
         by_id: dict[str, RetrievalResult] = {}
         for expanded in queries:
@@ -45,7 +50,12 @@ class FINZANJIRAI:
                     by_id[result.record_id] = result
 
         ranked = self.reranker.rerank(query, tuple(by_id.values()))
-        grounded = self.grounder.assemble(ranked, query=query, max_items=top_k)
+        grounded = self.grounder.assemble(
+            ranked,
+            query=query,
+            query_alternatives=model_queries,
+            max_items=top_k,
+        )
         runtime = RuntimeContext.from_refs(
             knowledge_refs=tuple(item.record_id for item in grounded.items),
             runtime_refs=runtime_refs,
