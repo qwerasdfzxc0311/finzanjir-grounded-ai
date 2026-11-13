@@ -87,10 +87,12 @@ def _extractive_grounded_fallback(query: str, items: list[Any], *, max_sentences
                         required_groups.add("citizen")
                     if not required_groups.issubset(sentence_groups):
                         continue
-                if "signal" in query_groups and "signal" not in sentence_groups:
-                    continue
-                if "signal" in query_groups and "process" in query_groups and "process" not in sentence_groups:
-                    continue
+                if "signal" in query_groups:
+                    if "process" in query_groups:
+                        if "signal" not in sentence_groups and "process" not in sentence_groups:
+                            continue
+                    elif "signal" not in sentence_groups:
+                        continue
                 if overlap == 0 and not alias_match:
                     continue
                 relevance = overlap / max(1, len(query_terms))
