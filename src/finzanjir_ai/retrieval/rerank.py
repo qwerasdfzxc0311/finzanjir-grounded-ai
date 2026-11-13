@@ -33,6 +33,16 @@ _CITIZEN_PROTECTION_QUERY_HINTS = (
 )
 
 
+_MULTI_CARD_FRAUD_QUERY_HINTS = (
+    "pulni bir nechta bank kartasi orqali o'tkazish zanjiri",
+    "aloqador kartalar hisoblar va pul oqimlarini Cross-Match orqali bog'lash",
+    "Cross-Match Fraud Graph orqali aloqador obyektlar konteksti",
+    "bir nechta tranzaksiya va kartalar orasidagi takroriy harakatlar",
+    "shubhali pul oqimi bo'yicha signal Risk Case dalillar va vakolatli ko'rib chiqish",
+    "card to card transaction chain multiple accounts linked entities fraud graph",
+)
+
+
 class QueryExpander:
     """Local alias expansion that avoids firing on generic one-word overlaps."""
 
@@ -51,11 +61,21 @@ class QueryExpander:
         # Recognize colloquial citizen/funds protection questions and search
         # the canonical project concepts they refer to, even when the wording
         # does not repeat the corpus terminology.
-        funds_terms = {"pul", "pulini", "pulimni", "mablag", "mablaglar", "money", "fund", "funds"}
+        funds_terms = {
+            "pul", "pulni", "pulini", "pulimni", "puldan", "pulga",
+            "mablag", "mablaglar", "money", "fund", "funds",
+        }
         protection_terms = {"himoya", "himoyalash", "asrash", "saqlash", "xavfsizlik", "xavfsiz", "protect", "protection"}
-        is_citizen_protection = bool(raw_terms & funds_terms) and bool(raw_terms & protection_terms)
+        card_terms = {"karta", "kartani", "kartasini", "kartalar", "kartadan", "card", "cards"}
+        fraud_terms = {"firibgar", "firibgarlik", "firibgarlar", "fraud", "scam", "aldov"}
+        has_funds = bool(raw_terms & funds_terms)
+        has_card = bool(raw_terms & card_terms)
+        has_fraud = bool(raw_terms & fraud_terms)
+        is_citizen_protection = has_funds and bool(raw_terms & protection_terms)
         if is_citizen_protection:
             expanded.extend(_CITIZEN_PROTECTION_QUERY_HINTS)
+        if has_card and (has_fraud or has_funds):
+            expanded.extend(_MULTI_CARD_FRAUD_QUERY_HINTS)
 
         # A broad identity question has little lexical content after stopword
         # removal. Do not let a detailed "how does it protect money?" question
