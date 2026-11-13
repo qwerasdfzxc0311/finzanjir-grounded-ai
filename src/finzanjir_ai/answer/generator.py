@@ -104,6 +104,10 @@ def _is_relevant_extractive_sentence(
         linked_card_evidence = (
             "card" in sentence_groups
             and bool({"fraud", "link", "transaction"} & sentence_groups)
+        ) or (
+            {"link", "transaction"}.issubset(sentence_groups)
+        ) or (
+            {"fraud", "transaction"}.issubset(sentence_groups)
         )
         if not linked_card_evidence:
             return False
