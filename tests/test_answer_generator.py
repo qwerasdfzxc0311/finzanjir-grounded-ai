@@ -143,3 +143,63 @@ def test_bank_card_authority_answer_is_localized():
         assert result.generation_mode == "bank_authority_localized"
         assert result.citations == ("project_0004",)
         assert expected.casefold() in result.answer.casefold()
+
+
+
+class FailedProvider:
+    last_status = "provider_failed"
+
+    @staticmethod
+    def can_send_text(_text):
+        return True
+
+    def generate_json(self, **_kwargs):
+        return None
+
+
+def test_long_grounded_sources_are_explained_with_relevant_extractive_fallback():
+    source = (
+        "Shubhali signal aniqlanganda, bu holat avtomatik ravishda aybdorlik isboti hisoblanmaydi. "
+        "Signal tegishli dalillar va tranzaksiya konteksti bilan tekshiriladi. "
+        "Zarur bo'lsa, holat vakolatli mutaxassis tomonidan ko'rib chiqiladi. "
+        "Har qanday bank cheklovi faqat qonuniy asos va bankning vakolatli tartibida qabul qilinadi. "
+    ) * 30
+    context = GroundedContext(items=(GroundedContextItem(
+        record_id="ck-signal-process",
+        concept_id="signal-review-process",
+        statement=source,
+        score=0.94,
+        provenance=({"source": "canonical-v0.6"},),
+        evidence={"status": "supported"},
+    ),))
+
+    result = GroundedAnswerGenerator(FailedProvider()).generate(
+        "Shubhali signal topilgach nima bo'ladi?", context
+    )
+
+    assert result.abstained is False
+    assert result.generation_mode == "extractive_grounded_fallback"
+    assert result.citations == ("ck-signal-process",)
+    assert "dalillar va tranzaksiya konteksti bilan tekshiriladi" in result.answer
+    assert "vakolatli mutaxassis tomonidan ko'rib chiqiladi" in result.answer
+    assert len(result.answer) < 1600
+
+
+def test_long_unmatched_source_still_abstains_instead_of_guessing():
+    source = ("Astronomiya va sayyoralar haqidagi tasdiqlangan ma'lumot. " * 40)
+    context = GroundedContext(items=(GroundedContextItem(
+        record_id="ck-unrelated-long",
+        concept_id="unrelated-astronomy",
+        statement=source,
+        score=0.94,
+        provenance=({"source": "canonical-v0.6"},),
+        evidence={"status": "supported"},
+    ),))
+
+    result = GroundedAnswerGenerator(FailedProvider()).generate(
+        "FINZANJIR bank kartasini qanday himoya qiladi?", context
+    )
+
+    assert result.abstained is True
+    assert result.generation_mode == "fallback_refused_unmatched_long_source"
+    assert "Astronomiya" not in result.answer
