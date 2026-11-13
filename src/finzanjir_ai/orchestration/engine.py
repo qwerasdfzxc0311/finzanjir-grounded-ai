@@ -177,6 +177,12 @@ class FINZANJIRAI:
         if query_intent == "author":
             # Author questions use the separately confirmed biography layer only.
             ranked = tuple(item for item in ranked if item.record_id.startswith("author_"))
+        else:
+            # Biography and personal-motivation records must never answer a
+            # project-mechanism question merely because they share broad words
+            # such as "money", "protection" or "fraud". Keep the author layer
+            # isolated unless the user explicitly asks about the author.
+            ranked = tuple(item for item in ranked if not item.record_id.startswith("author_"))
         grounded = self.grounder.assemble(
             ranked,
             query=query,
