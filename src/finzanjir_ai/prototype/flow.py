@@ -8,7 +8,7 @@ from finzanjir_ai.audit.service import AuditLog, calculate_kpis
 from finzanjir_ai.case.manager import CaseManager
 from finzanjir_ai.cross_bank.matcher import CrossBankMatcher
 from finzanjir_ai.knowledge.index import KnowledgeIndex, build_index_from_document, build_knowledge_index
-from finzanjir_ai.knowledge.loader import load_author_profile_records, load_canonical_knowledge
+from finzanjir_ai.knowledge.loader import load_author_profile_records, load_canonical_knowledge, load_project_principle_records
 from finzanjir_ai.orchestration.engine import FINZANJIRAI, get_finzanjir_ai
 from finzanjir_ai.risk.pipeline import process_transaction
 from finzanjir_ai.risk.thresholds import ThresholdManager
@@ -587,7 +587,11 @@ class SystemFlow:
         document = load_canonical_knowledge()
         # Author biography is a separately governed layer. It augments runtime
         # retrieval without changing the canonical FINZANJIR corpus or its counts.
-        records = [*document["records"], *load_author_profile_records()]
+        records = [
+            *document["records"],
+            *load_author_profile_records(),
+            *load_project_principle_records(),
+        ]
         return build_knowledge_index(records)
 
 
