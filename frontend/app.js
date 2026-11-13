@@ -748,7 +748,18 @@ document.querySelector("#runShadowEvaluation").addEventListener("click", runShad
 
 const aiConversation = [];
 
-function appendChatMessage(role, content, refs = []) {
+function generationModeLabel(mode) {
+  const labels = {
+    model: "AI modeli javobni tuzdi",
+    deterministic_fallback: "Model javobi yo‘q · manba matnlari alohida ko‘rsatildi",
+    fallback_refused_long_source: "Model javobi yo‘q · uzun manba xom holda chiqarilmadi",
+    no_grounded_evidence: "Mos tasdiqlangan dalil topilmadi",
+    insufficient_evidence: "Dalil yetarli emas",
+  };
+  return labels[mode] || "";
+}
+
+function appendChatMessage(role, content, refs = [], mode = "") {
   const log = document.querySelector("#aiChatLog");
   if (!log) return;
   const item = element("article", "chat-message " + (role === "user" ? "chat-user" : "chat-assistant"));
@@ -758,6 +769,8 @@ function appendChatMessage(role, content, refs = []) {
     const citationLine = element("small", "chat-refs", "Bilim manbalari: " + refs.join(", "));
     item.appendChild(citationLine);
   }
+  const modeLabel = generationModeLabel(mode);
+  if (modeLabel) item.appendChild(element("small", "chat-refs", modeLabel));
   log.appendChild(item);
   log.scrollTop = log.scrollHeight;
 }
@@ -785,6 +798,8 @@ function renderWindowInteractive(windowId) {
         const item = element("article", "chat-message " + (message.role === "user" ? "chat-user" : "chat-assistant"));
         item.append(element("span", "chat-role", message.role === "user" ? "Siz" : "FINZANJIR AI"), element("p", "", message.content));
         if (message.refs?.length) item.appendChild(element("small", "chat-refs", "Bilim manbalari: " + message.refs.join(", ")));
+        const modeLabel = generationModeLabel(message.mode);
+        if (modeLabel) item.appendChild(element("small", "chat-refs", modeLabel));
         log.appendChild(item);
       });
     }
@@ -823,8 +838,9 @@ function renderWindowInteractive(windowId) {
         if (!response.ok) throw new Error(body.detail || "AI javobini olish imkoni bo‘lmadi");
         const answer = body.answer || "Dalilga tayangan javob qaytmadi.";
         const refs = Array.isArray(body.knowledge_refs) ? body.knowledge_refs : [];
-        aiConversation.push({role:"assistant", content:answer, refs});
-        appendChatMessage("assistant", answer, refs);
+        const mode = body.generation_mode || "";
+        aiConversation.push({role:"assistant", content:answer, refs, mode});
+        appendChatMessage("assistant", answer, refs, mode);
         if (body.abstained) appendChatMessage("assistant", "Eslatma: mavjud dalillar yetarli bo‘lmagani uchun javob cheklangan.");
       } catch (error) {
         aiConversation.push({role:"assistant", content:"Xatolik: " + error.message});

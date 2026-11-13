@@ -13,10 +13,12 @@ class AnswerResult:
     confidence: float
     abstained: bool
     citations: tuple[str, ...]
+    generation_mode: str = "deterministic_fallback"
 
 
 class GroundedAnswerGenerator:
     ABSTENTION_THRESHOLD = 0.35
+    MAX_RAW_FALLBACK_STATEMENT_CHARS = 1200
 
     def __init__(self, provider: Any | None = None) -> None:
         self.provider = provider
@@ -29,6 +31,7 @@ class GroundedAnswerGenerator:
                 confidence=0.0,
                 abstained=True,
                 citations=(),
+                generation_mode="no_grounded_evidence",
             )
 
         items = context.items[:8]
@@ -42,6 +45,7 @@ class GroundedAnswerGenerator:
                 confidence=0.0 if not grounded_items else confidence,
                 abstained=True,
                 citations=(),
+                generation_mode="insufficient_evidence",
             )
 
         if self.provider is not None:
@@ -52,10 +56,26 @@ class GroundedAnswerGenerator:
                     confidence=confidence,
                     abstained=False,
                     citations=generated[1],
+                    generation_mode="model",
                 )
 
-        # Deterministic fallback: preserve each source statement as a separate,
-        # readable point rather than concatenating unrelated fragments.
+        # Never dump a very long canonical narrative as if it were a composed
+        # answer when the model provider is unavailable.
+        if any(len(item.statement) > self.MAX_RAW_FALLBACK_STATEMENT_CHARS for item in grounded_items):
+            refs = tuple(item.record_id for item in grounded_items)
+            return AnswerResult(
+                answer=(
+                    "Loyiha bilimlar bazasidan tegishli bo'lishi mumkin bo'lgan manba topildi, "
+                    "ammo hozir ravon va aniq javob tuzish uchun AI modeli javob bermadi. "
+                    "Uzun manba matnini xom holda ko'rsatib, uni tayyor javob deb adashtirmayman. "
+                    "Manba ID: " + ", ".join(refs)
+                ),
+                confidence=confidence,
+                abstained=True,
+                citations=refs,
+                generation_mode="fallback_refused_long_source",
+            )
+
         answer = "Loyiha bilimlar bazasidagi tasdiqlangan ma'lumotlar:\n\n" + "\n\n".join(
             f"{index}. {item.statement}" for index, item in enumerate(grounded_items, start=1)
         )
@@ -64,6 +84,7 @@ class GroundedAnswerGenerator:
             confidence=confidence,
             abstained=False,
             citations=tuple(item.record_id for item in grounded_items),
+            generation_mode="deterministic_fallback",
         )
 
     def _generate_with_model(self, query: str, items: list[Any]) -> tuple[str, tuple[str, ...]] | None:
