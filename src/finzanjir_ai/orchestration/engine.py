@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections import OrderedDict
 from dataclasses import dataclass
 from threading import RLock
+from typing import Any
 
 from finzanjir_ai.answer.generator import AnswerResult, GroundedAnswerGenerator
 from finzanjir_ai.answer.providers import LLMGateway
