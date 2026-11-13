@@ -19,13 +19,38 @@ class AnswerResult:
     provider_status: str = "not_attempted"
 
 
+def _semantic_groups(value: str) -> set[str]:
+    """Normalize common Uzbek inflections into a small, conservative domain vocabulary."""
+    groups = {
+        "funds": {"pul", "mablag", "hisob", "money", "fund", "funds"},
+        "citizen": {"fuqaro", "citizen", "citizens", "puqara"},
+        "protect": {"himoya", "himoyalash", "asrash", "saqlash", "xavfsizlik", "xavfsiz", "zarar", "prevent", "protect", "protection"},
+        "card": {"karta", "card", "cards"},
+        "signal": {"signal", "indikator", "belgi", "shubhali", "suspicious"},
+        "fraud": {"firibgar", "firibgarlik", "fraud", "scam"},
+    }
+    reverse = {token: group for group, values in groups.items() for token in values}
+    result: set[str] = set()
+    for token in meaningful_tokens(value):
+        candidates = [token]
+        for suffix in ("larining", "larning", "lariga", "larini", "lar", "ning", "imni", "ini", "iga", "dan", "ga", "ni", "da", "im"):
+            if token.endswith(suffix) and len(token) - len(suffix) >= 3:
+                candidates.append(token[:-len(suffix)])
+        for candidate in candidates:
+            group = reverse.get(candidate)
+            if group:
+                result.add(group)
+    return result
+
+
 def _extractive_grounded_fallback(query: str, items: list[Any], *, max_sentences: int = 6) -> tuple[str, tuple[str, ...]]:
     """Build a readable, source-faithful fallback from relevant sentences.
 
     This is deliberately extractive: it may select and order source sentences,
     but it never invents a bridge, capability, process step or causal claim.
     """
-    query_terms = set(meaningful_tokens(query))
+    query_terms = set(meaningful_tokens(query)) - {"finzanjir"}
+    query_groups = _semantic_groups(query)
     ranked: list[tuple[float, str, str]] = []
     seen: set[str] = set()
 
@@ -47,9 +72,22 @@ def _extractive_grounded_fallback(query: str, items: list[Any], *, max_sentences
                     continue
                 overlap = len(query_terms & set(normalized.split()))
                 alias_match = bool(query_terms & alias_terms)
+                sentence_groups = _semantic_groups(candidate)
+                # For a citizen/funds protection question, do not select a
+                # generic sentence about the project or author that mentions
+                # "citizen" and "protection" but says nothing about funds.
+                if {"funds", "protect"}.issubset(query_groups):
+                    required_groups = {"funds", "protect"}
+                    if "citizen" in query_groups:
+                        required_groups.add("citizen")
+                    if not required_groups.issubset(sentence_groups):
+                        continue
+                if "signal" in query_groups and "signal" not in sentence_groups:
+                    continue
                 if overlap == 0 and not alias_match:
                     continue
                 relevance = overlap / max(1, len(query_terms))
+                relevance += 0.15 * len(query_groups & sentence_groups)
                 score = relevance + (0.025 * max(0.0, min(1.0, float(item.score))))
                 ranked.append((score, candidate, item.record_id))
                 seen.add(normalized)

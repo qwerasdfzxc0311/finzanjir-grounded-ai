@@ -203,3 +203,34 @@ def test_long_unmatched_source_still_abstains_instead_of_guessing():
     assert result.abstained is True
     assert result.generation_mode == "fallback_refused_unmatched_long_source"
     assert "Astronomiya" not in result.answer
+
+
+
+def test_extractive_fallback_rejects_citizen_protection_sentences_without_funds():
+    irrelevant = (
+        "Daromad modelining huquqiy va etik cheklovlari fuqarolar manfaatlarini "
+        "himoya qilish tamoyillaridan ustun qo'yilmasligi kerak. "
+    )
+    relevant = (
+        "FINZANJIR fuqarolarning qonuniy mablag'lari va tranzaksiyalariga "
+        "asossiz zarar yetmasligini ta'minlashga intiladi. "
+    )
+    source = (irrelevant * 20) + (relevant * 20)
+    context = GroundedContext(items=(GroundedContextItem(
+        record_id="ck-citizen-funds",
+        concept_id="citizen-funds-protection",
+        statement=source,
+        score=0.96,
+        provenance=({"source": "canonical-v0.6"},),
+        evidence={"status": "supported"},
+        aliases=("fuqarolar mablag'ini himoya qilish",),
+    ),))
+
+    result = GroundedAnswerGenerator(FailedProvider()).generate(
+        "FINZANJIR fuqarolar pulini qanday himoya qiladi?", context
+    )
+
+    assert result.abstained is False
+    assert result.generation_mode == "extractive_grounded_fallback"
+    assert "qonuniy mablag'lari va tranzaksiyalariga" in result.answer
+    assert "Daromad modelining huquqiy" not in result.answer

@@ -86,3 +86,35 @@ def test_project_questions_never_retrieve_author_biography_as_project_evidence()
     assert "project_0002" in refs
     assert result.answer.citations
     assert "author_0004" not in result.answer.citations
+
+
+
+def test_project_question_excludes_legacy_author_record_using_entity_and_provenance():
+    author_record = {
+        "id": "ck-legacy-author",
+        "concept_id": "author-motivation",
+        "canonical_concept_id": "author-motivation",
+        "entity_id": "person:salamat_smaylov",
+        "facet": "project_motivation",
+        "statement": "Muallif oilaviy moliyaviy yo'qotishlar sabab FINZANJIR g'oyasini boshlagan.",
+        "aliases": ["fuqarolar mablag'ini himoya qilish", "muallif motivatsiyasi"],
+        "evidence": {"status": "supported", "verification": "confirmed"},
+        "provenance": [{
+            "source_type": "project_archive_document",
+            "source_sections": ["Loyiha muallifining motivatsiyasi"],
+        }],
+        "reconciliation": {},
+    }
+    project_record = _record(
+        "ck-project-protection",
+        "FINZANJIR fuqarolarning qonuniy mablag'lari va tranzaksiyalariga asossiz zarar yetmasligiga yordam beradi.",
+        ["fuqarolar mablag'ini himoya qilish", "qonuniy tranzaksiyalar"],
+    )
+    result = FINZANJIRAI(build_knowledge_index([author_record, project_record])).answer(
+        "FINZANJIR fuqarolar pulini qanday himoya qiladi?",
+        runtime_refs=(),
+        working_memory_scope="legacy-author-provenance-isolation",
+    )
+    refs = tuple(item.record_id for item in result.grounded_context.items)
+    assert "ck-legacy-author" not in refs
+    assert "ck-project-protection" in refs
