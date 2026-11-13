@@ -94,3 +94,52 @@ def test_provider_failure_does_not_return_untranslated_project_statements():
     assert result.generation_mode == "language_safe_abstention"
     assert "Подходящий материал проекта найден" in result.answer
     assert "Loyiha bilimlar bazasi" not in result.answer
+
+
+def _bank_authority_context():
+    return GroundedContext(items=(
+        GroundedContextItem(
+            record_id="project_0004",
+            concept_id="finzanjir_bank_authority_boundary",
+            statement=(
+                "FINZANJIR bank kartasini o'zi bloklamasligi, bank qarorini o'zgartirmasligi "
+                "va bankning vakolatli jarayonlarini almashtirmasligi kerak."
+            ),
+            score=0.95,
+            provenance=({"source": "author-confirmed-project-principle"},),
+            evidence={"status": "project_source", "verification": "author_confirmed"},
+        ),
+        GroundedContextItem(
+            record_id="project_0007",
+            concept_id="finzanjir_data_minimization_security",
+            statement="FINZANJIR minimal ma'lumot bilan ishlashi kerak.",
+            score=0.92,
+            provenance=({"source": "author-confirmed-project-principle"},),
+            evidence={"status": "project_source", "verification": "author_confirmed"},
+        ),
+    ))
+
+
+def test_bank_card_authority_question_uses_only_the_relevant_principle():
+    result = GroundedAnswerGenerator().generate(
+        "FINZANJIR bank kartasini o‘zi bloklay oladimi?",
+        _bank_authority_context(),
+    )
+    assert result.abstained is False
+    assert result.generation_mode == "bank_authority_localized"
+    assert result.citations == ("project_0004",)
+    assert "bank kartasini o'zi bloklamaydi" in result.answer
+    assert "minimal ma'lumot" not in result.answer
+
+
+def test_bank_card_authority_answer_is_localized():
+    cases = (
+        ("Can FINZANJIR block a bank card?", "No. FINZANJIR does not block"),
+        ("Может ли FINZANJIR заблокировать карту?", "Нет. FINZANJIR не блокирует"),
+        ("FINZANJIR деген не? FINZANJIR картаны бұғаттай ала ма?", "Жоқ. FINZANJIR"),
+    )
+    for query, expected in cases:
+        result = GroundedAnswerGenerator().generate(query, _bank_authority_context())
+        assert result.generation_mode == "bank_authority_localized"
+        assert result.citations == ("project_0004",)
+        assert expected.casefold() in result.answer.casefold()

@@ -29,6 +29,15 @@ class GroundedAnswerGenerator:
         "kk": "FINZANJIR — қаржылық алаяқтық тәуекелдері мен күмәнді ақша ағындарын анықтап, талдауға бағытталған жоба. Оның негізгі мақсаты — осы үдерісте азаматтардың заңды операциялары мен қаражатына негізсіз зиян келмеуіне көмектесу. Бұл жобаның мақсаты; барлық жоспарланған мүмкіндік қазіргі прототипте толық іске асқан деген сөз емес.",
         "kaa": "FINZANJIR — finanslıq alayaqlıqlar qáwipin hám gúmanlı pul aǵımların anıqlaw hám tallawǵa baǵdarlanǵan joybar. Onıń tiykarǵı maqseti — usı processte puqaralardıń nızamlı operaciyaları hám qarjılarına tiykarсыз zıyan jetpewine járdemlesiw. Bul joybardıń maqseti; barlıq rejelestirilgen múmkinshilikler házirgi prototipte tolıq iske asırılǵan degeni emes.",
     }
+
+    BANK_AUTHORITY_ANSWERS = {
+        "uz": "Yo'q. FINZANJIR bank kartasini o'zi bloklamaydi va bank qarorini o'zgartirmaydi. Zarur bo'lsa, shubhali holat bo'yicha signal yoki tahlil natijasini bankning vakolatli ko'rib chiqishiga yetkazishi mumkin. Har qanday cheklov yoki qaror tegishli qonuniy asos va bankning vakolatli tartibida qabul qilinadi.",
+        "ru": "Нет. FINZANJIR не блокирует банковские карты самостоятельно и не изменяет решения банка. При необходимости он может передать сигнал или результат анализа для рассмотрения уполномоченными сотрудниками банка. Любое ограничение или решение принимается банком в рамках соответствующих полномочий и законных оснований.",
+        "en": "No. FINZANJIR does not block bank cards itself or override a bank's decision. If appropriate, it can provide a signal or analysis result for review through the bank's authorized process. Any restriction or decision remains with the bank and must follow the applicable legal basis and procedures.",
+        "kk": "Жоқ. FINZANJIR банк картасын өздігінен бұғаттамайды және банктің шешімін өзгертпейді. Қажет болса, ол күмәнді жағдай туралы сигналды немесе талдау нәтижесін банктің уәкілетті қызметкерлеріне қарау үшін бере алады. Кез келген шектеу немесе шешім заңды негіздер мен банктің уәкілетті тәртібі бойынша қабылданады.",
+        "kaa": "Joq. FINZANJIR bank kartasın ózi bloklamaydı hám bank qararın ózgertpeydi. Kerek bolsa, ol gúmanlı jaǵday boyınsha signal yamasa tallaw nátiyjesin banktiń wákiletli qızmetkerlerine kórip shıǵıw ushın jiberiwi múmkin. Hár qanday sheklew yamasa qarar nızamlı tiykar hám banktiń wákiletli tártipleri boyınsha qabıl etiledi.",
+    }
+
     LANGUAGE_UNAVAILABLE_MESSAGES = {
         "uz": "Tegishli loyiha dalili topildi, ammo hozir javobni ishonchli va ravon tuzish uchun AI modeli ishlamayapti. Noto'g'ri yoki boshqa tildagi matn bermaslik uchun javobni chekladim.",
         "ru": "Подходящий материал проекта найден, но сейчас модель ИИ недоступна для подготовки надежного и связного ответа. Чтобы не выдавать неточный текст или ответ на другом языке, я ограничиваю ответ.",
@@ -98,7 +107,7 @@ class GroundedAnswerGenerator:
         )
 
     def generate(self, query: str, context: GroundedContext) -> AnswerResult:
-        from finzanjir_ai.orchestration.intent import classify_query_intent, detect_query_language
+        from finzanjir_ai.orchestration.intent import classify_query_intent, detect_query_language, is_bank_authority_query
 
         language = detect_query_language(query)
         if not context.items:
@@ -132,6 +141,16 @@ class GroundedAnswerGenerator:
                 abstained=False,
                 citations=tuple(item.record_id for item in grounded_items if item.record_id == "project_0001"),
                 generation_mode="project_overview_localized",
+                provider_status="not_attempted",
+            )
+
+        if is_bank_authority_query(query) and any(item.record_id == "project_0004" for item in grounded_items):
+            return AnswerResult(
+                answer=self.BANK_AUTHORITY_ANSWERS.get(language, self.BANK_AUTHORITY_ANSWERS["uz"]),
+                confidence=confidence,
+                abstained=False,
+                citations=("project_0004",),
+                generation_mode="bank_authority_localized",
                 provider_status="not_attempted",
             )
 
