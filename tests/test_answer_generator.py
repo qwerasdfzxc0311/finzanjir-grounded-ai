@@ -328,7 +328,8 @@ def test_signal_process_fallback_orders_only_source_supported_process_stages():
         "Risk Score va Threshold qiymati dalillar asosida baholanadi. "
         "Vakolatli mutaxassis Human Review jarayonida dalillarni ko'rib chiqadi. "
         "Dalillar tekshiriladi va tranzaksiya konteksti bilan solishtiriladi. "
-        "Shubhali signal aniqlanganda u avtomatik aybdorlik isboti hisoblanmaydi. "
+        "Shubhali signal aniqlanadi va keyingi tahlil uchun qayd etiladi. "
+        "Shubhali signal avtomatik ravishda aybdorlik isboti hisoblanmaydi. "
     ) * 20
     context = GroundedContext(items=(GroundedContextItem(
         record_id="ck-process-stages",
@@ -355,6 +356,7 @@ def test_signal_process_fallback_orders_only_source_supported_process_stages():
         "Bank o'z vakolatidagi qarorni",
         "AuditEvent va feedback",
     ]
+    assert all(value in result.answer for value in expected), result.answer
     positions = [result.answer.index(value) for value in expected]
     assert positions == sorted(positions)
     assert "avtomatik aybdorlik isboti" not in result.answer
