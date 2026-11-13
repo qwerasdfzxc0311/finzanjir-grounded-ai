@@ -92,3 +92,16 @@ def test_citizen_funds_protection_query_uses_specific_local_search_variants():
     assert any("qonuniy mablag'lari" in value for value in expanded)
     assert any("shubhali pul oqimlarini" in value for value in expanded)
     assert "FINZANJIR moliyaviy xavfsizlik firibgarlik zanjiri" not in expanded
+
+
+
+def test_multi_card_fraud_question_expands_to_cross_match_and_fraud_graph_terms():
+    from finzanjir_ai.knowledge.index import build_knowledge_index
+    from finzanjir_ai.retrieval.rerank import QueryExpander
+
+    expanded = QueryExpander(build_knowledge_index([])).expand(
+        "Agar firibgar pulni bir nechta karta orqali o'tkazsa, FINZANJIR buni qanday tushunadi?"
+    )
+    assert any("Cross-Match Fraud Graph" in value for value in expanded)
+    assert any("bir nechta bank kartasi" in value for value in expanded)
+    assert any("pul oqimlarini" in value for value in expanded)
