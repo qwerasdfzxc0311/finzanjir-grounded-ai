@@ -93,10 +93,11 @@ def _extractive_grounded_fallback(query: str, items: list[Any], *, max_sentences
                             continue
                     elif "signal" not in sentence_groups:
                         continue
-                if overlap == 0 and not alias_match:
+                semantic_overlap = len(query_groups & sentence_groups)
+                if overlap == 0 and not alias_match and semantic_overlap == 0:
                     continue
                 relevance = overlap / max(1, len(query_terms))
-                relevance += 0.15 * len(query_groups & sentence_groups)
+                relevance += 0.15 * semantic_overlap
                 score = relevance + (0.025 * max(0.0, min(1.0, float(item.score))))
                 ranked.append((score, candidate, item.record_id))
                 seen.add(normalized)
