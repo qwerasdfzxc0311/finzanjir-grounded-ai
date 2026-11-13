@@ -48,7 +48,16 @@ def test_actual_canonical_corpus_builds_normalized_index():
     document = load_canonical_knowledge()
     index = build_index_from_document(document)
 
-    assert len(index.records) == 8804
-    assert len(index._concept_to_record_ids) == 2060
+    assert len(index.records) == 8809
+    assert len(index._concept_to_record_ids) == 2065
     first_record = index.records[0]
     assert first_record.record_id in index.record_ids_for_concept(first_record.concept_id)
+
+
+def test_author_profile_is_loaded_as_a_separate_runtime_layer():
+    document = load_canonical_knowledge()
+    assert len(document["records"]) == 8804
+    assert len(document["author_profile_records"]) == 5
+    ids = {record["id"] for record in document["author_profile_records"]}
+    assert "author_profile_0002" in ids
+    assert "author_profile_0003" in ids
