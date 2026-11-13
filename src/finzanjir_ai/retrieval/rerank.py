@@ -43,6 +43,16 @@ _MULTI_CARD_FRAUD_QUERY_HINTS = (
 )
 
 
+_SIGNAL_PROCESS_QUERY_HINTS = (
+    "signal aniqlangandan keyin Evidence Risk Score Case va audit bosqichlari",
+    "shubhali signalni dalillar bilan tekshirish va Case ochish",
+    "vakolatli mutaxassis inson ko'rigi va bankning qaror qabul qilish tartibi",
+    "FINZANJIR signalni bankka ko'rib chiqish uchun yuboradi bank vakolatini almashtirmaydi",
+    "risk indikatori avtomatik bloklash buyrug'i yoki aybdorlik isboti emas",
+    "source validation normalization context signal evidence risk case human review audit feedback",
+)
+
+
 class QueryExpander:
     """Local alias expansion that avoids firing on generic one-word overlaps."""
 
@@ -76,6 +86,11 @@ class QueryExpander:
             expanded.extend(_CITIZEN_PROTECTION_QUERY_HINTS)
         if has_card and (has_fraud or has_funds):
             expanded.extend(_MULTI_CARD_FRAUD_QUERY_HINTS)
+
+        signal_terms = {"signal", "shubhali", "indikator", "risk"}
+        process_terms = {"keyin", "song", "so'ng", "paydo", "topilsa", "topilgach", "bosqich", "bank"}
+        if bool(raw_terms & signal_terms) and bool(raw_terms & process_terms):
+            expanded.extend(_SIGNAL_PROCESS_QUERY_HINTS)
 
         # A broad identity question has little lexical content after stopword
         # removal. Do not let a detailed "how does it protect money?" question
