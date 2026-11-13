@@ -756,6 +756,7 @@ function generationModeLabel(mode) {
     no_grounded_evidence: "Mos tasdiqlangan dalil topilmadi",
     insufficient_evidence: "Dalil yetarli emas",
     author_deterministic_fallback: "Muallifning tasdiqlangan ma'lumotlaridan tuzilgan javob · AI model ishlamadi",
+    project_principle_deterministic_fallback: "Tasdiqlangan loyiha tamoyilidan tuzilgan javob · AI model ishlamadi",
     author_insufficient_evidence: "Muallif haqida mos tasdiqlangan dalil topilmadi",
     general_knowledge_model: "Umumiy bilim AI javobi · FINZANJIR hujjatlaridan tashqari",
     general_knowledge_unavailable: "Umumiy bilim modeli sozlanmagan",
@@ -793,7 +794,7 @@ function providerDiagnosticLabel(item) {
   return provider + " — " + status;
 }
 
-function appendChatMessage(role, content, refs = [], mode = "", providerStatus = "", providerDiagnostics = []) {
+function appendChatMessage(role, content, refs = [], mode = "", providerStatus = "", providerDiagnostics = [], confidence = null, abstained = null) {
   const log = document.querySelector("#aiChatLog");
   if (!log) return;
   const item = element("article", "chat-message " + (role === "user" ? "chat-user" : "chat-assistant"));
@@ -810,6 +811,13 @@ function appendChatMessage(role, content, refs = [], mode = "", providerStatus =
   if (providerDiagnostics.length) {
     const diagnosticText = providerDiagnostics.map(providerDiagnosticLabel).join("; ");
     item.appendChild(element("small", "chat-refs", "Ulanish diagnostikasi: " + diagnosticText));
+  }
+  if (Number.isFinite(confidence)) {
+    const score = Math.round(Math.max(0, Math.min(1, confidence)) * 100);
+    item.appendChild(element("small", "chat-refs", "Dalil mosligi ko‘rsatkichi: " + score + "/100 · bu firibgarlik ehtimoli yoki kafolatlangan aniqlik emas"));
+  }
+  if (typeof abstained === "boolean") {
+    item.appendChild(element("small", "chat-refs", "Dalil holati: " + (abstained ? "javobdan tiyildi" : "javob berildi")));
   }
   log.appendChild(item);
   log.scrollTop = log.scrollHeight;
@@ -842,6 +850,16 @@ function renderWindowInteractive(windowId) {
         if (modeLabel) item.appendChild(element("small", "chat-refs", "Javob rejimi: " + modeLabel));
         const providerLabel = providerStatusLabel(message.providerStatus);
         if (providerLabel) item.appendChild(element("small", "chat-refs", "AI ulanishi: " + providerLabel));
+        if (Array.isArray(message.providerDiagnostics) && message.providerDiagnostics.length) {
+          item.appendChild(element("small", "chat-refs", "Ulanish diagnostikasi: " + message.providerDiagnostics.map(providerDiagnosticLabel).join("; ")));
+        }
+        if (Number.isFinite(message.confidence)) {
+          const score = Math.round(Math.max(0, Math.min(1, message.confidence)) * 100);
+          item.appendChild(element("small", "chat-refs", "Dalil mosligi ko‘rsatkichi: " + score + "/100 · bu firibgarlik ehtimoli yoki kafolatlangan aniqlik emas"));
+        }
+        if (typeof message.abstained === "boolean") {
+          item.appendChild(element("small", "chat-refs", "Dalil holati: " + (message.abstained ? "javobdan tiyildi" : "javob berildi")));
+        }
         log.appendChild(item);
       });
     }
@@ -883,8 +901,8 @@ function renderWindowInteractive(windowId) {
         const mode = body.generation_mode || "";
         const providerStatus = body.provider_status || "not_attempted";
         const providerDiagnostics = Array.isArray(body.provider_diagnostics) ? body.provider_diagnostics : [];
-        aiConversation.push({role:"assistant", content:answer, refs, mode, providerStatus, providerDiagnostics});
-        appendChatMessage("assistant", answer, refs, mode, providerStatus, providerDiagnostics);
+        aiConversation.push({role:"assistant", content:answer, refs, mode, providerStatus, providerDiagnostics, confidence:body.confidence, abstained:body.abstained});
+        appendChatMessage("assistant", answer, refs, mode, providerStatus, providerDiagnostics, body.confidence, body.abstained);
         if (body.abstained) appendChatMessage("assistant", "Eslatma: mavjud dalillar yetarli bo‘lmagani uchun javob cheklangan.");
       } catch (error) {
         aiConversation.push({role:"assistant", content:"Xatolik: " + error.message});
