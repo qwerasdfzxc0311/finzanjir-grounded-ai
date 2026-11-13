@@ -3,35 +3,79 @@ from __future__ import annotations
 from dataclasses import replace
 
 from .hybrid import RetrievalResult
+from .text import meaningful_tokens, tokenize
 from finzanjir_ai.knowledge.index import KnowledgeIndex
 
 
+_IDENTITY_QUERY_HINTS = (
+    "FINZANJIR moliyaviy xavfsizlik firibgarlikdan himoya",
+    "FINZANJIR firibgarlik zanjiri tahlili",
+    "moliyaviy xavflarni aniqlash fuqarolar mablag'ini himoya qilish",
+)
+
+
 class QueryExpander:
+    """Local alias expansion that avoids firing on generic one-word overlaps."""
+
     def __init__(self, index: KnowledgeIndex) -> None:
         self.index = index
 
     def expand(self, query: str) -> tuple[str, ...]:
-        terms = {query.strip()} if query.strip() else set()
-        query_tokens = {token.casefold() for token in query.split()}
-        for record in self.index.records:
-            if query_tokens & {alias.casefold() for alias in record.aliases for _ in [0]}:
-                terms.update(record.aliases)
-            elif any(token in alias.casefold().split() for token in query_tokens for alias in record.aliases):
-                terms.update(record.aliases)
-        return tuple(sorted(term for term in terms if term))
+        original = query.strip()
+        if not original:
+            return ()
+
+        expanded: list[str] = [original]
+        raw_terms = set(tokenize(original))
+        query_terms = set(meaningful_tokens(original))
+
+        # A broad identity question has little lexical content after stopword
+        # removal. Add search hints only; these are never treated as answer facts.
+        if "finzanjir" in raw_terms and (
+            len(query_terms) <= 1
+            or bool(raw_terms & {"nima", "maqsad", "kerak", "loyiha", "qanday"})
+        ):
+            expanded.extend(_IDENTITY_QUERY_HINTS)
+
+        if len(query_terms) >= 2:
+            for record in self.index.records:
+                for alias in record.aliases:
+                    alias_terms = set(meaningful_tokens(alias))
+                    if not alias_terms:
+                        continue
+                    overlap = len(query_terms & alias_terms)
+                    exact_phrase = alias.casefold().strip() in original.casefold()
+                    if exact_phrase or overlap >= 2:
+                        expanded.extend(record.aliases)
+                        break
+
+        return tuple(dict.fromkeys(term for term in expanded if term))
 
 
 class Reranker:
+    """Small, bounded alias-aware rerank bonus; no unbounded exact-match boost."""
+
     def __init__(self, index: KnowledgeIndex) -> None:
         self.index = index
 
     def rerank(self, query: str, results: tuple[RetrievalResult, ...]) -> tuple[RetrievalResult, ...]:
-        q = query.casefold().strip()
+        normalized_query = " ".join(tokenize(query))
+        query_terms = set(meaningful_tokens(query))
         scored = []
         for result in results:
             record = self.index.get_record(result.record_id)
             bonus = 0.0
-            if record and any(alias.casefold() == q or q in alias.casefold() for alias in record.aliases):
-                bonus = 1.0
-            scored.append(replace(result, score=result.score + bonus))
+            if record:
+                for alias in record.aliases:
+                    normalized_alias = " ".join(tokenize(alias))
+                    alias_terms = set(meaningful_tokens(alias))
+                    if normalized_alias and (
+                        normalized_alias in normalized_query
+                        or normalized_query in normalized_alias
+                    ):
+                        bonus = max(bonus, 0.20)
+                    elif len(query_terms & alias_terms) >= 2 and alias_terms:
+                        overlap = len(query_terms & alias_terms) / len(alias_terms)
+                        bonus = max(bonus, min(0.12, 0.12 * overlap))
+            scored.append(replace(result, score=min(1.0, result.score + bonus)))
         return tuple(sorted(scored, key=lambda item: (-item.score, item.record_id)))
