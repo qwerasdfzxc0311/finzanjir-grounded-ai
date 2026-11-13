@@ -40,6 +40,7 @@ def test_ai_endpoint_answers_from_grounded_knowledge():
         "general_knowledge_model",
         "general_knowledge_unavailable",
         "general_knowledge_provider_failed",
+        "project_overview_localized",
     }
     if body["generation_mode"] in {"model", "deterministic_fallback"}:
         assert body["abstained"] is False
