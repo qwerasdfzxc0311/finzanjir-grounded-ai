@@ -85,4 +85,8 @@ def test_author_motivation_question_selects_only_motivation_evidence():
     assert "fuqaro murojaati" in result.answer.answer
     assert "alohida" in result.answer.answer
     assert "bloklash buyrug'i deb qabul qilmaslik" in result.answer.answer
+    assert "Kiber Qalqon" in result.answer.answer
+    assert "mustaqil tekshirilmagan" in result.answer.answer
+    assert "100 foiz xatosizlikni kafolatlashni emas" in result.answer.answer
+    assert "yangi bloklash tizimi" in result.answer.answer
     assert "2003-yil" not in result.answer.answer
