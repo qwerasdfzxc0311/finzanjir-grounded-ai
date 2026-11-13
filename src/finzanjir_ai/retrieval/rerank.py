@@ -21,6 +21,18 @@ _AUTHOR_QUERY_HINTS = (
 )
 
 
+# Curated local rewrites for citizen/funds protection questions. These are
+# retrieval hints only; the answer must still be supported by retrieved records.
+_CITIZEN_PROTECTION_QUERY_HINTS = (
+    "fuqarolarning qonuniy mablag'lari va tranzaksiyalariga asossiz zarar yetmasligi",
+    "shubhali pul oqimlarini aniqlash va tahlil qilish",
+    "moliyaviy firibgarlik xavfini erta aniqlash va fuqarolar mablag'ini himoya qilish",
+    "false positive false negative qonuniy operatsiyalarni xato belgilash",
+    "signal Risk Case vakolatli inson ko'rigi va fuqaro murojaati",
+    "bank bilan qonuniy hamkorlik ma'lumotlarni minimallashtirish",
+)
+
+
 class QueryExpander:
     """Local alias expansion that avoids firing on generic one-word overlaps."""
 
@@ -36,11 +48,21 @@ class QueryExpander:
         raw_terms = set(tokenize(original))
         query_terms = set(meaningful_tokens(original))
 
+        # Recognize colloquial citizen/funds protection questions and search
+        # the canonical project concepts they refer to, even when the wording
+        # does not repeat the corpus terminology.
+        funds_terms = {"pul", "pulini", "pulimni", "mablag", "mablaglar", "money", "fund", "funds"}
+        protection_terms = {"himoya", "himoyalash", "asrash", "saqlash", "xavfsizlik", "xavfsiz", "protect", "protection"}
+        is_citizen_protection = bool(raw_terms & funds_terms) and bool(raw_terms & protection_terms)
+        if is_citizen_protection:
+            expanded.extend(_CITIZEN_PROTECTION_QUERY_HINTS)
+
         # A broad identity question has little lexical content after stopword
-        # removal. Add search hints only; these are never treated as answer facts.
-        if "finzanjir" in raw_terms and (
+        # removal. Do not let a detailed "how does it protect money?" question
+        # fall back to broad mission/identity hints.
+        if "finzanjir" in raw_terms and not is_citizen_protection and (
             len(query_terms) <= 1
-            or bool(raw_terms & {"nima", "maqsad", "kerak", "loyiha", "qanday"})
+            or bool(raw_terms & {"nima", "maqsad", "kerak", "loyiha"})
         ):
             expanded.extend(_IDENTITY_QUERY_HINTS)
 
