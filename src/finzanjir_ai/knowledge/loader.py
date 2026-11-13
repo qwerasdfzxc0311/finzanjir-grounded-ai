@@ -11,39 +11,24 @@ def knowledge_path() -> Path:
     return DEFAULT_KNOWLEDGE_PATH
 
 
-def load_author_profile_records(path: Path | None = None) -> list[dict]:
-    """Load the separately governed, author-confirmed biography layer."""
-    target = path or DEFAULT_AUTHOR_PROFILE_PATH
-    if not target.exists():
-        return []
-    with target.open("r", encoding="utf-8") as handle:
-        document = json.load(handle)
-    if not isinstance(document, dict) or document.get("profile_type") != "author_biography":
-        raise ValueError("Author profile must declare profile_type=author_biography")
-    records = document.get("records")
-    if not isinstance(records, list):
-        raise ValueError("Author profile records must be a list")
-    required = {
-        "id", "concept_id", "canonical_concept_id", "statement", "aliases",
-        "evidence", "provenance", "reconciliation",
-    }
-    seen = set()
-    for index, record in enumerate(records):
-        if not isinstance(record, dict) or required.difference(record):
-            raise ValueError(f"Author profile record {index} is incomplete")
-        if not str(record["id"]).startswith("author_"):
-            raise ValueError(f"Author profile record {index} must use an author_ ID")
-        if record["id"] in seen:
-            raise ValueError(f"Duplicate author profile record ID: {record['id']}")
-        seen.add(record["id"])
-        if record["evidence"].get("verification") != "author_confirmed":
-            raise ValueError(f"Author profile record {record['id']} is not author-confirmed")
-    return records
-
-
 def load_canonical_knowledge(path: Path | None = None) -> dict:
     target = path or knowledge_path()
     with target.open("r", encoding="utf-8") as handle:
         document = json.load(handle)
     validate_canonical_v06(document)
+    # Keep author biography/motivation separate from the canonical technical corpus.
+    # It is merged only into the runtime retrieval view, after canonical validation.
+    if path is None and DEFAULT_AUTHOR_PROFILE_PATH.exists():
+        with DEFAULT_AUTHOR_PROFILE_PATH.open("r", encoding="utf-8") as profile_handle:
+            profile = json.load(profile_handle)
+        supplemental = profile.get("records") if isinstance(profile, dict) else None
+        if not isinstance(supplemental, list):
+            raise ValueError("Author profile records must be a list")
+        canonical_ids = {str(record["id"]) for record in document["records"]}
+        for record in supplemental:
+            if not isinstance(record, dict) or not record.get("id") or not record.get("statement"):
+                raise ValueError("Author profile records require an id and statement")
+            if str(record["id"]) in canonical_ids:
+                raise ValueError("Author profile record ID collides with canonical knowledge")
+        document["author_profile_records"] = supplemental
     return document
