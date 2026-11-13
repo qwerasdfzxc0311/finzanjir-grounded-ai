@@ -22,3 +22,12 @@ def test_author_questions_are_classified_separately():
     assert classify_query_intent("FINZANJIR muallifi kim?") == "author"
     assert classify_query_intent("Salamat Smaylov haqida aytib ber") == "author"
     assert classify_query_intent("Muallif nima uchun loyihani boshlagan?") == "author"
+
+
+def test_author_question_expansion_adds_author_search_hints_only():
+    from finzanjir_ai.knowledge.index import build_knowledge_index
+    from finzanjir_ai.retrieval.rerank import QueryExpander
+
+    expanded = QueryExpander(build_knowledge_index([])).expand("FINZANJIR muallifi kim?")
+    assert any("Salamat Smaylov" in item for item in expanded)
+    assert any("tarjimai holi" in item for item in expanded)
