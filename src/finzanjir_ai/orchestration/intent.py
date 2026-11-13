@@ -119,7 +119,7 @@ def is_bank_authority_query(query: str) -> bool:
     has_project = bool(tokens & {"finzanjir", "финзанжир"})
     card_terms = {
         "karta", "kartani", "kartasini", "карта", "карту", "картаны",
-        "card", "cards", "joybar", "bank",
+        "card", "cards", "kartasın", "bank",
     }
     action_terms = {
         "bloklay", "bloklashi", "bloklash", "bloklaydi", "bloklashi",
