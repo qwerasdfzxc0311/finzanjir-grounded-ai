@@ -53,7 +53,7 @@ class GroundedContext:
 class GroundedContextAssembler:
     MIN_LEXICAL_RELEVANCE = 0.35
     MIN_RETRIEVAL_SCORE = 0.38
-    MIN_QUERY_RELEVANCE = 0.90
+    MIN_RELATIVE_QUERY_RELEVANCE = 0.75
 
     def __init__(self, index: KnowledgeIndex) -> None:
         self.index = index
@@ -77,6 +77,7 @@ class GroundedContextAssembler:
         if query and not query_candidates:
             return GroundedContext(items=())
 
+        eligible = []
         for result in results:
             if (
                 result.lexical_score < self.MIN_LEXICAL_RELEVANCE
@@ -86,8 +87,20 @@ class GroundedContextAssembler:
             record = self.index.get_record(result.record_id)
             if record is None or not is_grounded_record(record.evidence, record.statement):
                 continue
+            eligible.append((result, record))
 
-            if query_candidates and result.lexical_score < self.MIN_QUERY_RELEVANCE:
+        # Compare candidates against the strongest match for this same query.
+        # An absolute 0.90 cutoff discarded valid English questions, while
+        # accepting long narratives that matched only generic repeated terms.
+        best_lexical = max(
+            (result.lexical_score for result, _ in eligible),
+            default=0.0,
+        )
+        for result, record in eligible:
+            if query_candidates and (
+                best_lexical <= 0.0
+                or result.lexical_score < best_lexical * self.MIN_RELATIVE_QUERY_RELEVANCE
+            ):
                 continue
 
             items.append(GroundedContextItem(
