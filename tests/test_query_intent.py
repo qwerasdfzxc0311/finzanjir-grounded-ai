@@ -118,3 +118,16 @@ def test_signal_followup_question_expands_to_evidence_case_and_bank_review_stage
     assert any("Evidence Risk Score Case" in value for value in expanded)
     assert any("vakolatli mutaxassis" in value for value in expanded)
     assert any("bankning qaror qabul qilish tartibi" in value for value in expanded)
+
+
+def test_signal_process_query_rewrite_includes_architecture_stage_sequence():
+    from finzanjir_ai.knowledge.index import build_knowledge_index
+    from finzanjir_ai.retrieval.rerank import QueryExpander
+
+    expanded = QueryExpander(build_knowledge_index([])).expand(
+        "Shubhali signal topilgandan keyin qanday jarayon bo'ladi va bank nima qiladi?"
+    )
+    assert any(
+        "Transaction → Signal → Evidence → Risk → Threshold → Case → HumanDecision → AuditEvent" in value
+        for value in expanded
+    )
