@@ -100,8 +100,11 @@ class TransactionChainCorrelator:
             raise ValueError("allow_incomplete must be boolean")
         if isinstance(events, (str, bytes, dict)) or isinstance(links, (str, bytes, dict)):
             raise ValueError("events and links must be iterables of objects")
-        normalized_events = [dict(item) for item in events]
-        normalized_links = [dict(item) for item in links]
+        try:
+            normalized_events = list(events)
+            normalized_links = list(links)
+        except TypeError as exc:
+            raise ValueError("events and links must be iterable") from exc
         if not normalized_events:
             raise ValueError("Synthetic transaction graph requires at least one event")
 
