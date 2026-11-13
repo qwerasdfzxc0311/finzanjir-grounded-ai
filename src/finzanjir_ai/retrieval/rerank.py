@@ -49,6 +49,8 @@ _SIGNAL_PROCESS_QUERY_HINTS = (
     "signal aniqlangandan keyin Evidence tekshiruvi Risk Score va Threshold baholash",
     "shubhali signalni dalillar bilan tekshirish risk darajasini baholash va Case ochish",
     "Case escalation threshold bajarilgandan keyin vakolatli Human Review",
+    "vakolatli mutaxassis inson ko'rigi va bankning qaror qabul qilish tartibi",
+    "bankning qaror qabul qilish tartibi",
     "bankning qonuniy qarori va vakolatli bank jarayoni HumanDecision",
     "AuditEvent qaror tarixi va fuqaro feedback qayta ko'rib chiqish",
     "FINZANJIR signalni bankka ko'rib chiqish uchun yuboradi bank vakolatini almashtirmaydi",
