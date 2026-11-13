@@ -60,15 +60,25 @@ def is_project_overview_query(query: str) -> bool:
     tokens = set(normalized.split())
     if not ({"finzanjir", "финзанжир"} & tokens):
         return False
-    phrases = (
-        "finzanjir nima", "finzanjir haqida", "finzanjirning maqsadi",
-        "finzanjir qanday loyiha", "финзанжир нима", "финзанжир ҳақида",
+    detail_markers = {
+        "bank", "банк", "karta", "kartani", "карта", "блок", "blok", "signal",
+        "сигнал", "risk", "риск", "case", "fuqaro", "граждан", "murojaat",
+        "ma'lumot", "malumot", "данные", "data", "law", "qonun", "закон",
+        "detect", "aniqlash", "aniqlaydi", "qanday ishlaydi", "how",
+    }
+    if tokens & detail_markers:
+        return False
+    exact_forms = {
+        "finzanjir nima", "finzanjir nima va nima uchun kerak", "finzanjir nima uchun kerak",
+        "finzanjir haqida", "finzanjir haqida aytib ber", "finzanjir haqida qisqacha aytib ber",
+        "finzanjirning maqsadi", "finzanjir qanday loyiha",
+        "финзанжир нима", "финзанжир ҳақида", "финзанжир ҳақида айтып бер",
         "что такое finzanjir", "расскажи о finzanjir", "о finzanjir",
         "what is finzanjir", "tell me about finzanjir", "about finzanjir",
         "finzanjir деген не", "finzanjir туралы", "finzanjir қандай жоба",
         "finzanjir degen ne", "finzanjir haqqında", "finzanjir joybar",
-    )
-    return any(phrase in normalized for phrase in phrases)
+    }
+    return normalized in exact_forms
 
 
 def classify_query_intent(query: str) -> str:
