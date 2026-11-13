@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-import re
 from typing import Any
 
 from finzanjir_ai.knowledge.index import KnowledgeIndex
 from .hybrid import RetrievalResult
+from .text import meaningful_tokens
 
 
 GROUNDED_EVIDENCE_STATUSES = frozenset({
@@ -13,13 +13,6 @@ GROUNDED_EVIDENCE_STATUSES = frozenset({
     "project_source",
     "source_derived",
     "supported",
-})
-
-_QUERY_STOPWORDS = frozenset({
-    "a", "an", "and", "are", "as", "at", "be", "does", "for", "from", "how",
-    "in", "is", "it", "no", "of", "on", "or", "the", "to", "what", "why",
-    "with", "without", "bu", "bilan", "bir", "bo", "bo'yicha", "deb", "degan",
-    "ekan", "uchun", "va", "yoki", "qanday", "nima", "nega", "ning", "dan", "da", "ga",
 })
 
 UNVERIFIED_STATUS_MARKERS = (
@@ -47,14 +40,6 @@ def is_grounded_record(evidence: Any, statement: str) -> bool:
         return False
     normalized = str(statement).casefold()
     return not any(marker in normalized for marker in UNVERIFIED_STATUS_MARKERS)
-
-
-def _query_tokens(value: str) -> set[str]:
-    return {
-        token.casefold()
-        for token in re.findall(r"[^\W_]+", value, flags=re.UNICODE)
-        if token.casefold() not in _QUERY_STOPWORDS
-    }
 
 
 @dataclass(frozen=True)
@@ -92,8 +77,14 @@ class GroundedContextAssembler:
         items = []
         query_candidates = tuple(
             tokens for value in ((query or ""), *query_alternatives)
-            if (tokens := _query_tokens(value))
+            if len(tokens := set(meaningful_tokens(value))) >= 2
         )
+
+        # A user question containing only generic words or the product name is
+        # not enough evidence to accept arbitrary high-frequency corpus records.
+        if query and not query_candidates:
+            return GroundedContext(items=())
+
         for result in results:
             if (
                 result.lexical_score < self.MIN_LEXICAL_RELEVANCE
@@ -105,7 +96,9 @@ class GroundedContextAssembler:
                 continue
 
             if query_candidates:
-                record_tokens = _query_tokens(record.statement + " " + " ".join(record.aliases))
+                record_tokens = set(meaningful_tokens(
+                    record.statement + " " + " ".join(record.aliases)
+                ))
                 relevance = max(
                     len(candidate & record_tokens) / len(candidate)
                     for candidate in query_candidates
