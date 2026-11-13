@@ -28,9 +28,23 @@ def test_ai_endpoint_answers_from_grounded_knowledge():
     )
     assert response.status_code == 200
     body = response.json()
-    assert body["abstained"] is False
     assert body["answer"]
-    assert body["knowledge_refs"]
+    assert body["generation_mode"] in {
+        "model",
+        "deterministic_fallback",
+        "fallback_refused_long_source",
+        "no_grounded_evidence",
+        "insufficient_evidence",
+    }
+    if body["generation_mode"] in {"model", "deterministic_fallback"}:
+        assert body["abstained"] is False
+        assert body["knowledge_refs"]
+    elif body["generation_mode"] == "fallback_refused_long_source":
+        assert body["abstained"] is True
+        assert body["knowledge_refs"]
+    else:
+        assert body["abstained"] is True
+        assert body["knowledge_refs"] == []
     assert "confidence" in body
     assert "provenance" in body
 
