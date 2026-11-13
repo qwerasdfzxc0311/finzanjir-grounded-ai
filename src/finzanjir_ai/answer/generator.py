@@ -151,7 +151,7 @@ class GroundedAnswerGenerator:
                     generation_mode="author_insufficient_evidence",
                     provider_status=provider_status,
                 )
-            answer = "Muallif haqidagi tasdiqlangan ma'lumotlar:\\n\\n" + "\\n\\n".join(
+            answer = "Muallif haqidagi tasdiqlangan ma'lumotlar:\n\n" + "\n\n".join(
                 f"{index}. {item.statement}"
                 for index, item in enumerate(selected, start=1)
             )
