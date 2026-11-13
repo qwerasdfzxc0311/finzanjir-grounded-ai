@@ -53,7 +53,7 @@ class GroundedContext:
 class GroundedContextAssembler:
     MIN_LEXICAL_RELEVANCE = 0.50
     MIN_RETRIEVAL_SCORE = 0.38
-    MIN_RELATIVE_QUERY_RELEVANCE = 0.75
+    MIN_RELATIVE_QUERY_RELEVANCE = 0.90
 
     def __init__(self, index: KnowledgeIndex) -> None:
         self.index = index
@@ -111,14 +111,14 @@ class GroundedContextAssembler:
         # Compare candidates against the strongest match for this same query.
         # The lexical floor prevents a single generic word such as "evidence"
         # from grounding an otherwise unsupported question.
-        best_lexical = max(
-            (result.lexical_score for result, _ in eligible),
+        best_ranked_score = max(
+            (result.score for result, _ in eligible),
             default=0.0,
         )
         for result, record in eligible:
             if query_candidates and (
-                best_lexical <= 0.0
-                or result.lexical_score < best_lexical * self.MIN_RELATIVE_QUERY_RELEVANCE
+                best_ranked_score <= 0.0
+                or result.score < best_ranked_score * self.MIN_RELATIVE_QUERY_RELEVANCE
             ):
                 continue
 
