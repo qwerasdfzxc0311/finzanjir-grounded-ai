@@ -37,6 +37,15 @@ class GroundedAnswerGenerator:
         "kaa": "Joybardıń tiyisli dálili tabıldı, biraq házir isenimli hám túsinikli juwap dúziw ushın AI modeli islempedi. Basqa tildegi yamasa qatısı joq tekstti bermew ushın juwaptı shekledim.",
     }
 
+
+    NO_EVIDENCE_MESSAGES = {
+        "uz": "Loyiha bilimlar bazasida bu savolga yetarli tasdiqlangan dalil topilmadi. Taxminni fakt sifatida ko'rsatmayman.",
+        "ru": "В базе знаний проекта не найдено достаточно подтвержденных данных для ответа на этот вопрос. Я не буду выдавать предположение за факт.",
+        "en": "The project knowledge base does not contain enough verified evidence to answer this question. I will not present a guess as fact.",
+        "kk": "Жобаның білім қорынан бұл сұраққа жауап беретін жеткілікті расталған дерек табылмады. Болжамды факт ретінде ұсынбаймын.",
+        "kaa": "Joybardıń bilim bazasında bul sorawǵa juwap beriw ushın jetkilikli tastıyıqlanǵan dálil tabılmadı. Boljamdı fakt sıpatında kórsetpeymen.",
+    }
+
     def __init__(self, provider: Any | None = None) -> None:
         self.provider = provider
 
@@ -89,10 +98,12 @@ class GroundedAnswerGenerator:
         )
 
     def generate(self, query: str, context: GroundedContext) -> AnswerResult:
+        from finzanjir_ai.orchestration.intent import classify_query_intent, detect_query_language
+
+        language = detect_query_language(query)
         if not context.items:
             return AnswerResult(
-                answer="Loyiha bilimlar bazasidan bu savolga yetarli asoslangan ma'lumot topilmadi. "
-                       "Aniqroq javob berish uchun savolni boshqacha ifodalash yoki tegishli hujjatni qo'shish kerak.",
+                answer=self.NO_EVIDENCE_MESSAGES.get(language, self.NO_EVIDENCE_MESSAGES["uz"]),
                 confidence=0.0,
                 abstained=True,
                 citations=(),
@@ -106,8 +117,7 @@ class GroundedAnswerGenerator:
         confidence = min(1.0, 0.7 * top_score + 0.3 * (len(grounded_items) / len(items)))
         if not grounded_items or confidence < self.ABSTENTION_THRESHOLD:
             return AnswerResult(
-                answer="Topilgan ma'lumotlar ishonchli javob berish uchun yetarli darajada tasdiqlanmagan. "
-                       "Shuning uchun taxminni fakt sifatida ko'rsatmayman.",
+                answer=self.NO_EVIDENCE_MESSAGES.get(language, self.NO_EVIDENCE_MESSAGES["uz"]),
                 confidence=0.0 if not grounded_items else confidence,
                 abstained=True,
                 citations=(),
@@ -115,9 +125,6 @@ class GroundedAnswerGenerator:
                 provider_status="not_attempted",
             )
 
-        from finzanjir_ai.orchestration.intent import classify_query_intent, detect_query_language
-
-        language = detect_query_language(query)
         if classify_query_intent(query) == "project_overview":
             return AnswerResult(
                 answer=self.PROJECT_OVERVIEW_ANSWERS.get(language, self.PROJECT_OVERVIEW_ANSWERS["uz"]),
