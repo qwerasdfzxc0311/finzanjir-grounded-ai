@@ -114,7 +114,18 @@ class SystemFlow:
                 )
                 if value
             )
-            emit("audit_kpi", "RUNNING", "Audit va sintetik KPI tayyorlanmoqda.", input_refs=(transaction_id,))
+            shadow_audit_input_refs = tuple(dict.fromkeys(
+                value
+                for value in (
+                    transaction_id,
+                    *(item["id"] for item in pipeline.signals),
+                    *(item["id"] for item in pipeline.evidences),
+                    pipeline.risk.get("id") if pipeline.risk else None,
+                    pipeline.risk.get("threshold_id") if pipeline.risk else None,
+                )
+                if value
+            ))
+            emit("audit_kpi", "RUNNING", "Audit va sintetik KPI tayyorlanmoqda.", input_refs=shadow_audit_input_refs)
             shadow_audit = None
             if pipeline.risk is not None:
                 is_shadow = pipeline.risk.get("shadow_mode") is True
@@ -151,8 +162,13 @@ class SystemFlow:
                 "audit_kpi",
                 "COMPLETED",
                 "Sintetik audit hodisasi va KPI tayyor.",
-                input_refs=(transaction_id,),
-                output_refs=(shadow_audit["event_id"],) if shadow_audit else (),
+                input_refs=shadow_audit_input_refs,
+                output_refs=tuple(dict.fromkeys(
+                    ref for ref in (
+                        (shadow_audit or {}).get("event_id"),
+                        (shadow_audit or {}).get("audit_id"),
+                    ) if ref
+                )),
             )
             emit("finzanjir_ai", "RUNNING", "Canonical knowledge va runtime dalillari bilan izoh tayyorlanmoqda.", input_refs=shadow_runtime_refs)
             ai = FINZANJIRAI(knowledge_index).answer(
@@ -254,7 +270,20 @@ class SystemFlow:
             output_refs=(case["case_id"], decision["human_decision"]["decision_id"]),
         )
 
-        emit("audit_kpi", "RUNNING", "Audit va KPI natijalari tayyorlanmoqda.", input_refs=(transaction_id,))
+        audit_input_refs = tuple(dict.fromkeys(
+            value
+            for value in (
+                transaction_id,
+                *(item["id"] for item in pipeline.signals),
+                *(item["id"] for item in pipeline.evidences),
+                pipeline.risk.get("id"),
+                pipeline.risk.get("threshold_id"),
+                case.get("case_id"),
+                decision["human_decision"].get("decision_id"),
+            )
+            if value
+        ))
+        emit("audit_kpi", "RUNNING", "Audit va KPI natijalari tayyorlanmoqda.", input_refs=audit_input_refs)
         kpi = calculate_kpis(
             signals_detected=len(pipeline.signals),
             cases_opened=1,
@@ -263,7 +292,7 @@ class SystemFlow:
             data_mode="synthetic",
         )
         audit_event = decision["audit_event"]
-        emit("audit_kpi", "COMPLETED", "Audit hodisasi va sintetik KPI tayyor.", input_refs=(transaction_id,), output_refs=tuple(dict.fromkeys(
+        emit("audit_kpi", "COMPLETED", "Audit hodisasi va sintetik KPI tayyor.", input_refs=audit_input_refs, output_refs=tuple(dict.fromkeys(
                 ref for ref in (audit_event.get("event_id"), audit_event.get("audit_id")) if ref
             )))
 
@@ -389,6 +418,19 @@ class SystemFlow:
         cross_bank_authorized = result.get("cross_bank_authorized") is True
         cross_bank = result.get("cross_bank")
         cross_bank_matches = list(getattr(cross_bank, "matches", ()) or ())
+        audit_input_refs = list(dict.fromkeys(
+            value
+            for value in (
+                transaction_id,
+                *signal_ids,
+                *evidence_ids,
+                risk.get("id"),
+                risk.get("threshold_id"),
+                case.get("case_id") if case else None,
+                human_decision.get("decision_id"),
+            )
+            if value
+        ))
 
         stages = [
             {
@@ -457,7 +499,7 @@ class SystemFlow:
                 "status": "COMPLETED" if audit_events and result.get("kpi") else "PARTIAL",
                 "status_label": "Audit va KPI natijasi tayyor" if audit_events and result.get("kpi") else "Qisman · audit yoki KPI natijasi yetishmaydi",
                 "summary": "Audit hodisalari va sintetik KPI ko‘rsatkichlari.",
-                "input_refs": [transaction_id],
+                "input_refs": audit_input_refs,
                 "output_refs": list(dict.fromkeys(
                     ref
                     for item in audit_events
