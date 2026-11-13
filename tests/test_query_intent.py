@@ -105,3 +105,16 @@ def test_multi_card_fraud_question_expands_to_cross_match_and_fraud_graph_terms(
     assert any("Cross-Match Fraud Graph" in value for value in expanded)
     assert any("bir nechta bank kartasi" in value for value in expanded)
     assert any("pul oqimlarini" in value for value in expanded)
+
+
+
+def test_signal_followup_question_expands_to_evidence_case_and_bank_review_stages():
+    from finzanjir_ai.knowledge.index import build_knowledge_index
+    from finzanjir_ai.retrieval.rerank import QueryExpander
+
+    expanded = QueryExpander(build_knowledge_index([])).expand(
+        "Shubhali signal paydo bo'lsa, keyin qaysi bosqichlar bo'ladi va bank nima qiladi?"
+    )
+    assert any("Evidence Risk Score Case" in value for value in expanded)
+    assert any("vakolatli mutaxassis" in value for value in expanded)
+    assert any("bankning qaror qabul qilish tartibi" in value for value in expanded)
