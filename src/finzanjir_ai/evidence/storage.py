@@ -30,6 +30,7 @@ class SQLiteSyntheticEvidenceProvenanceStore:
         connection.row_factory = sqlite3.Row
         connection.execute("PRAGMA busy_timeout = 5000")
         connection.execute("PRAGMA foreign_keys = ON")
+        connection.execute("PRAGMA synchronous = FULL")
         return connection
 
     def _initialize(self) -> None:
