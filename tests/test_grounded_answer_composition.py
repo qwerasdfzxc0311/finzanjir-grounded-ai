@@ -45,6 +45,7 @@ def test_answer_generator_uses_model_for_natural_long_form_grounded_answer():
     assert result.abstained is False
     assert "moliyaviy xavf belgilarini" in result.answer
     assert result.citations == ("ck-protect",)
+    assert result.generation_mode == "model"
     assert "faqat berilgan tasdiqlangan loyiha dalillari" in provider.last_prompt["system"].casefold()
 
 
@@ -53,3 +54,21 @@ def test_answer_generator_fallback_keeps_source_statements_readable():
     assert result.abstained is False
     assert "1. FINZANJIR" in result.answer
     assert "\n\n2. Muhim holatlar" in result.answer
+
+
+def test_long_raw_source_is_not_dumped_when_model_provider_is_unavailable():
+    context = GroundedContext(items=(
+        GroundedContextItem(
+            record_id="ck-long",
+            concept_id="concept-long",
+            statement="Muallifning uzoq izohi. " * 100,
+            score=0.92,
+            provenance=({"source": "canonical-v0.6"},),
+            evidence={"status": "supported"},
+        ),
+    ))
+    result = GroundedAnswerGenerator().generate("FINZANJIR nima?", context)
+    assert result.abstained is True
+    assert result.generation_mode == "fallback_refused_long_source"
+    assert "Muallifning uzoq izohi." not in result.answer
+    assert result.citations == ("ck-long",)
