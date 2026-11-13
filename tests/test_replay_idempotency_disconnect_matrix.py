@@ -106,7 +106,8 @@ def test_window_trace_preserves_evidence_references_across_all_eight_windows(mon
     assert risk_id in human["input_refs"]
     assert case_id in human["output_refs"]
     assert decision_id in human["output_refs"]
-    assert audit["input_refs"] == ["TX-REF-TRANSFER-001"]
+    expected_audit_inputs = set(bank["output_refs"] + signal["output_refs"] + human["output_refs"])
+    assert set(audit["input_refs"]) == expected_audit_inputs
     assert audit_id in audit["output_refs"]
     assert {risk_id, case_id, decision_id, audit_id}.issubset(set(ai["input_refs"]))
     assert signal_ids.issubset(set(ai["input_refs"]))

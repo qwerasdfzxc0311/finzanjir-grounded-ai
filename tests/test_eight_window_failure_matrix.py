@@ -100,3 +100,41 @@ def test_stream_kpi_failure_marks_audit_window_failed_in_shadow_path(monkeypatch
         json=_payload("TX-FAIL-KPI-001", shadow_mode=True),
     )
     _assert_stopped_at(response, "audit_kpi")
+
+
+def test_audit_kpi_window_records_complete_runtime_provenance_in_both_modes(monkeypatch):
+    class InMemoryRunStore:
+        def save(self, _summary):
+            return {"run_id": "run-audit-provenance-test"}
+
+    monkeypatch.setattr("finzanjir_api.app.prototype_run_store", lambda: InMemoryRunStore())
+
+    for shadow_mode in (False, True):
+        transaction_id = f"TX-AUDIT-PROVENANCE-{'SHADOW' if shadow_mode else 'CASE'}"
+        response = client.post(
+            "/api/prototype/run/stream",
+            json=_payload(transaction_id, shadow_mode=shadow_mode),
+        )
+        assert response.status_code == 200
+        frames = _frames(response)
+        stage_events = [data for name, data in frames if name == "stage"]
+        result_events = [data for name, data in frames if name == "result"]
+        assert len(result_events) == 1
+
+        audit_events = [item for item in stage_events if item["window_id"] == "audit_kpi"]
+        assert [item["status"] for item in audit_events] == ["RUNNING", "COMPLETED"]
+        trace = result_events[0]["window_trace"]
+        audit_trace = next(item for item in trace if item["window_id"] == "audit_kpi")
+
+        previously_emitted_refs = {
+            ref
+            for item in trace
+            if item["sequence"] < audit_trace["sequence"]
+            for ref in item["output_refs"]
+        }
+        assert transaction_id in previously_emitted_refs
+        assert set(audit_events[0]["input_refs"]) == previously_emitted_refs
+        assert set(audit_events[1]["input_refs"]) == previously_emitted_refs
+        assert set(audit_trace["input_refs"]) == previously_emitted_refs
+        assert audit_events[1]["output_refs"] == audit_trace["output_refs"]
+        assert audit_trace["output_refs"]
