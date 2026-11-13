@@ -108,4 +108,7 @@ def build_index_from_document(document: Mapping[str, Any]) -> KnowledgeIndex:
     records = document.get("records")
     if not isinstance(records, list):
         raise ValueError("Canonical knowledge records must be a list")
-    return build_knowledge_index(records)
+    author_records = document.get("author_profile_records", [])
+    if not isinstance(author_records, list):
+        raise ValueError("Supplemental author profile records must be a list")
+    return build_knowledge_index((*records, *author_records))
