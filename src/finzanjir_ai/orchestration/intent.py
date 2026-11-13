@@ -109,6 +109,26 @@ def classify_query_intent(query: str) -> str:
     return "project"
 
 
+
+
+
+def is_bank_authority_query(query: str) -> bool:
+    """Recognize direct questions about whether FINZANJIR can block or override cards."""
+    normalized = normalize_query_for_intent(query)
+    tokens = set(normalized.split())
+    has_project = bool(tokens & {"finzanjir", "финзанжир"})
+    card_terms = {
+        "karta", "kartani", "kartasini", "карта", "карту", "картаны",
+        "card", "cards", "joybar", "bank",
+    }
+    action_terms = {
+        "bloklay", "bloklashi", "bloklash", "bloklaydi", "bloklashi",
+        "блокировать", "заблокировать", "блоктай", "бұғаттай",
+        "block", "blocks", "blocking", "freeze", "freezes",
+    }
+    return has_project and bool(tokens & card_terms) and bool(tokens & action_terms)
+
+
 def is_author_overview_query(query: str) -> bool:
     """Detect a request for a whole person profile, not one biography facet."""
     normalized = normalize_query_for_intent(query)
