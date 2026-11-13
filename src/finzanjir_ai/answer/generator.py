@@ -21,6 +21,31 @@ class GroundedAnswerGenerator:
     ABSTENTION_THRESHOLD = 0.35
     MAX_RAW_FALLBACK_STATEMENT_CHARS = 1200
 
+
+    PROJECT_OVERVIEW_ANSWERS = {
+        "uz": "FINZANJIR — moliyaviy firibgarlik va shubhali pul oqimlari xavfini aniqlash hamda tahlil qilishga qaratilgan loyiha. Uning asosiy maqsadi — shu jarayonda fuqarolarning qonuniy tranzaksiyalari va mablag'lariga asossiz zarar yetmasligiga yordam berish. Bu loyiha maqsadi; barcha rejalashtirilgan imkoniyatlar hozirgi prototipda to'liq joriy etilgan degani emas.",
+        "ru": "FINZANJIR — проект, направленный на выявление и анализ рисков финансового мошенничества и подозрительных денежных потоков. Его основная цель — помогать предотвращать необоснованный ущерб законным операциям и средствам граждан. Это цель проекта; она не означает, что все запланированные функции уже реализованы в прототипе.",
+        "en": "FINZANJIR is a project designed to identify and analyze financial-fraud risks and suspicious money flows while helping protect citizens' legitimate transactions and funds from unjustified harm. This is the project's stated goal; it does not mean every planned capability is already implemented in the current prototype.",
+        "kk": "FINZANJIR — қаржылық алаяқтық тәуекелдері мен күмәнді ақша ағындарын анықтап, талдауға бағытталған жоба. Оның негізгі мақсаты — осы үдерісте азаматтардың заңды операциялары мен қаражатына негізсіз зиян келмеуіне көмектесу. Бұл жобаның мақсаты; барлық жоспарланған мүмкіндік қазіргі прототипте толық іске асқан деген сөз емес.",
+        "kaa": "FINZANJIR — finanslıq alayaqlıqlar qáwipin hám gúmanlı pul aǵımların anıqlaw hám tallawǵa baǵdarlanǵan joybar. Onıń tiykarǵı maqseti — usı processte puqaralardıń nızamlı operaciyaları hám qarjılarına tiykarсыз zıyan jetpewine járdemlesiw. Bul joybardıń maqseti; barlıq rejelestirilgen múmkinshilikler házirgi prototipte tolıq iske asırılǵan degeni emes.",
+    }
+    LANGUAGE_UNAVAILABLE_MESSAGES = {
+        "uz": "Tegishli loyiha dalili topildi, ammo hozir javobni ishonchli va ravon tuzish uchun AI modeli ishlamayapti. Noto'g'ri yoki boshqa tildagi matn bermaslik uchun javobni chekladim.",
+        "ru": "Подходящий материал проекта найден, но сейчас модель ИИ недоступна для подготовки надежного и связного ответа. Чтобы не выдавать неточный текст или ответ на другом языке, я ограничиваю ответ.",
+        "en": "Relevant project evidence was found, but the AI model is currently unavailable to compose a reliable answer. I am limiting the response rather than returning unrelated or untranslated text.",
+        "kk": "Жобаның тиісті дерегі табылды, бірақ қазір сенімді әрі түсінікті жауап құрастыру үшін AI моделі қолжетімсіз. Қатысы жоқ немесе басқа тілдегі мәтінді бермеу үшін жауапты шектедім.",
+        "kaa": "Joybardıń tiyisli dálili tabıldı, biraq házir isenimli hám túsinikli juwap dúziw ushın AI modeli islempedi. Basqa tildegi yamasa qatısı joq tekstti bermew ushın juwaptı shekledim.",
+    }
+
+
+    NO_EVIDENCE_MESSAGES = {
+        "uz": "Loyiha bilimlar bazasida bu savolga yetarli tasdiqlangan dalil topilmadi. Taxminni fakt sifatida ko'rsatmayman.",
+        "ru": "В базе знаний проекта не найдено достаточно подтвержденных данных для ответа на этот вопрос. Я не буду выдавать предположение за факт.",
+        "en": "The project knowledge base does not contain enough verified evidence to answer this question. I will not present a guess as fact.",
+        "kk": "Жобаның білім қорынан бұл сұраққа жауап беретін жеткілікті расталған дерек табылмады. Болжамды факт ретінде ұсынбаймын.",
+        "kaa": "Joybardıń bilim bazasında bul sorawǵa juwap beriw ushın jetkilikli tastıyıqlanǵan dálil tabılmadı. Boljamdı fakt sıpatında kórsetpeymen.",
+    }
+
     def __init__(self, provider: Any | None = None) -> None:
         self.provider = provider
 
@@ -73,10 +98,12 @@ class GroundedAnswerGenerator:
         )
 
     def generate(self, query: str, context: GroundedContext) -> AnswerResult:
+        from finzanjir_ai.orchestration.intent import classify_query_intent, detect_query_language
+
+        language = detect_query_language(query)
         if not context.items:
             return AnswerResult(
-                answer="Loyiha bilimlar bazasidan bu savolga yetarli asoslangan ma'lumot topilmadi. "
-                       "Aniqroq javob berish uchun savolni boshqacha ifodalash yoki tegishli hujjatni qo'shish kerak.",
+                answer=self.NO_EVIDENCE_MESSAGES.get(language, self.NO_EVIDENCE_MESSAGES["uz"]),
                 confidence=0.0,
                 abstained=True,
                 citations=(),
@@ -90,12 +117,21 @@ class GroundedAnswerGenerator:
         confidence = min(1.0, 0.7 * top_score + 0.3 * (len(grounded_items) / len(items)))
         if not grounded_items or confidence < self.ABSTENTION_THRESHOLD:
             return AnswerResult(
-                answer="Topilgan ma'lumotlar ishonchli javob berish uchun yetarli darajada tasdiqlanmagan. "
-                       "Shuning uchun taxminni fakt sifatida ko'rsatmayman.",
+                answer=self.NO_EVIDENCE_MESSAGES.get(language, self.NO_EVIDENCE_MESSAGES["uz"]),
                 confidence=0.0 if not grounded_items else confidence,
                 abstained=True,
                 citations=(),
                 generation_mode="insufficient_evidence",
+                provider_status="not_attempted",
+            )
+
+        if classify_query_intent(query) == "project_overview" and any(item.record_id == "project_0001" for item in grounded_items):
+            return AnswerResult(
+                answer=self.PROJECT_OVERVIEW_ANSWERS.get(language, self.PROJECT_OVERVIEW_ANSWERS["uz"]),
+                confidence=confidence,
+                abstained=False,
+                citations=tuple(item.record_id for item in grounded_items if item.record_id == "project_0001"),
+                generation_mode="project_overview_localized",
                 provider_status="not_attempted",
             )
 
@@ -119,7 +155,20 @@ class GroundedAnswerGenerator:
                         provider_status="ready",
                     )
 
-        from finzanjir_ai.orchestration.intent import classify_query_intent
+        same_language_non_project_evidence = bool(grounded_items) and all(
+            not item.record_id.startswith(("project_", "author_"))
+            and detect_query_language(item.statement) == language
+            for item in grounded_items
+        )
+        if language != "uz" and not same_language_non_project_evidence:
+            return AnswerResult(
+                answer=self.LANGUAGE_UNAVAILABLE_MESSAGES.get(language, self.LANGUAGE_UNAVAILABLE_MESSAGES["uz"]),
+                confidence=confidence,
+                abstained=True,
+                citations=tuple(item.record_id for item in grounded_items),
+                generation_mode="language_safe_abstention",
+                provider_status=provider_status,
+            )
 
         if classify_query_intent(query) == "author":
             author_items = [
@@ -230,8 +279,10 @@ class GroundedAnswerGenerator:
                 "aliases": list(getattr(item, "aliases", ()))[:20],
                 "provenance": [str(source)[:300] for source in item.provenance[:5]],
             })
-        from finzanjir_ai.orchestration.intent import classify_query_intent
+        from finzanjir_ai.orchestration.intent import classify_query_intent, detect_query_language
 
+        response_language = detect_query_language(query)
+        language_names = {"uz": "Uzbek (Latin script)", "ru": "Russian", "en": "English", "kk": "Kazakh", "kaa": "Karakalpak"}
         author_question = classify_query_intent(query) == "author"
         author_guidance = (
             " Bu savol muallif haqida: faqat berilgan muallifga oid dalillardan foydalaning. "
@@ -247,7 +298,7 @@ class GroundedAnswerGenerator:
             "Siz FINZANJIR loyihasining bilimlarga tayangan yordamchisisiz. "
             "Faqat berilgan tasdiqlangan loyiha dalillaridan foydalaning. "
             "O'zingizdan loyiha imkoniyati, qonuniy ruxsat, natija yoki texnik xususiyat qo'shmang. "
-            "Savolga foydalanuvchi ishlatgan tilda javob bering. O'zbekcha javobda sodda, ravon "
+            "Javob tili qat'iy ravishda " + language_names.get(response_language, "Uzbek (Latin script)") + ". " + "Boshqa tilga o'tmang va tillarni aralashtirmang. " + "O'zbekcha javobda sodda, ravon "
             "va tabiiy lotin yozuvidan foydalaning. Javobni bir-ikki jumla bilan cheklamang: "
             "savolga qarab tushuncha, qanday ishlashi, nima uchun kerakligi, qayerda qo'llanishi, "
             "chegaralari va muhim misollarni izohlang. Lekin dalilda bo'lmagan tafsilotni "

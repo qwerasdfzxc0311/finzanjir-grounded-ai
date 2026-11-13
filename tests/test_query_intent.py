@@ -39,3 +39,24 @@ def test_author_question_expansion_adds_author_search_hints_only():
     )
     assert any("Salamat Smaylov" in item for item in name_expanded)
     assert any("qiziqishlari astronomiya kimyo" in item for item in name_expanded)
+
+
+def test_finzanjir_overview_is_a_dedicated_intent_not_a_broad_retrieval():
+    assert classify_query_intent("FINZANJIR nima?") == "project_overview"
+    assert classify_query_intent("FINZANJIR haqida aytib ber") == "project_overview"
+    assert classify_query_intent("What is FINZANJIR?") == "project_overview"
+    assert classify_query_intent("Что такое FINZANJIR?") == "project_overview"
+    assert classify_query_intent("ФИНЗАНЖИР нима?") == "project_overview"
+    assert classify_query_intent("FINZANJIR nima uchun bank kartasini bloklaydi?") == "project"
+    assert classify_query_intent("FINZANJIR картаны өзі блоктай ала ма?") == "project"
+
+
+def test_query_language_detection_supports_project_languages_and_uzbek_scripts():
+    from finzanjir_ai.orchestration.intent import detect_query_language
+
+    assert detect_query_language("FINZANJIR nima?") == "uz"
+    assert detect_query_language("ФИНЗАНЖИР нима?") == "uz"
+    assert detect_query_language("Что такое FINZANJIR?") == "ru"
+    assert detect_query_language("What is FINZANJIR?") == "en"
+    assert detect_query_language("FINZANJIR деген не?") == "kk"
+    assert detect_query_language("FINZANJIR joybar haqqında qáwip") == "kaa"

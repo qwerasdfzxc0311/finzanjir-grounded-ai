@@ -23,7 +23,7 @@ def test_grounded_answer_abstains_without_grounded_context():
     assert result.abstained is True
     assert result.confidence == 0
     assert result.citations == ()
-    assert "yetarli" in result.answer.casefold()
+    assert "does not contain enough verified evidence" in result.answer.casefold()
 
 
 def test_grounded_answer_abstains_when_context_has_no_supported_evidence():
@@ -83,3 +83,14 @@ def test_colloquial_false_positive_negative_aliases_use_same_fallback():
     assert result.abstained is False
     assert result.citations == ("project_0003",)
     assert "false negative" in result.answer
+
+
+def test_provider_failure_does_not_return_untranslated_project_statements():
+    result = GroundedAnswerGenerator().generate(
+        "Что означает false positive и false negative?",
+        _false_positive_negative_context(),
+    )
+    assert result.abstained is True
+    assert result.generation_mode == "language_safe_abstention"
+    assert "Подходящий материал проекта найден" in result.answer
+    assert "Loyiha bilimlar bazasi" not in result.answer
