@@ -53,7 +53,7 @@ class FINZANJIRAI:
         grounded = self.grounder.assemble(
             ranked,
             query=query,
-            query_alternatives=model_queries + local_queries,
+            query_alternatives=model_queries,
             max_items=top_k,
         )
         runtime = RuntimeContext.from_refs(
