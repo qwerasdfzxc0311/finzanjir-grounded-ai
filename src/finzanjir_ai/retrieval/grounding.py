@@ -15,18 +15,12 @@ GROUNDED_EVIDENCE_STATUSES = frozenset({
     "supported",
 })
 
-# Common function words are poor evidence of semantic relevance. Keeping this
-# list small avoids turning the lexical guard into a language model while
-# preventing queries such as "unsupported fact with no grounded evidence" from
-# matching merely because they contain the generic word "evidence".
 _QUERY_STOPWORDS = frozenset({
     "a", "an", "and", "are", "as", "at", "be", "does", "for", "from", "how",
     "in", "is", "it", "no", "of", "on", "or", "the", "to", "what", "why",
-    "with", "without",
-    "bu", "bilan", "bir", "bo", "bo'yicha", "deb", "degan", "ekan", "uchun",
-    "va", "yoki", "qanday", "nima", "nega", "ning", "dan", "da", "ga",
+    "with", "without", "bu", "bilan", "bir", "bo", "bo'yicha", "deb", "degan",
+    "ekan", "uchun", "va", "yoki", "qanday", "nima", "nega", "ning", "dan", "da", "ga",
 })
-
 
 UNVERIFIED_STATUS_MARKERS = (
     "tasdiqlanmagan",
@@ -71,6 +65,7 @@ class GroundedContextItem:
     score: float
     provenance: tuple[Any, ...]
     evidence: Any
+    aliases: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -80,8 +75,6 @@ class GroundedContext:
 
 class GroundedContextAssembler:
     MIN_LEXICAL_RELEVANCE = 0.35
-    # Keep generic lexical matches below the answer boundary. Strong, directly
-    # relevant evidence in the canonical corpus remains above this floor.
     MIN_RETRIEVAL_SCORE = 0.38
     MIN_QUERY_RELEVANCE = 0.60
 
@@ -93,10 +86,14 @@ class GroundedContextAssembler:
         results: tuple[RetrievalResult, ...],
         *,
         query: str | None = None,
+        query_alternatives: tuple[str, ...] = (),
         max_items: int = 8,
     ) -> GroundedContext:
         items = []
-        query_tokens = _query_tokens(query) if query else set()
+        query_candidates = tuple(
+            tokens for value in ((query or ""), *query_alternatives)
+            if (tokens := _query_tokens(value))
+        )
         for result in results:
             if (
                 result.lexical_score < self.MIN_LEXICAL_RELEVANCE
@@ -107,10 +104,12 @@ class GroundedContextAssembler:
             if record is None or not is_grounded_record(record.evidence, record.statement):
                 continue
 
-            if query_tokens:
+            if query_candidates:
                 record_tokens = _query_tokens(record.statement + " " + " ".join(record.aliases))
-                overlap = len(query_tokens & record_tokens)
-                relevance = overlap / len(query_tokens)
+                relevance = max(
+                    len(candidate & record_tokens) / len(candidate)
+                    for candidate in query_candidates
+                )
                 if relevance < self.MIN_QUERY_RELEVANCE:
                     continue
 
@@ -121,6 +120,7 @@ class GroundedContextAssembler:
                 score=result.score,
                 provenance=record.provenance,
                 evidence=record.evidence,
+                aliases=record.aliases,
             ))
             if len(items) >= max_items:
                 break
