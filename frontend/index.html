@@ -1,22 +1,41 @@
 <!doctype html>
 <html lang="uz">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FINZANJIR Prototype</title><link rel="stylesheet" href="./styles.css"></head>
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#123b63">
+<meta name="description" content="FINZANJIR — sintetik firibgarlik zanjiri tahlili va grounded AI prototipi">
+<title>FINZANJIR | Xavfsizlik va tahlil platformasi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="./styles.css">
+</head>
 <body>
-<header><strong>FINZANJIR</strong><span class="badge">Prototype</span><p>Unified fraud/risk knowledge platform · data mode: <span id="mode">synthetic</span></p></header>
+<header class="app-header">
+  <div class="brand-lockup">
+    <div class="brand-mark" aria-hidden="true">F</div>
+    <div><strong class="brand-name">FINZANJIR</strong><span class="brand-subtitle">Xavfsizlik · tahlil · ishonch</span></div>
+  </div>
+  <div class="header-meta"><span class="badge badge-live">PROTOTYPE</span><span class="mode-chip">Ma’lumot rejimi: <strong id="mode">synthetic</strong></span></div>
+</header>
 <main>
-<section><h2>Bir tizim, alohida oynalar</h2><p class="muted">Har bir oyna mustaqil ko‘rinadi, lekin bir xil tranzaksiya izi va umumiy tizim oqimi bilan bog‘langan.</p><div id="flow" class="flow"></div></section>
-<section><h2>Work windows</h2><p class="muted">Oynani tanlang — tanlangan modulning so‘nggi umumiy runtime natijasi ko‘rsatiladi.</p><div id="windows" class="grid"></div>
+<section class="hero-section">
+  <div><p class="eyebrow">YAGONA TAHLIL MUHITI</p><h1>Moliyaviy xavfsizlikni<br><span>dalillar asosida</span> tahlil qilish</h1>
+  <p class="hero-copy">FINZANJIR signallar, dalillar va inson nazoratini yagona oqimda bog‘laydi. Hozirgi muhit faqat sintetik sinovlar uchun.</p></div>
+  <div class="hero-orbit" aria-hidden="true"><div class="orbit-ring"></div><div class="orbit-core">F</div><span class="orbit-dot dot-one"></span><span class="orbit-dot dot-two"></span><span class="orbit-dot dot-three"></span></div>
+</section>
+<section class="flow-section"><div class="section-heading"><div><p class="eyebrow">JARAYON</p><h2>Yagona tizim oqimi</h2></div><span class="section-note">8 ish oynasi + boshqaruv paneli</span></div><div id="flow" class="flow"></div></section>
+<section class="windows-section"><div class="section-heading"><div><p class="eyebrow">ISH MUHITI</p><h2>Modullar va ish oynalari</h2><p class="muted">Oynani tanlang. Har bir modul o‘z vazifasi, holati va tegishli ma’lumotlarini alohida ko‘rsatadi.</p></div></div><div id="windows" class="grid"></div>
   <div id="windowWorkspace" class="card window-workspace" aria-live="polite">
     <h2 id="activeWindowTitle">Dashboard</h2>
     <p id="activeWindowPurpose" class="muted">Yagona tizim holati</p>
     <p id="activeWindowInput"></p>
     <p id="activeWindowStatus" class="window-status" aria-live="polite">Demo ko‘rinishi</p>
     <ul id="activeWindowData" class="window-data"></ul>
+    <div id="windowInteractive" class="window-interactive" aria-live="polite"></div>
   </div>
 </section>
-<section><h2>Live prototype execution</h2><div id="prototypeResult" class="card"><p class="muted">Runtime demo yuklanmoqda...</p></div></section>
-<section>
-  <h2>Sintetik detector sinovi</h2>
+<section class="support-section"><div class="section-heading"><div><p class="eyebrow">RUNTIME</p><h2>Oxirgi tizim bajarilishi</h2></div></div><div id="prototypeResult" class="card"><p class="muted">Runtime demo yuklanmoqda...</p></div></section>
+<section class="support-section">
+  <div class="section-heading"><div><p class="eyebrow">TEST LAB</p><h2>Sintetik detector sinovi</h2></div></div>
   <p class="muted">Bu maydon faqat sun’iy feature qiymatlarini tekshiradi. Haqiqiy bank yoki mijoz ma’lumoti kiritmang.</p>
   <div class="controls">
     <label for="scenarioSelector">Sinov ssenariysi</label>
@@ -31,17 +50,19 @@
   </div>
   <div id="scenarioResult" class="card" aria-live="polite"><p class="muted">Sinov ssenariysini tanlang.</p></div>
 </section>
-<section>
-  <h2>Shadow Mode — sintetik baholash</h2>
+<section class="support-section">
+  <div class="section-heading"><div><p class="eyebrow">BAHOLASH</p><h2>Shadow Mode — sintetik baholash</h2></div></div>
   <p class="muted">Faqat qo‘lda belgilangan sintetik test ssenariylari. Bu haqiqiy bank ma’lumoti yoki real firibgarlik aniqlash aniqligi emas; hech qanday Case yoki to‘lov amali bajarilmaydi.</p>
   <button id="runShadowEvaluation" type="button">Shadow Mode sinovini bajarish</button>
   <div id="shadowResult" class="card" aria-live="polite"><p class="muted">Sinov hali bajarilmagan.</p></div>
 </section>
-<section>
-  <h2>Oxirgi sintetik sinovlar</h2>
+<section class="support-section">
+  <div class="section-heading"><div><p class="eyebrow">TARIX</p><h2>Oxirgi sintetik sinovlar</h2></div></div>
   <div id="runHistory" class="card" aria-live="polite"><p class="muted">Sinovlar tarixi yuklanmoqda...</p></div>
 </section>
-<section><h2>16 Layers</h2><ol id="layers" class="layers"></ol></section>
+<section class="support-section"><div class="section-heading"><div><p class="eyebrow">NAZORAT ARXITEKTURASI</p><h2>16 qatlamli himoya modeli</h2></div></div><ol id="layers" class="layers"></ol></section>
 <noscript><p>Synthetic data mode</p><p>JavaScript yoqilgan bo‘lsa, oynalar va yagona tizim oqimi ko‘rsatiladi.</p></noscript>
-</main><script src="./app.js"></script>
+</main>
+<footer class="app-footer"><strong>FINZANJIR</strong><span>Sintetik prototip · Real bank yoki mijoz ma’lumotlari ishlatilmaydi</span></footer>
+<script src="./app.js"></script>
 </body></html>

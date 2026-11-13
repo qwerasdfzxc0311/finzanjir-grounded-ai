@@ -176,3 +176,37 @@ def test_frontend_preserves_backend_failed_and_not_run_states_after_stream_error
     assert 'executionStatus === "failed" && liveWindowTrace.length' in script
     assert 'trace?.status === "FAILED"' in script
     assert 'trace?.status === "NOT_RUN"' in script
+
+
+
+def test_finzanjir_ai_window_has_grounded_chat_api_and_safe_runtime_refs():
+    html = Path("frontend/index.html").read_text(encoding="utf-8")
+    script = Path("frontend/app.js").read_text(encoding="utf-8")
+    assert 'id="windowInteractive"' in html
+    assert 'if (windowId === "finzanjir_ai")' in script
+    assert 'fetch(apiUrl("/api/ai/answer")' in script
+    assert 'working_memory_scope:"prototype-ui-session"' in script
+    assert 'knowledge_refs' in script
+    assert 'textContent' in script
+    assert "innerHTML" not in script
+
+
+def test_work_windows_render_individual_module_panels_and_keep_cross_bank_disabled():
+    script = Path("frontend/app.js").read_text(encoding="utf-8")
+    styles = Path("frontend/styles.css").read_text(encoding="utf-8")
+    assert "function renderWindowInteractive(windowId)" in script
+    for window_id in ["dashboard", "citizen", "human_case", "synthetic_bank", "signal_risk", "cross_bank_fraud", "audit_kpi", "finzanjir_ai", "layers_16"]:
+        assert f'"{window_id}"' in script
+    assert "Cross-Bank almashinuvi o‘chiq" in script
+    assert "layer-detail-list" in script
+    assert ".window-interactive" in styles
+
+
+def test_frontend_uses_responsive_finzanjir_brand_tokens_and_accessible_ai_input():
+    html = Path("frontend/index.html").read_text(encoding="utf-8")
+    styles = Path("frontend/styles.css").read_text(encoding="utf-8")
+    script = Path("frontend/app.js").read_text(encoding="utf-8")
+    assert "brand-lockup" in html
+    assert "--brand-800:#123b63" in styles
+    assert "@media(max-width:700px)" in styles
+    assert 'setAttribute("aria-label", "FINZANJIR AI savoli")' in script
