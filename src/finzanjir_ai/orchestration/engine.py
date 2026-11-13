@@ -42,6 +42,33 @@ class FINZANJIRAI:
         # Clear general-knowledge questions must not be rejected merely because
         # the closed FINZANJIR project corpus contains no answer for them.
         query_intent = classify_query_intent(query)
+        if query_intent == "assistant_identity":
+            runtime = RuntimeContext.from_refs(
+                knowledge_refs=(),
+                runtime_refs=runtime_refs,
+                working_memory_scope=working_memory_scope,
+            )
+            answer = AnswerResult(
+                answer=(
+                    "Men FINZANJIR loyihasiga xizmat qiluvchi sun'iy intellekt yordamchisiman. "
+                    "Mening vazifam loyiha hujjatlari va tasdiqlangan bilimlar asosida savollarga "
+                    "tushunarli javob berish, FINZANJIR imkoniyatlari va cheklovlarini izohlash "
+                    "hamda umumiy savollarni loyiha savollaridan ajratishdir. "
+                    "Men bank qarorini qabul qilmayman, fuqaroning hisobini bloklamayman va "
+                    "huquqiy vakolatli organ o'rnini bosmayman. Dalil yetarli bo'lmasa, buni ochiq aytaman."
+                ),
+                confidence=1.0,
+                abstained=False,
+                citations=(),
+                generation_mode="assistant_identity",
+                provider_status="not_attempted",
+            )
+            return OrchestrationResult(
+                answer=answer,
+                grounded_context=GroundedContext(items=()),
+                runtime_context=runtime,
+            )
+
         if query_intent == "general_knowledge":
             runtime = RuntimeContext.from_refs(
                 knowledge_refs=(),
