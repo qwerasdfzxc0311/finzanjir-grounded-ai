@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 
-_TOKEN_RE = re.compile(r"[^\\W_]+", re.UNICODE)
+_TOKEN_RE = re.compile(r"[^\W_]+", re.UNICODE)
 
 # Common function words across FINZANJIR's supported languages. This list is
 # intentionally conservative: domain words are not removed as stopwords.
