@@ -85,7 +85,7 @@ def test_author_identity_has_concise_fallback_when_provider_fails():
         working_memory_scope="author-test",
     )
     assert result.answer.abstained is False
-    assert result.answer.generation_mode == "deterministic_fallback"
+    assert result.answer.generation_mode == "author_deterministic_fallback"
     assert result.answer.provider_status == "provider_failed"
     assert "Salamat Smaylov" in result.answer.answer
     assert result.answer.citations == ("author_0001",)
@@ -98,7 +98,7 @@ def test_author_motivation_has_concise_fallback_when_provider_fails():
         working_memory_scope="author-test",
     )
     assert result.answer.abstained is False
-    assert result.answer.generation_mode == "deterministic_fallback"
+    assert result.answer.generation_mode == "author_deterministic_fallback"
     assert "oilasi" in result.answer.answer.casefold()
     assert result.answer.citations == ("author_0004",)
 
@@ -110,7 +110,7 @@ def test_author_interests_have_concise_fallback_when_provider_fails():
         working_memory_scope="author-test",
     )
     assert result.answer.abstained is False
-    assert result.answer.generation_mode == "deterministic_fallback"
+    assert result.answer.generation_mode == "author_deterministic_fallback"
     assert "astronomiya" in result.answer.answer.casefold()
     assert "kimyo" in result.answer.answer.casefold()
     assert result.answer.citations == ("author_0003",)
@@ -123,7 +123,7 @@ def test_author_birth_details_have_concise_fallback_when_provider_fails():
         working_memory_scope="author-test",
     )
     assert result.answer.abstained is False
-    assert result.answer.generation_mode == "deterministic_fallback"
+    assert result.answer.generation_mode == "author_deterministic_fallback"
     assert "2003-yil 10-aprelda" in result.answer.answer
     assert "Qanliko'l" in result.answer.answer
     assert result.answer.citations == ("author_0002",)
