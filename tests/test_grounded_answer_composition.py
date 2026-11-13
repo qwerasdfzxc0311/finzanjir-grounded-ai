@@ -46,6 +46,7 @@ def test_answer_generator_uses_model_for_natural_long_form_grounded_answer():
     assert "moliyaviy xavf belgilarini" in result.answer
     assert result.citations == ("ck-protect",)
     assert result.generation_mode == "model"
+    assert result.provider_status == "ready"
     assert "faqat berilgan tasdiqlangan loyiha dalillari" in provider.last_prompt["system"].casefold()
 
 
@@ -70,5 +71,6 @@ def test_long_raw_source_is_not_dumped_when_model_provider_is_unavailable():
     result = GroundedAnswerGenerator().generate("FINZANJIR nima?", context)
     assert result.abstained is True
     assert result.generation_mode == "fallback_refused_long_source"
+    assert result.provider_status == "not_configured"
     assert "Muallifning uzoq izohi." not in result.answer
     assert result.citations == ("ck-long",)
