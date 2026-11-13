@@ -161,7 +161,7 @@ def test_frontend_renders_backend_execution_trace_for_each_window():
 def test_frontend_uses_server_sent_events_for_real_window_progress():
     script = Path("frontend/app.js").read_text(encoding="utf-8")
 
-    assert 'fetch("/api/prototype/run/stream"' in script
+    assert 'fetch(apiUrl("/api/prototype/run/stream")' in script
     assert "async function readPrototypeProgress(response)" in script
     assert 'eventName === "stage"' in script
     assert "liveWindowTrace" in script
