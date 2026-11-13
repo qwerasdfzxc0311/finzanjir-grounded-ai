@@ -164,32 +164,15 @@ class GroundedAnswerGenerator:
                 provider_status=provider_status,
             )
 
-        # Never dump long source passages as if they were composed answers.
-        # Prefer the dedicated author-profile records for author questions; they
-        # are concise, author-confirmed and kept separate from technical corpus text.
-        from finzanjir_ai.orchestration.intent import classify_query_intent
-
-        author_question = classify_query_intent(query) == "author"
-        if author_question:
-            fallback_items = [
-                item for item in grounded_items
-                if item.record_id.startswith("author_")
-                and len(item.statement) <= self.MAX_RAW_FALLBACK_STATEMENT_CHARS
-            ]
-            fallback_items.sort(key=lambda item: (-item.score, item.record_id))
-            fallback_items = fallback_items[:3]
-        else:
-            fallback_items = [
-                item for item in grounded_items
-                if len(item.statement) <= self.MAX_RAW_FALLBACK_STATEMENT_CHARS
-            ]
-
-        if not fallback_items:
+        # Never dump a very long canonical narrative as if it were a composed
+        # answer when the model provider is unavailable.
+        if any(len(item.statement) > self.MAX_RAW_FALLBACK_STATEMENT_CHARS for item in grounded_items):
             refs = tuple(item.record_id for item in grounded_items)
             return AnswerResult(
                 answer=(
-                    "Loyiha bilimlar bazasidan tegishli manba topildi, ammo hozir AI modeli "
-                    "ravon javob tuza olmadi. Uzun manba matnini xom holda ko'rsatmayman. "
+                    "Loyiha bilimlar bazasidan tegishli bo'lishi mumkin bo'lgan manba topildi, "
+                    "ammo hozir ravon va aniq javob tuzish uchun AI modeli javob bermadi. "
+                    "Uzun manba matnini xom holda ko'rsatib, uni tayyor javob deb adashtirmayman. "
                     "Manba ID: " + ", ".join(refs)
                 ),
                 confidence=confidence,
@@ -199,21 +182,14 @@ class GroundedAnswerGenerator:
                 provider_status=provider_status,
             )
 
-        if author_question:
-            heading = "Muallif haqidagi tasdiqlangan ma'lumot:"
-            answer = heading + "\n\n" + "\n\n".join(item.statement for item in fallback_items)
-        else:
-            answer = "Tasdiqlangan bilimlar asosida:\n\n" + "\n\n".join(
-                f"{index}. {item.statement}" for index, item in enumerate(fallback_items, start=1)
-            )
-            if len(fallback_items) < len(grounded_items):
-                answer += "\n\nIzoh: uzun manba matnlari xom holda chiqarilmadi; javob qisqa tasdiqlangan yozuvlarga tayandi."
-
+        answer = "Loyiha bilimlar bazasidagi tasdiqlangan ma'lumotlar:\n\n" + "\n\n".join(
+            f"{index}. {item.statement}" for index, item in enumerate(grounded_items, start=1)
+        )
         return AnswerResult(
             answer=answer,
             confidence=confidence,
             abstained=False,
-            citations=tuple(item.record_id for item in fallback_items),
+            citations=tuple(item.record_id for item in grounded_items),
             generation_mode="deterministic_fallback",
             provider_status=provider_status,
         )
