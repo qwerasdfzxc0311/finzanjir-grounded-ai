@@ -35,6 +35,11 @@ def test_ai_endpoint_answers_from_grounded_knowledge():
         "fallback_refused_long_source",
         "no_grounded_evidence",
         "insufficient_evidence",
+        "author_deterministic_fallback",
+        "author_insufficient_evidence",
+        "general_knowledge_model",
+        "general_knowledge_unavailable",
+        "general_knowledge_provider_failed",
     }
     if body["generation_mode"] in {"model", "deterministic_fallback"}:
         assert body["abstained"] is False
@@ -48,6 +53,7 @@ def test_ai_endpoint_answers_from_grounded_knowledge():
     assert body["provider_status"] in {
         "ready", "not_configured", "provider_failed", "blocked_sensitive", "not_attempted"
     }
+    assert isinstance(body["provider_diagnostics"], list)
     assert "confidence" in body
     assert "provenance" in body
 
