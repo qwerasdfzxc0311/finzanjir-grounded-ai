@@ -100,7 +100,7 @@
       "id": "author_0004",
       "concept_id": "author_motivation_finzanjir",
       "canonical_concept_id": "author_motivation_finzanjir",
-      "statement": "Muallif FINZANJIR g'oyasini oilasidagi moliyaviy yo'qotishlar va bank cheklovlari sabab fuqarolar o'z mablag'laridan foydalana olmay qolishi mumkinligi haqidagi tashvishlar fonida shakllantirgan. G'oyaning muhim sababi — FINZANJIRning o'zi chiqargan noto'g'ri ijobiy (false positive) signal bank tomonidan ortiqcha ishonch bilan qabul qilinib, fuqaroning qonuniy tranzaksiyasi yoki kartasiga asossiz cheklov qo'yilishining oldini olish zarurati. Bu alohida, FINZANJIRdan tashqari yangi bloklash tizimini yaratish maqsadi emas; FINZANJIRning o'z tahlil va signal jarayonini fuqaroga zarar yetkazmaydigan tarzda loyihalash masalasidir. Shu sababli noto'g'ri ijobiy va noto'g'ri salbiy (false negative) holatlarni birgalikda baholash, signalni firibgarlik isboti yoki bloklash buyrug'i deb qabul qilmaslik, bank vakolatidagi inson ko'rigini saqlash, fuqaro murojaati va xato signal bo'yicha qayta ko'rib chiqish fikr-mulohazasidan foydalanish muhim. Maqsad — yaqinlari va boshqa fuqarolarni moliyaviy zarar hamda qonuniy mablag'laridan asossiz foydalana olmay qolish xavfidan himoya qilishga yordam berish.",
+      "statement": "Muallif FINZANJIR g'oyasini moliyaviy yo'qotishlar, firibgarlik xavfi va fuqarolar bank cheklovlari sabab o'z mablag'laridan foydalana olmay qolishi mumkinligi haqidagi tashvishlar fonida bosqichma-bosqich shakllantirgan. Tarixiy ishchi hujjatda dastlabki g'oya torroq — «Kiber Qalqon» nomi ostida karta xavfsizligi va himoyasi atrofida bo'lgani, keyinchalik esa moliyaviy xavfni erta aniqlash, ogohlantirish, tekshiruv, vakolatli javob va hodisadan keyingi tiklashni qamrab oladigan kengroq FINZANJIR konsepsiyasiga aylangani qayd etiladi. Hujjatda oilaviy suhbatda Qozog'istonda ishlab topilgan pul yuborilgach bir ayolning kartasi bloklangani haqidagi hikoya muallifda muhim savol tug'dirgani aytiladi; bu hikoyaning karta nega bloklangani mustaqil tekshirilmagan, shuning uchun uni bank xatosining isbotlangan fakti deb ko'rsatish mumkin emas. Ammo u muallifni moliyaviy xavfni aniqlashga qaratilgan tizimning o'zi begunoh fuqaroning qonuniy operatsiyasiga zarar yetkazmasligi uchun qanday ishlashi kerakligi haqida o'ylashga undagan. G'oyaning muhim sababi — FINZANJIRning o'zi chiqargan noto'g'ri ijobiy (false positive) signal bank tomonidan ortiqcha ishonch bilan qabul qilinib, qonuniy tranzaksiya yoki kartaga asossiz cheklov qo'yilishi xavfini imkon qadar kamaytirishdir. Bu FINZANJIRdan tashqari yangi bloklash tizimini yaratish maqsadi emas; FINZANJIRning o'z tahlil, signal va Case jarayonlarini fuqaroga zarar yetkazmaydigan qilib loyihalash masalasidir. Shu sababli false positive va false negative holatlarini birgalikda o'lchash, signalni firibgarlik isboti yoki bloklash buyrug'i deb qabul qilmaslik, bank vakolatidagi inson ko'rigini saqlash, fuqaro murojaati va e'tirozini ko'rib chiqish, xato signallar sababini tahlil qilish va tuzatish muhim. Muallif 100 foiz xatosizlikni kafolatlashni emas, bunday xatolar ehtimolini jiddiy kamaytirish va yuz bergan xatolardan tizimli ravishda saboq olishni maqsad qiladi.",
       "aliases": [
         "muallif nima uchun FINZANJIRni yaratgan",
         "FINZANJIR g'oyasi qanday paydo bo'lgan",
@@ -112,7 +112,15 @@
         "qonuniy tranzaksiyani bloklash xavfi",
         "noto'g'ri signal",
         "fuqaro murojaati",
-        "bank signalga ortiqcha ishonishi"
+        "bank signalga ortiqcha ishonishi",
+        "FINZANJIR nima sababdan paydo bo'lgan",
+        "FINZANJIRning yaratilish tarixi",
+        "Kiber Qalqon nima edi",
+        "nega Kiber Qalqon FINZANJIRga aylandi",
+        "muallifning FINZANJIRni yaratishdagi asosiy maqsadi",
+        "nega qonuniy tranzaksiyalarni himoya qilish muhim",
+        "muallifni false positive haqida o'ylashga nima undagan",
+        "FINZANJIR nima uchun fuqarolarning qonuniy to'lovlarini himoya qilishi kerak"
       ],
       "evidence": {
         "status": "project_source",
@@ -120,10 +128,25 @@
       },
       "provenance": [
         {
-          "source_type": "author_provided_profile",
-          "source_id": "author_profile_v1",
-          "authority": "project_author",
-          "version": "1.0"
+          "source_type": "project_archive_document",
+          "source_id": "FINZANJIR_KONSEPSIYA_V14.pdf",
+          "authority": "project_author_supplied_archive",
+          "version": "V14",
+          "sections": "Loyiha muallifining motivatsiyasi; Nega sun'iy ong kerak; loyiha asoslari"
+        },
+        {
+          "source_type": "project_archive_document",
+          "source_id": "FINZANJIR_Tarixiy_Ishchi_Hujjat!.pdf",
+          "authority": "project_author_supplied_archive",
+          "version": "historical_working_document",
+          "sections": "Kiber Qalqon g'oyasi; bloklangan karta haqidagi hikoya; noto'g'ri qaror xavfi; false positive va false negative"
+        },
+        {
+          "source_type": "project_archive_document",
+          "source_id": "FINZANJIR_EKSPERTIZA_TUZATISH_FALSE_POSITIVE_V2.docx",
+          "authority": "project_author_supplied_archive",
+          "version": "V2",
+          "sections": "ommaviy false-positive zarar zanjiri; signal bloklash buyrug'i emas"
         }
       ],
       "reconciliation": {
