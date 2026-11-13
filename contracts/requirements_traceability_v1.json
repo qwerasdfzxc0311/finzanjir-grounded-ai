@@ -31,16 +31,18 @@
       "code_refs": [
         "src/finzanjir_ai/risk/observations.py",
         "src/finzanjir_ai/risk/scoring.py",
-        "contracts/event_contracts_v2.json"
+        "contracts/event_contracts_v2.json",
+        "src/finzanjir_ai/evidence/provenance.py"
       ],
       "test_refs": [
         "tests/test_signal_observation_adapter.py",
         "tests/test_multi_signal_scoring.py",
-        "tests/test_eight_window_failure_matrix.py"
+        "tests/test_eight_window_failure_matrix.py",
+        "tests/test_evidence_provenance_chain.py"
       ],
       "remaining_gaps": [
-        "Tashqi manba autentifikatsiyasi/imzo tekshiruvi",
-        "Durable evidence store va provenance replay"
+        "External source authentication and signature verification",
+        "Durable evidence store and provenance replay across process restarts"
       ],
       "evidence_scope": "synthetic_prototype_only",
       "external_dependencies_present": true
@@ -468,7 +470,7 @@
   "review_metadata": {
     "reviewed_on": "2026-11-13",
     "base_branch": "main",
-    "base_commit": "02e62758ac7e9ffc7cc07b2e8b3f5df07f31acd3",
+    "base_commit": "838f9ba0da87bdc35069952121eaf58a86504c1a",
     "review_type": "source_and_test_reference_crosswalk",
     "independent_evaluation": false
   }
