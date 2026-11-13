@@ -16,6 +16,8 @@ class NormalizedKnowledgeRecord:
     evidence: Any
     provenance: tuple[Any, ...]
     reconciliation: Any
+    entity_id: str | None = None
+    facet: str | None = None
 
     @property
     def searchable_text(self) -> str:
@@ -39,6 +41,10 @@ class KnowledgeIndex:
             if record.record_id == record_id:
                 return record
         return None
+
+    def records_for_entity(self, entity_id: str) -> tuple[NormalizedKnowledgeRecord, ...]:
+        """Return records explicitly linked to one canonical entity."""
+        return tuple(record for record in self.records if record.entity_id == entity_id)
 
 
 def _normalize_text(value: str) -> str:
@@ -81,6 +87,8 @@ def normalize_record(record: Mapping[str, Any]) -> NormalizedKnowledgeRecord:
         evidence=record.get("evidence"),
         provenance=_as_provenance(record.get("provenance")),
         reconciliation=record.get("reconciliation"),
+        entity_id=str(record["entity_id"]) if record.get("entity_id") else None,
+        facet=str(record["facet"]) if record.get("facet") else None,
     )
 
 
