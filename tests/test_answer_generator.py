@@ -36,3 +36,50 @@ def test_grounded_answer_abstains_when_context_has_no_supported_evidence():
     result = GroundedAnswerGenerator().generate("Why is evidence required?", context)
     assert result.abstained is True
     assert result.confidence < GroundedAnswerGenerator.ABSTENTION_THRESHOLD
+
+
+def _false_positive_negative_context():
+    return GroundedContext(items=(
+        GroundedContextItem(
+            record_id="project_0003",
+            concept_id="finzanjir_false_positive_negative",
+            statement=(
+                "False positive — qonuniy operatsiyani xato ravishda shubhali deb belgilash; "
+                "false negative — haqiqiy xavfni aniqlamay o'tkazib yuborish. "
+                "Ikkala xato ham birgalikda baholanishi kerak."
+            ),
+            score=0.9,
+            provenance=({"source": "author-confirmed-project-principle"},),
+            evidence={"status": "project_source", "verification": "author_confirmed"},
+        ),
+        GroundedContextItem(
+            record_id="author_0004",
+            concept_id="author_motivation_finzanjir",
+            statement="Muallif motivatsiyasi haqida uzun matn. " * 100,
+            score=0.8,
+            provenance=({"source": "author-profile"},),
+            evidence={"status": "project_source", "verification": "author_confirmed"},
+        ),
+    ))
+
+
+def test_false_positive_negative_question_uses_concise_project_principle_fallback():
+    result = GroundedAnswerGenerator().generate(
+        "False positive va false negative nima uchun muhim?",
+        _false_positive_negative_context(),
+    )
+    assert result.abstained is False
+    assert result.generation_mode == "project_principle_deterministic_fallback"
+    assert result.citations == ("project_0003",)
+    assert "False positive" in result.answer
+    assert "Muallif motivatsiyasi" not in result.answer
+
+
+def test_colloquial_false_positive_negative_aliases_use_same_fallback():
+    result = GroundedAnswerGenerator().generate(
+        "Fals F va fals N nimani anglatadi?",
+        _false_positive_negative_context(),
+    )
+    assert result.abstained is False
+    assert result.citations == ("project_0003",)
+    assert "false negative" in result.answer
