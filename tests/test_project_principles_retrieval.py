@@ -68,7 +68,7 @@ def test_finzanjir_overview_returns_the_same_facts_in_the_users_language():
         ("What is FINZANJIR?", "FINZANJIR is a project", "en"),
         ("Что такое FINZANJIR?", "FINZANJIR — проект", "ru"),
         ("FINZANJIR деген не?", "қаржылық алаяқтық", "kk"),
-        ("FINZANJIR joybar haqqında qáwip", "FINZANJIR", "kaa"),
+        ("FINZANJIR joybar", "FINZANJIR", "kaa"),
     )
     for query, expected, language in cases:
         result = FINZANJIRAI(index).answer(
