@@ -35,11 +35,15 @@ def classify_query_intent(query: str) -> str:
     if any(re.search(pattern, normalized) for pattern in _ASSISTANT_IDENTITY_PATTERNS):
         return "project"
     tokens = set(normalized.split())
-    if tokens & _PROJECT_MARKERS:
-        return "project"
-    author_markers = {"muallif", "muallifi", "yaratuvchi", "asoschi", "muallifning", "biografiya", "tarjimai", "hayoti", "qiziqishlari"}
+    author_markers = {
+        "muallif", "muallifi", "muallifning", "yaratuvchi", "asoschi",
+        "biografiya", "tarjimai", "hayoti", "qiziqishlari", "motivatsiya",
+        "salamat", "smaylov",
+    }
     if tokens & author_markers or {"kim", "yaratgan"} <= tokens:
         return "author"
+    if tokens & _PROJECT_MARKERS:
+        return "project"
     if "toshbaqa" in tokens and tokens & _GENERAL_LIFESPAN_MARKERS:
         return "general_knowledge"
     return "project"
