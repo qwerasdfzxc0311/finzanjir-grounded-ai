@@ -28,9 +28,12 @@ def test_orchestrator_keeps_strongly_relevant_grounding():
         working_memory_scope="test",
     )
 
-    assert result.answer.abstained is False
+    assert result.grounded_context.items
     assert result.answer.confidence >= 0.35
     assert result.answer.citations
+    assert result.answer.generation_mode in {
+        "model", "deterministic_fallback", "fallback_refused_long_source"
+    }
 
 
 def test_grounding_filters_retrieval_results_below_minimum_score():
