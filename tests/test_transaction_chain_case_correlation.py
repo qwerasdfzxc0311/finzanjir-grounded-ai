@@ -199,7 +199,7 @@ def test_synthetic_graph_rejects_non_synthetic_scope_duplicate_ids_and_self_link
 
     non_synthetic = dict(second, data_mode="bank")
     with pytest.raises(ValueError, match="data_mode"):
-        correlator.correlate_synthetic_graph([first, non_synthetic], [])
+        correlator.correlate_synthetic_graph([first, non_synthetic], [], allow_incomplete=True)
 
     with pytest.raises(ValueError, match="duplicate event_id"):
         correlator.correlate_synthetic_graph([first, dict(first)], [])
