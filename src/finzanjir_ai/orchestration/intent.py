@@ -37,6 +37,9 @@ def classify_query_intent(query: str) -> str:
     tokens = set(normalized.split())
     if tokens & _PROJECT_MARKERS:
         return "project"
+    author_markers = {"muallif", "muallifi", "yaratuvchi", "asoschi", "muallifning", "biografiya", "tarjimai", "hayoti", "qiziqishlari"}
+    if tokens & author_markers or {"kim", "yaratgan"} <= tokens:
+        return "author"
     if "toshbaqa" in tokens and tokens & _GENERAL_LIFESPAN_MARKERS:
         return "general_knowledge"
     return "project"
