@@ -17,17 +17,20 @@
         "src/finzanjir_ai/risk/scoring.py",
         "contracts/event_contracts_v2.json",
         "src/finzanjir_ai/evidence/provenance.py",
-        "tests/test_evidence_provenance_chain.py"
+        "tests/test_evidence_provenance_chain.py",
+        "src/finzanjir_ai/evidence/storage.py",
+        "tests/test_evidence_provenance_storage.py"
       ],
       "acceptance_criteria": [
         "Har bir dalil source, rule_version, detector_version, observed_at va data_mode bilan keladi.",
         "Source identity ishonchli tasdiqlanadi va provenance durable saqlanadi.",
         "Missing/stale/altered provenance holatlari test qilinadi.",
-        "Synthetic metadata hash chain detects record tampering and broken ordering without claiming source authenticity."
+        "Synthetic metadata hash chain detects record tampering and broken ordering without claiming source authenticity.",
+        "Synthetic provenance metadata can be replayed and verified after a local SQLite store is reopened."
       ],
       "remaining_work": [
         "External source authentication and signature verification.",
-        "Durable evidence store and provenance replay across process restarts."
+        "Production-grade encrypted/backup-backed evidence storage and operational retention policy."
       ],
       "reviewed_at": "2026-11-13"
     },
