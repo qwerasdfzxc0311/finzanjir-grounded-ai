@@ -63,7 +63,8 @@ class SyntheticEvidenceProvenanceChain:
 
     This provides tamper-evident ordering inside the current process only.
     It is not a digital signature, source authentication, durable storage,
-    or proof that a source or evidence item is truthful.
+    or proof that a source or evidence item is truthful. The caller-supplied
+    payload digest and opaque token values are not independently verified.
     """
 
     def __init__(self) -> None:
@@ -117,26 +118,39 @@ class SyntheticEvidenceProvenanceChain:
         if not isinstance(candidate, list):
             raise ValueError("records must be a list")
 
+        expected_fields = set((*_RECORD_FIELDS, "record_hash"))
         seen_evidence_ids: set[str] = set()
         previous_hash: str | None = None
         for index, record in enumerate(candidate):
             if not isinstance(record, dict):
                 errors.append({"index": index, "reason": "record_not_object"})
                 continue
-            missing = [field for field in (*_RECORD_FIELDS, "record_hash") if field not in record]
+            missing = sorted(expected_fields - set(record))
+            extra = sorted(set(record) - expected_fields)
             if missing:
                 errors.append({"index": index, "reason": "missing_fields", "fields": missing})
                 continue
-            if record["sequence"] != index + 1:
+            if extra:
+                errors.append({"index": index, "reason": "unexpected_fields", "fields": extra})
+            sequence = record["sequence"]
+            if not isinstance(sequence, int) or isinstance(sequence, bool) or sequence != index + 1:
                 errors.append({"index": index, "reason": "sequence_mismatch"})
             if record["previous_record_hash"] != previous_hash:
                 errors.append({"index": index, "reason": "previous_hash_mismatch"})
+
             evidence_id = record["evidence_id"]
-            if evidence_id in seen_evidence_ids:
+            if not isinstance(evidence_id, str) or not _OPAQUE_ID.fullmatch(evidence_id):
+                errors.append({"index": index, "reason": "invalid_evidence_id"})
+            elif evidence_id in seen_evidence_ids:
                 errors.append({"index": index, "reason": "duplicate_evidence_id"})
-            seen_evidence_ids.add(evidence_id)
+            else:
+                seen_evidence_ids.add(evidence_id)
+
             if record["data_mode"] != "synthetic":
                 errors.append({"index": index, "reason": "non_synthetic_record"})
+            for field in ("event_id", "source", "acquisition_method", "source_version"):
+                if not isinstance(record[field], str) or not record[field].strip():
+                    errors.append({"index": index, "reason": f"invalid_{field}"})
             try:
                 _aware_timestamp(record["observed_at"], f"records[{index}].observed_at")
             except ValueError:
@@ -147,10 +161,14 @@ class SyntheticEvidenceProvenanceChain:
                 calculated_hash = _record_hash(record)
             except (KeyError, TypeError, ValueError):
                 errors.append({"index": index, "reason": "invalid_record_shape"})
-                continue
-            if record["record_hash"] != calculated_hash:
-                errors.append({"index": index, "reason": "record_hash_mismatch"})
-            previous_hash = record["record_hash"] if isinstance(record["record_hash"], str) else None
+                calculated_hash = None
+            if not isinstance(record["record_hash"], str) or not _SHA256.fullmatch(record["record_hash"]):
+                errors.append({"index": index, "reason": "invalid_record_hash"})
+                previous_hash = None
+            else:
+                if calculated_hash is not None and record["record_hash"] != calculated_hash:
+                    errors.append({"index": index, "reason": "record_hash_mismatch"})
+                previous_hash = record["record_hash"]
 
         return {
             "valid": not errors,
@@ -159,6 +177,8 @@ class SyntheticEvidenceProvenanceChain:
             "data_mode": "synthetic",
             "signature_verified": False,
             "source_authenticated": False,
+            "payload_digest_verified": False,
+            "opaque_ids_semantically_verified": False,
             "durable": False,
             "truthfulness_proven": False,
         }
