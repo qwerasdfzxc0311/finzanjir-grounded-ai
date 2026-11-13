@@ -125,7 +125,7 @@ class GroundedAnswerGenerator:
                 provider_status="not_attempted",
             )
 
-        if classify_query_intent(query) == "project_overview":
+        if classify_query_intent(query) == "project_overview" and any(item.record_id == "project_0001" for item in grounded_items):
             return AnswerResult(
                 answer=self.PROJECT_OVERVIEW_ANSWERS.get(language, self.PROJECT_OVERVIEW_ANSWERS["uz"]),
                 confidence=confidence,
