@@ -827,7 +827,7 @@ function renderWindowInteractive(windowId) {
   target.appendChild(heading);
 
   if (windowId === "finzanjir_ai") {
-    const notice = element("p", "module-notice", "AI javoblari loyiha bilimlar bazasidagi dalillarga tayanadi. Dalil yetarli bo‘lmasa, tizim javobni cheklashi mumkin. Hozircha suhbat xotirasi faqat ushbu sahifa ochiq turgan paytda saqlanadi.");
+    const notice = element("p", "module-warning", "MUHIM: AI javobi xato, eskirgan yoki to‘liq bo‘lmasligi mumkin — uni 100% to‘g‘ri deb qabul qilmang. Muhim ma’lumot va qarorlarni asl hujjatlar hamda ishonchli manbalar bilan tekshiring. FINZANJIR konsepsiyasi, muallifning niyati yoki noaniq masalalar bo‘yicha zarur bo‘lsa muallif bilan aniqlashtiring. AI javoblari loyiha bilimlar bazasidagi dalillarga tayanadi; dalil yetarli bo‘lmasa, tizim buni ochiq aytishi kerak. Hozircha suhbat xotirasi faqat ushbu sahifa ochiq turgan paytda saqlanadi.");
     const chat = element("div", "ai-chat-panel");
     const log = element("div", "ai-chat-log");
     log.id = "aiChatLog";
