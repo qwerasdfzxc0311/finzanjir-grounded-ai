@@ -61,3 +61,13 @@ def test_query_language_detection_supports_project_languages_and_uzbek_scripts()
     assert detect_query_language("What is FINZANJIR?") == "en"
     assert detect_query_language("FINZANJIR деген не?") == "kk"
     assert detect_query_language("FINZANJIR joybar haqqında qáwip") == "kaa"
+
+
+def test_bank_card_blocking_questions_are_detected_as_specific_authority_queries():
+    from finzanjir_ai.orchestration.intent import is_bank_authority_query
+
+    assert is_bank_authority_query("FINZANJIR bank kartasini o‘zi bloklay oladimi?")
+    assert is_bank_authority_query("Can FINZANJIR block a bank card?")
+    assert is_bank_authority_query("Может ли FINZANJIR заблокировать карту?")
+    assert classify_query_intent("FINZANJIR nima?") == "project_overview"
+    assert not is_bank_authority_query("FINZANJIR nima?")
