@@ -31,13 +31,13 @@ def _extractive_grounded_fallback(query: str, items: list[Any], *, max_sentences
 
     for item in items:
         source = str(item.statement or "")
-        fragments = re.split(r"(?<=[.!?;])\\s+|[\\r\\n]+", source)
+        fragments = re.split(r"(?<=[.!?;])\s+|[\r\n]+", source)
         alias_terms = set(meaningful_tokens(" ".join(getattr(item, "aliases", ()))))
         for fragment in fragments:
-            sentence = fragment.strip(" \\t-•")
+            sentence = fragment.strip(" \t-•")
             if len(sentence) < 24:
                 continue
-            clauses = re.split(r"(?<=[,，])\\s+", sentence) if len(sentence) > 700 else [sentence]
+            clauses = re.split(r"(?<=[,，])\s+", sentence) if len(sentence) > 700 else [sentence]
             for clause in clauses:
                 candidate = clause.strip()
                 if len(candidate) < 24 or len(candidate) > 700:
@@ -59,7 +59,7 @@ def _extractive_grounded_fallback(query: str, items: list[Any], *, max_sentences
     if not selected:
         return "", ()
 
-    answer = "Manbalarda topilgan tasdiqlangan ma'lumotlar:\\n\\n" + "\\n\\n".join(
+    answer = "Manbalarda topilgan tasdiqlangan ma'lumotlar:\n\n" + "\n\n".join(
         f"{index}. {sentence}" for index, (_, sentence, _) in enumerate(selected, start=1)
     )
     citations = tuple(dict.fromkeys(record_id for _, _, record_id in selected))
