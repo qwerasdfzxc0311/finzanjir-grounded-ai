@@ -34,7 +34,8 @@
       "status": "PARTIAL",
       "evidence_refs": [
         "src/finzanjir_ai/risk/observations.py",
-        "src/finzanjir_ai/risk/scoring.py"
+        "src/finzanjir_ai/risk/scoring.py",
+        "tests/test_signal_observation_adapter.py"
       ],
       "acceptance_criteria": [
         "Schema, field type, quality va recency tekshiriladi.",
@@ -42,10 +43,10 @@
         "Quality score source-specific validation bilan asoslanadi."
       ],
       "remaining_work": [
-        "Schema drift va source freshness monitoring.",
+        "Source-specific freshness thresholds and schema drift monitoring.",
         "Independent data-quality evaluation."
       ],
-      "reviewed_at": "2026-11-12"
+      "reviewed_at": "2026-11-13"
     },
     {
       "id": "layer_03",
