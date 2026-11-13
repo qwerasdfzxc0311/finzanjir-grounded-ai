@@ -45,7 +45,17 @@ def detect_query_language(query: str) -> str:
     kk_hits = len(tokens & _LANGUAGE_MARKERS["kk"])
     if re.search(r"[әіңғқөұүһ]", value):
         return "kaa" if kaa_hits > kk_hits else "kk"
-    if re.search(r"[ўҳ]", value) or tokens & {"нима", "лойиҳа", "учун", "керак", "мақсад", "фуқаро", "молиявий"}:
+    uzbek_phrases = (
+        "bank kartasini", "bank kartani", "kartasini o'zi", "kartani o'zi",
+        "o'zi bloklay", "o'zi bloklay oladimi", "bloklay oladimi",
+        "bloklash mumkinmi", "bloklaydimi", "qila oladimi",
+    )
+    if (
+        re.search(r"[ўҳ]", value)
+        or tokens & {"нима", "лойиҳа", "учун", "керак", "мақсад", "фуқаро", "молиявий"}
+        or sum(token in tokens for token in {"bank", "karta", "kartasini", "kartani", "bloklay", "oladimi", "o'zi"}) >= 2
+        or any(phrase in value for phrase in uzbek_phrases)
+    ):
         return "uz"
     if kaa_hits > kk_hits and kaa_hits:
         return "kaa"
