@@ -100,11 +100,11 @@ class LLMGateway:
     @staticmethod
     def can_send_text(text: str) -> bool:
         # Keep common personal/payment identifiers out of third-party model calls.
-        if re.search(r"(?<!\\d)(?:\\d[ -]?){13,19}(?!\\d)", text):
+        if re.search(r"(?<!\d)(?:\d[ -]?){13,19}(?!\d)", text):
             return False
-        if re.search(r"(?<!\\w)[\\w.+-]+@[\\w.-]+\\.[A-Za-z]{2,}(?!\\w)", text):
+        if re.search(r"(?<!\w)[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}(?!\w)", text):
             return False
-        if re.search(r"(?<!\\d)\\+?998[\\s()-]?(?:\\d[\\s()-]?){9}(?!\\d)", text):
+        if re.search(r"(?<!\d)\+?998[\s()-]?(?:\d[\s()-]?){9}(?!\d)", text):
             return False
         return True
 
