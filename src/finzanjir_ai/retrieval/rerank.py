@@ -13,6 +13,13 @@ _IDENTITY_QUERY_HINTS = (
     "moliyaviy xavflarni aniqlash fuqarolar mablag'ini himoya qilish",
 )
 
+# Search hints only: the canonical author layer must supply every biographical fact.
+_AUTHOR_QUERY_HINTS = (
+    "Salamat Smaylov FINZANJIR muallifi yaratuvchisi asoschisi",
+    "muallif tarjimai holi hayoti ta'lim qiziqishlari astronomiya kimyo",
+    "FINZANJIR g'oyasi yaratilish sababi muallif motivatsiyasi",
+)
+
 
 class QueryExpander:
     """Local alias expansion that avoids firing on generic one-word overlaps."""
@@ -36,6 +43,13 @@ class QueryExpander:
             or bool(raw_terms & {"nima", "maqsad", "kerak", "loyiha", "qanday"})
         ):
             expanded.extend(_IDENTITY_QUERY_HINTS)
+
+        author_terms = {
+            "muallif", "muallifi", "yaratuvchi", "asoschi", "biografiya",
+            "tarjimai", "hayoti", "qiziqishlari", "motivatsiya", "yaratgan",
+        }
+        if raw_terms & author_terms:
+            expanded.extend(_AUTHOR_QUERY_HINTS)
 
         alias_record_ids: dict[str, set[str]] = {}
         for record in self.index.records:

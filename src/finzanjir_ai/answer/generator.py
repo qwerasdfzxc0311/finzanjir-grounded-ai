@@ -24,6 +24,54 @@ class GroundedAnswerGenerator:
     def __init__(self, provider: Any | None = None) -> None:
         self.provider = provider
 
+    def generate_general_knowledge(self, query: str) -> AnswerResult:
+        """Answer an explicitly general question without pretending it came from FINZANJIR docs."""
+        if self.provider is None:
+            return AnswerResult(
+                answer="Bu umumiy bilim savoliga FINZANJIR hujjatlari emas, alohida umumiy bilim manbasi kerak. "
+                       "Hozir umumiy bilim modeli mavjud emas, shuning uchun taxminiy javob bermayman.",
+                confidence=0.0, abstained=True, citations=(),
+                generation_mode="general_knowledge_unavailable",
+                provider_status="not_configured",
+            )
+        if hasattr(self.provider, "can_send_text") and not self.provider.can_send_text(query):
+            return AnswerResult(
+                answer="Savolda maxfiy yoki shaxsiy ma'lumot bo'lishi mumkin. Uni tashqi AI modeliga yubormadim.",
+                confidence=0.0, abstained=True, citations=(),
+                generation_mode="blocked_sensitive",
+                provider_status="blocked_sensitive",
+            )
+        result = self.provider.generate_json(
+            system=(
+                "Siz ko'p tilli umumiy bilim yordamchisisiz. FINZANJIR loyihasi hujjatlariga tayanmang: "
+                "bu savol aniq umumiy bilim savoli sifatida ajratilgan. Foydalanuvchi tilida javob bering. "
+                "Imlo xatosi yoki og'zaki qisqartma bo'lsa, ma'nosini tiklang. Sodda, tushunarli va "
+                "yetarlicha batafsil javob bering. Raqamlar tur yoki sharoitga qarab o'zgarsa, taxminiy "
+                "oraliqni va farq sababini tushuntiring; bitta qat'iy raqamni to'qimang. Noaniqlikni "
+                "ochiq ayting. Faqat JSON qaytaring."
+            ),
+            prompt=(
+                "Savol: " + query + "\n\n"
+                "JSON shakli: {\"answer\":\"tushunarli javob\",\"uncertainty\":\"mavjud bo'lsa izoh\"}"
+            ),
+            max_output_tokens=1200,
+        )
+        status = getattr(self.provider, "last_status", "provider_failed")
+        answer = result.get("answer") if isinstance(result, dict) else None
+        if not isinstance(answer, str) or not answer.strip():
+            return AnswerResult(
+                answer="Savol umumiy bilimga oid deb aniqlandi, lekin hozir javob modeli ishlamadi. "
+                       "Shu sababli FINZANJIR hujjatlaridan aloqasiz javob yasamadim.",
+                confidence=0.0, abstained=True, citations=(),
+                generation_mode="general_knowledge_provider_failed",
+                provider_status=status,
+            )
+        return AnswerResult(
+            answer=answer.strip()[:8000], confidence=0.75, abstained=False,
+            citations=(), generation_mode="general_knowledge_model",
+            provider_status="ready",
+        )
+
     def generate(self, query: str, context: GroundedContext) -> AnswerResult:
         if not context.items:
             return AnswerResult(
