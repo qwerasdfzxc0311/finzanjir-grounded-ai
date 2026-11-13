@@ -306,6 +306,7 @@ function selectWindow(windowId) {
     return item;
   }));
   refreshWindowStatuses();
+  renderWindowInteractive(windowId);
 }
 
 async function loadShell() {
@@ -743,3 +744,140 @@ async function runShadowEvaluation() {
 }
 
 document.querySelector("#runShadowEvaluation").addEventListener("click", runShadowEvaluation);
+
+
+const aiConversation = [];
+
+function appendChatMessage(role, content, refs = []) {
+  const log = document.querySelector("#aiChatLog");
+  if (!log) return;
+  const item = element("article", "chat-message " + (role === "user" ? "chat-user" : "chat-assistant"));
+  item.append(element("span", "chat-role", role === "user" ? "Siz" : "FINZANJIR AI"));
+  item.append(element("p", "", content));
+  if (refs.length) {
+    const citationLine = element("small", "chat-refs", "Bilim manbalari: " + refs.join(", "));
+    item.appendChild(citationLine);
+  }
+  log.appendChild(item);
+  log.scrollTop = log.scrollHeight;
+}
+
+function renderWindowInteractive(windowId) {
+  const target = document.querySelector("#windowInteractive");
+  if (!target || !currentManifest) return;
+  target.replaceChildren();
+  const snapshot = lastExecution || {};
+  const lines = windowSummaryLines(windowId);
+  const heading = element("div", "module-intro");
+  const title = Object.fromEntries(currentManifest.windows.map(([id, label]) => [id, label]))[windowId] || windowId;
+  heading.append(element("span", "module-kicker", "MODUL ISH MAYDONI"), element("h3", "", title));
+  target.appendChild(heading);
+
+  if (windowId === "finzanjir_ai") {
+    const notice = element("p", "module-notice", "AI javoblari loyiha bilimlar bazasidagi dalillarga tayanadi. Dalil yetarli bo‘lmasa, tizim javobni cheklashi mumkin. Hozircha suhbat xotirasi faqat ushbu sahifa ochiq turgan paytda saqlanadi.");
+    const chat = element("div", "ai-chat-panel");
+    const log = element("div", "ai-chat-log");
+    log.id = "aiChatLog";
+    if (!aiConversation.length) {
+      log.appendChild(element("p", "muted chat-empty", "Savolingizni yozing. Masalan: “FINZANJIR qanday qilib firibgarlik zanjirini tahlil qiladi?”"));
+    } else {
+      aiConversation.forEach(message => {
+        const item = element("article", "chat-message " + (message.role === "user" ? "chat-user" : "chat-assistant"));
+        item.append(element("span", "chat-role", message.role === "user" ? "Siz" : "FINZANJIR AI"), element("p", "", message.content));
+        if (message.refs?.length) item.appendChild(element("small", "chat-refs", "Bilim manbalari: " + message.refs.join(", ")));
+        log.appendChild(item);
+      });
+    }
+    const form = element("form", "ai-chat-form");
+    const input = element("textarea", "ai-question");
+    input.id = "aiQuestion";
+    input.name = "question";
+    input.rows = 3;
+    input.maxLength = 4000;
+    input.required = true;
+    input.placeholder = "FINZANJIR haqida savolingizni yozing...";
+    input.setAttribute("aria-label", "FINZANJIR AI savoli");
+    const submit = element("button", "primary-button", "Savol yuborish");
+    submit.type = "submit";
+    const formHint = element("small", "muted", "Maksimal 4 000 belgi. Shaxsiy yoki haqiqiy bank ma’lumotlarini yubormang.");
+    form.append(input, submit, formHint);
+    form.addEventListener("submit", async event => {
+      event.preventDefault();
+      const question = input.value.trim();
+      if (!question || submit.disabled) return;
+      aiConversation.push({role:"user", content:question});
+      appendChatMessage("user", question);
+      input.value = "";
+      submit.disabled = true;
+      submit.textContent = "Javob tayyorlanmoqda...";
+      try {
+        const runtimeRefs = Array.isArray(lastExecution?.ai?.runtime_context?.runtime_refs)
+          ? lastExecution.ai.runtime_context.runtime_refs.filter(ref => typeof ref === "string").slice(0, 64)
+          : [];
+        const response = await fetch(apiUrl("/api/ai/answer"), {
+          method: "POST",
+          headers: {"Content-Type":"application/json"},
+          body: JSON.stringify({question, runtime_refs:runtimeRefs, working_memory_scope:"prototype-ui-session"})
+        });
+        const body = await response.json();
+        if (!response.ok) throw new Error(body.detail || "AI javobini olish imkoni bo‘lmadi");
+        const answer = body.answer || "Dalilga tayangan javob qaytmadi.";
+        const refs = Array.isArray(body.knowledge_refs) ? body.knowledge_refs : [];
+        aiConversation.push({role:"assistant", content:answer, refs});
+        appendChatMessage("assistant", answer, refs);
+        if (body.abstained) appendChatMessage("assistant", "Eslatma: mavjud dalillar yetarli bo‘lmagani uchun javob cheklangan.");
+      } catch (error) {
+        aiConversation.push({role:"assistant", content:"Xatolik: " + error.message});
+        appendChatMessage("assistant", "Xatolik: " + error.message);
+      } finally {
+        submit.disabled = false;
+        submit.textContent = "Savol yuborish";
+        input.focus();
+      }
+    });
+    chat.append(log, form);
+    target.append(notice, chat);
+    return;
+  }
+
+  if (windowId === "synthetic_bank") {
+    target.appendChild(element("p", "module-notice", "Bu oyna faqat sun’iy tranzaksiya ssenariylarini ishga tushiradi. Haqiqiy karta, hisob, mijoz yoki bank ma’lumotlarini kiritmang."));
+    const runButton = element("button", "primary-button", "Tanlangan sintetik ssenariyni bajarish");
+    runButton.type = "button";
+    runButton.addEventListener("click", runSyntheticScenario);
+    target.appendChild(runButton);
+  } else if (windowId === "cross_bank_fraud") {
+    target.appendChild(element("p", "module-warning", "Cross-Bank almashinuvi o‘chiq. Bu prototip banklararo ma’lumot uzatmaydi va ruxsat mavjud deb da’vo qilmaydi."));
+  } else if (windowId === "human_case") {
+    target.appendChild(element("p", "module-notice", "Bu ko‘rinish sintetik Case va inson ko‘rigi izlarini namoyish etadi. U rasmiy qaror qabul qilmaydi va real mijozga ta’sir ko‘rsatmaydi."));
+  } else if (windowId === "citizen") {
+    target.appendChild(element("p", "module-notice", "Fuqaro oynasi faqat sintetik demo statusini ko‘rsatadi. Hozircha haqiqiy murojaat yuborish yoki bankdagi cheklovni o‘zgartirish funksiyasi yo‘q."));
+  } else if (windowId === "audit_kpi") {
+    target.appendChild(element("p", "module-notice", "Audit va KPI ko‘rsatkichlari joriy sintetik bajarilishdan olinadi. Ular real bank samaradorligini ifodalamaydi."));
+  } else if (windowId === "signal_risk") {
+    target.appendChild(element("p", "module-notice", "Risk balli ustuvorlik ko‘rsatkichi; u firibgarlik ehtimoli, aybdorlik yoki avtomatik bloklash qarori emas."));
+  } else if (windowId === "layers_16") {
+    const rows = Array.isArray(snapshot.layers_16) ? snapshot.layers_16 : [];
+    const list = element("ol", "layer-detail-list");
+    currentManifest.layers.forEach(([id, label], index) => {
+      const runtimeLayer = rows.find(row => row.layer_id === id || row.layer_id === "L" + String(index + 1).padStart(2,"0"));
+      const item = element("li", "layer-detail-item");
+      item.append(element("strong", "", label), element("span", "layer-state", runtimeLayer?.status || "PARTIAL · tasdiqlanmagan"));
+      list.appendChild(item);
+    });
+    target.appendChild(list);
+  } else if (windowId === "dashboard") {
+    target.appendChild(element("p", "module-notice", "Umumiy ko‘rinish barcha modullarning so‘nggi sintetik runtime natijasini jamlaydi. Quyidagi qiymatlar demo yoki oxirgi sinovdan olinadi."));
+  }
+
+  if (windowId !== "layers_16") {
+    const metrics = element("div", "workspace-metrics");
+    lines.forEach(line => {
+      const card = element("div", "workspace-metric");
+      card.appendChild(element("span", "metric-label", line.split(":")[0] || "Ko‘rsatkich"));
+      card.appendChild(element("strong", "metric-value", line.includes(":") ? line.slice(line.indexOf(":")+1).trim() : line));
+      metrics.appendChild(card);
+    });
+    target.appendChild(metrics);
+  }
+}
