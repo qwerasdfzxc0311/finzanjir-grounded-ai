@@ -97,7 +97,20 @@ class LLMGateway:
         value = json.loads(text[start:end + 1])
         return value if isinstance(value, dict) else None
 
+    @staticmethod
+    def can_send_text(text: str) -> bool:
+        # Keep common personal/payment identifiers out of third-party model calls.
+        if re.search(r"(?<!\\d)(?:\\d[ -]?){13,19}(?!\\d)", text):
+            return False
+        if re.search(r"(?<!\\w)[\\w.+-]+@[\\w.-]+\\.[A-Za-z]{2,}(?!\\w)", text):
+            return False
+        if re.search(r"(?<!\\d)\\+?998[\\s()-]?(?:\\d[\\s()-]?){9}(?!\\d)", text):
+            return False
+        return True
+
     def expand_question(self, question: str) -> tuple[str, ...]:
+        if not self.can_send_text(question):
+            return ()
         result = self.generate_json(
             system=(
                 "You are a multilingual query-understanding component for a closed-domain "
