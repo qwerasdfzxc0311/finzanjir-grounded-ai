@@ -267,8 +267,10 @@ class GroundedAnswerGenerator:
                 "aliases": list(getattr(item, "aliases", ()))[:20],
                 "provenance": [str(source)[:300] for source in item.provenance[:5]],
             })
-        from finzanjir_ai.orchestration.intent import classify_query_intent
+        from finzanjir_ai.orchestration.intent import classify_query_intent, detect_query_language
 
+        response_language = detect_query_language(query)
+        language_names = {"uz": "Uzbek (Latin script)", "ru": "Russian", "en": "English", "kk": "Kazakh", "kaa": "Karakalpak"}
         author_question = classify_query_intent(query) == "author"
         author_guidance = (
             " Bu savol muallif haqida: faqat berilgan muallifga oid dalillardan foydalaning. "
@@ -284,7 +286,7 @@ class GroundedAnswerGenerator:
             "Siz FINZANJIR loyihasining bilimlarga tayangan yordamchisisiz. "
             "Faqat berilgan tasdiqlangan loyiha dalillaridan foydalaning. "
             "O'zingizdan loyiha imkoniyati, qonuniy ruxsat, natija yoki texnik xususiyat qo'shmang. "
-            "Savolga foydalanuvchi ishlatgan tilda javob bering. O'zbekcha javobda sodda, ravon "
+            "Javob tili qat'iy ravishda " + language_names.get(response_language, "Uzbek (Latin script)") + ". " + "Boshqa tilga o'tmang va tillarni aralashtirmang. " + "O'zbekcha javobda sodda, ravon "
             "va tabiiy lotin yozuvidan foydalaning. Javobni bir-ikki jumla bilan cheklamang: "
             "savolga qarab tushuncha, qanday ishlashi, nima uchun kerakligi, qayerda qo'llanishi, "
             "chegaralari va muhim misollarni izohlang. Lekin dalilda bo'lmagan tafsilotni "
