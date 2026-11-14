@@ -11,6 +11,7 @@ from finzanjir_ai.knowledge.index import KnowledgeIndex
 from finzanjir_ai.retrieval.grounding import GroundedContext, GroundedContextAssembler, GroundedContextItem
 from finzanjir_ai.retrieval.hybrid import HybridRetriever, RetrievalResult
 from finzanjir_ai.retrieval.rerank import QueryExpander, Reranker
+from finzanjir_ai.retrieval.text import query_script_variants
 from finzanjir_ai.runtime.context import RuntimeContext
 from finzanjir_ai.orchestration.intent import classify_query_intent, is_author_overview_query
 
@@ -189,6 +190,9 @@ class FINZANJIRAI:
         model_queries = self.language_model.expand_question(query)
         local_queries = self.expander.expand(query)
         query_specs = [(query, 2.0)]
+        # Central-Asian Cyrillic and Latin spellings can refer to the same words.
+        # The converted form is a lower-weight search hint, never evidence.
+        query_specs.extend((value, 0.9) for value in query_script_variants(query)[1:])
         query_specs.extend((value, 1.0) for value in local_queries if value.strip() != query.strip())
         query_specs.extend((value, 0.7) for value in model_queries if value.strip())
         deduplicated = []
