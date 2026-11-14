@@ -169,7 +169,7 @@ def test_project_question_keeps_finZanjir_project_domain_and_project_source_uncl
     unclassified_project = _domain_record(
         "ck-project-legacy",
         "FINZANJIR fuqarolarning qonuniy mablag'larini himoya qilishga qaratilgan loyiha.",
-        ["fuqarolar mablag'ini himoya qilish"],
+        ["fuqarolar mablag'ini himoya qilish", query],
         "unclassified",
         ("FINZANJIR_KONSEPSIYA_FINAL.html",),
     )
