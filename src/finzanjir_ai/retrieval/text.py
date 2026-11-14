@@ -88,7 +88,6 @@ def cyrillic_to_latin_search_variant(value: str) -> str | None:
         mapping.update({"ы": "y", "і": "i", "й": "y"})
         source = source.replace("және", "zhane")
     converted = "".join(mapping.get(char, char) for char in source)
-    if is_kazakh:
     converted = re.sub(r"\s+", " ", converted).strip()
     return converted if converted and converted != source else None
 
