@@ -402,3 +402,26 @@ def test_task_specific_guidance_sets_separate_evidence_boundaries():
     architecture = _task_specific_guidance("architecture")
     assert "konseptual arxitekturani" in architecture.casefold()
     assert "production tizimi" in architecture.casefold()
+
+
+def test_uzbek_cyrillic_comparison_uses_the_same_safe_partial_answer_policy():
+    context = GroundedContext(items=(GroundedContextItem(
+        record_id="ck-finzanjir-purpose-cyrl",
+        concept_id="finzanjir-purpose",
+        statement=(
+            "FINZANJIR молиявий фирибгарлик хавфлари ва шубҳали пул оқимларини "
+            "аниқлаш ҳамда таҳлил қилишга йўналтирилган лойиҳа."
+        ),
+        score=0.92,
+        provenance=({"source": "synthetic-project-evidence"},),
+        evidence={"status": "supported", "verification": "verified"},
+    ),))
+    result = GroundedAnswerGenerator().generate(
+        "FINZANJIR бошқа давлатлардаги ўхшаш тизимлардан нимаси билан фарқ қилади?",
+        context,
+    )
+    assert result.abstained is False
+    assert result.generation_mode == "comparison_partial_grounded_fallback"
+    assert "FINZANJIR" in result.answer
+    assert "Taqqoslash chegarasi" in result.answer
+    assert result.citations == ("ck-finzanjir-purpose-cyrl",)
