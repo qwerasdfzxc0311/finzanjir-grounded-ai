@@ -19,6 +19,7 @@ class NormalizedKnowledgeRecord:
     entity_id: str | None = None
     facet: str | None = None
     domain: str | None = None
+    title: str | None = None
 
     @property
     def searchable_text(self) -> str:
@@ -91,6 +92,7 @@ def normalize_record(record: Mapping[str, Any]) -> NormalizedKnowledgeRecord:
         entity_id=str(record["entity_id"]) if record.get("entity_id") else None,
         facet=str(record["facet"]) if record.get("facet") else None,
         domain=str(record["domain"]) if record.get("domain") else None,
+        title=str(record["title"]) if record.get("title") else None,
     )
 
 
