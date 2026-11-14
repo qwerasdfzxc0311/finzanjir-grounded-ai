@@ -159,7 +159,7 @@ def _is_relevant_extractive_sentence(
     return True
 
 
-def _extractive_grounded_fallback(query: str, items: list[Any], *, max_sentences: int = 6) -> tuple[str, tuple[str, ...]]:
+def _extractive_grounded_fallback(query: str, items: list[Any], *, max_sentences: int = 6, header: str = "Manbalarda topilgan tasdiqlangan ma'lumotlar:") -> tuple[str, tuple[str, ...]]:
     """Build a readable, source-faithful fallback from relevant sentences.
 
     This is deliberately extractive: it may select and order source sentences,
@@ -222,7 +222,7 @@ def _extractive_grounded_fallback(query: str, items: list[Any], *, max_sentences
     if not selected:
         return "", ()
 
-    answer = "Manbalarda topilgan tasdiqlangan ma'lumotlar:\n\n" + "\n\n".join(
+    answer = header + "\n\n" + "\n\n".join(
         f"{index}. {sentence}" for index, (_, _, sentence, _) in enumerate(selected, start=1)
     )
     citations = tuple(dict.fromkeys(record_id for _, _, _, record_id in selected))
@@ -333,6 +333,22 @@ class GroundedAnswerGenerator:
         "en": "Relevant project evidence was found, but the AI model is currently unavailable to compose a reliable answer. I am limiting the response rather than returning unrelated or untranslated text.",
         "kk": "Жобаның тиісті дерегі табылды, бірақ қазір сенімді әрі түсінікті жауап құрастыру үшін AI моделі қолжетімсіз. Қатысы жоқ немесе басқа тілдегі мәтінді бермеу үшін жауапты шектедім.",
         "kaa": "Joybardıń tiyisli dálili tabıldı, biraq házir isenimli hám túsinikli juwap dúziw ushın AI modeli islempedi. Basqa tildegi yamasa qatısı joq tekstti bermew ushın juwaptı shekledim.",
+    }
+
+    UNMATCHED_EVIDENCE_MESSAGES = {
+        "uz": "Topilgan manba savolga bevosita mos kelmadi. Noto'g'ri ma'lumot bermaslik uchun javobni chekladim.",
+        "ru": "Найденный источник не соответствует вопросу напрямую. Чтобы не выдавать неверную информацию, я ограничиваю ответ.",
+        "en": "The retrieved source does not directly match the question. I am limiting the answer rather than returning unrelated information.",
+        "kk": "Табылған дерек сұраққа тікелей сәйкес келмейді. Қате ақпарат бермеу үшін жауапты шектедім.",
+        "kaa": "Tabılǵan derek sorawǵa tikkeley sáykes kelmeydi. Qáte maǵlıwmat bermew ushın juwaptı shekledim.",
+    }
+
+    EXTRACTIVE_HEADERS = {
+        "uz": "Manbalarda topilgan tasdiqlangan ma'lumotlar:",
+        "ru": "Подтвержденные сведения из источников:",
+        "en": "Verified information found in the sources:",
+        "kk": "Дереккөздерден табылған расталған мәліметтер:",
+        "kaa": "Dereklerden tabılǵan tastıyıqlanǵan maǵlıwmatlar:",
     }
 
 
@@ -658,45 +674,41 @@ class GroundedAnswerGenerator:
                 provider_status=provider_status,
             )
 
-        # When the model is unavailable, extract only query-relevant sentences
-        # from long grounded records. Never expose a raw multi-page source dump.
-        if any(len(item.statement) > self.MAX_RAW_FALLBACK_STATEMENT_CHARS for item in grounded_items):
-            extractive_answer, extractive_citations = _extractive_grounded_fallback(
-                intent_query, grounded_items
-            )
-            if extractive_answer:
-                return AnswerResult(
-                    answer=extractive_answer,
-                    confidence=confidence,
-                    abstained=False,
-                    citations=extractive_citations,
-                    generation_mode="extractive_grounded_fallback",
-                    provider_status=provider_status,
-                )
-            refs = tuple(item.record_id for item in grounded_items)
+        # When the model is unavailable, use only sentences that directly match
+        # the query. This applies to short and long records alike: a high-ranked
+        # but unrelated short record must never be returned as an answer.
+        extractive_answer, extractive_citations = _extractive_grounded_fallback(
+            intent_query,
+            grounded_items,
+            header=self.EXTRACTIVE_HEADERS.get(language, self.EXTRACTIVE_HEADERS["uz"]),
+        )
+        if extractive_answer:
             return AnswerResult(
-                answer=(
-                    "Tegishli bo'lishi mumkin bo'lgan manba topildi, ammo undan savolga "
-                    "bevosita javob beradigan jumlalarni ishonchli ajratib bo'lmadi. "
-                    "Noto'g'ri xulosa chiqarmaslik uchun javobni chekladim. "
-                    "Manba ID: " + ", ".join(refs)
-                ),
+                answer=extractive_answer,
                 confidence=confidence,
-                abstained=True,
-                citations=refs,
-                generation_mode="fallback_refused_unmatched_long_source",
+                abstained=False,
+                citations=extractive_citations,
+                generation_mode="extractive_grounded_fallback",
                 provider_status=provider_status,
             )
 
-        answer = "Loyiha bilimlar bazasidagi tasdiqlangan ma'lumotlar:\n\n" + "\n\n".join(
-            f"{index}. {item.statement}" for index, item in enumerate(grounded_items, start=1)
+        refs = tuple(item.record_id for item in grounded_items)
+        has_long_source = any(
+            len(item.statement) > self.MAX_RAW_FALLBACK_STATEMENT_CHARS
+            for item in grounded_items
         )
+        source_ids = " Manba ID: " + ", ".join(refs) if language == "uz" else ""
         return AnswerResult(
-            answer=answer,
-            confidence=confidence,
-            abstained=False,
-            citations=tuple(item.record_id for item in grounded_items),
-            generation_mode="deterministic_fallback",
+            answer=self.UNMATCHED_EVIDENCE_MESSAGES.get(
+                language, self.UNMATCHED_EVIDENCE_MESSAGES["uz"]
+            ) + source_ids,
+            confidence=0.0,
+            abstained=True,
+            citations=refs,
+            generation_mode=(
+                "fallback_refused_unmatched_long_source"
+                if has_long_source else "fallback_refused_unmatched_short_source"
+            ),
             provider_status=provider_status,
         )
 
