@@ -170,6 +170,13 @@ def is_author_overview_query(query: str) -> bool:
         "haqida aytib ber", "haqida malumot", "tarjimai hol", "biografiya",
         "batafsil aytib", "tolqroq malumot", "tell me about", "who is",
     )
+    family_facet_markers = (
+        "onasi", "onasining", "ona haqida", "otasi", "singlisi",
+        "mother", "father", "sister", "мать", "отец", "сестра",
+        "анасы", "атасы",
+    )
+    if any(marker in normalized for marker in family_facet_markers):
+        return False
     return classify_query_intent(query) == "author" and any(
         phrase in normalized for phrase in overview_phrases
     )
