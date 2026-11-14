@@ -114,7 +114,7 @@ def classify_query_intent(query: str) -> str:
     author_markers = {
         "muallif", "muallifi", "muallifning", "yaratuvchi", "asoschi",
         "biografiya", "tarjimai", "hayoti", "qiziqishlari", "motivatsiya",
-        "salamat", "smaylov",
+        "salamat", "smaylov", "author", "автор",
     }
     if tokens & author_markers or {"kim", "yaratgan"} <= tokens:
         return "author"
