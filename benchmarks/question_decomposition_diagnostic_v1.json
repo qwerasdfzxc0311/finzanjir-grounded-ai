@@ -16,7 +16,6 @@
       "id": "CMP-UZ-001",
       "language": "uz-Latn",
       "query": "FINZANJIRning O‘zbekistondagi va boshqa davlatlardagi o‘xshash loyihalardan farqi nimada?",
-      "expected_intent": "project_comparison",
       "task_type": "comparison",
       "subquestions": [
         {
@@ -51,13 +50,14 @@
         "FINZANJIR haqidagi tasdiqlangan ma’lumotlar to‘liq bayon qilinadi",
         "Tashqi tizimlar haqida dalilsiz farq yoki ustunlik da’vo qilinmaydi",
         "Bilim yetishmasligi butun javobni to‘xtatmaydi"
-      ]
+      ],
+      "expected_domain_route": "project",
+      "expected_task_type": "project_comparison"
     },
     {
       "id": "ARC-UZ-001",
       "language": "uz-Latn",
       "query": "FINZANJIRning arxitekturasi qanday tuzilgan, ma’lumot qayerdan keladi va qaror kim tomonidan qabul qilinadi?",
-      "expected_intent": "project_architecture",
       "task_type": "architecture",
       "subquestions": [
         {
@@ -91,13 +91,14 @@
         "Arxitektura komponentlari o‘zaro bog‘liqlikda tushuntiriladi",
         "Signal xavf yoki aybdorlik isboti sifatida talqin qilinmaydi",
         "Bankning vakolatli qarori FINZANJIRning avtomatik qaroridan ajratiladi"
-      ]
+      ],
+      "expected_domain_route": "project",
+      "expected_task_type": "project_architecture"
     },
     {
       "id": "CMP-UZ-002",
       "language": "uz-Latn",
       "query": "O‘zbekistonda FINZANJIRga o‘xshash tizimlar bormi? Bo‘lsa, qaysi jihatlari bir xil yoki boshqacha?",
-      "expected_intent": "project_comparison",
       "task_type": "comparison",
       "subquestions": [
         {
@@ -124,13 +125,14 @@
       "acceptance": [
         "FINZANJIR funksiyalari tushuntiriladi",
         "Tizimlar mavjud yoki mavjud emasligi dalilsiz aytilmaydi"
-      ]
+      ],
+      "expected_domain_route": "project",
+      "expected_task_type": "project_comparison"
     },
     {
       "id": "ARC-UZ-002",
       "language": "uz-Latn",
       "query": "FINZANJIR firibgarlik zanjirini qanday aniqlaydi va shubhali signal chiqqach keyin nima bo‘ladi?",
-      "expected_intent": "project_process",
       "task_type": "process",
       "subquestions": [
         {
@@ -156,13 +158,14 @@
       "acceptance": [
         "Faqat hujjatda mavjud bosqichlar ko‘rsatiladi",
         "Mavjud bo‘lmagan bosqichlar taxmin bilan to‘ldirilmaydi"
-      ]
+      ],
+      "expected_domain_route": "project",
+      "expected_task_type": "project_process"
     },
     {
       "id": "STA-UZ-001",
       "language": "uz-Latn",
       "query": "Qaysi FINZANJIR imkoniyatlari hozir prototipda bor, qaysilari faqat reja yoki taklif?",
-      "expected_intent": "project_status",
       "task_type": "status_audit",
       "subquestions": [
         {
@@ -196,13 +199,14 @@
       "acceptance": [
         "Reja prototip funksiyasi deb ko‘rsatilmaydi",
         "Kod mavjudligi ishlayotgan production xizmati borligini anglatmaydi"
-      ]
+      ],
+      "expected_domain_route": "project",
+      "expected_task_type": "project_status"
     },
     {
       "id": "CMP-UZ-003",
       "language": "uz-Latn",
       "query": "FINZANJIR boshqa davlatlardagi firibgarlikka qarshi platformalardan kuchliroqmi?",
-      "expected_intent": "project_comparison",
       "task_type": "comparative_claim",
       "subquestions": [
         {
@@ -235,13 +239,14 @@
       "acceptance": [
         "Dalilsiz ustunlik da’vo qilinmaydi",
         "FINZANJIRning ma’lum afzalliklari va cheklovlari alohida ko‘rsatiladi"
-      ]
+      ],
+      "expected_domain_route": "project",
+      "expected_task_type": "project_comparison"
     },
     {
       "id": "PAR-UZ-001",
       "language": "uz-Latn",
       "query": "Bu tizimning boshqa davlatlardagilardan farqi-chi, o‘zi qanday ishlaydi?",
-      "expected_intent": "project_comparison",
       "task_type": "comparison_followup",
       "subquestions": [
         {
@@ -267,13 +272,14 @@
       "acceptance": [
         "Kontekst saqlanadi",
         "Tashqi taqqoslash dalilsiz to‘qilmaydi"
-      ]
+      ],
+      "expected_domain_route": "project",
+      "expected_task_type": "project_comparison"
     },
     {
       "id": "CMP-RU-001",
       "language": "ru",
       "query": "Чем FINZANJIR отличается от похожих систем в Узбекистане и других странах?",
-      "expected_intent": "project_comparison",
       "task_type": "comparison",
       "subquestions": [
         {
@@ -299,13 +305,14 @@
       "acceptance": [
         "Ответ на русском языке",
         "Не выдумывать внешние системы и их характеристики"
-      ]
+      ],
+      "expected_domain_route": "project",
+      "expected_task_type": "project_comparison"
     },
     {
       "id": "CMP-EN-001",
       "language": "en",
       "query": "How is FINZANJIR different from similar fraud-prevention systems in other countries?",
-      "expected_intent": "project_comparison",
       "task_type": "comparison",
       "subquestions": [
         {
@@ -331,13 +338,14 @@
       "acceptance": [
         "Explain supported FINZANJIR facts",
         "Do not invent foreign comparators or superiority claims"
-      ]
+      ],
+      "expected_domain_route": "project",
+      "expected_task_type": "project_comparison"
     },
     {
       "id": "CMP-KK-001",
       "language": "kk",
       "query": "FINZANJIR басқа елдердегі ұқсас жүйелерден несімен ерекшеленеді?",
-      "expected_intent": "project_comparison",
       "task_type": "comparison",
       "subquestions": [
         {
@@ -363,13 +371,14 @@
       "acceptance": [
         "Расталмаған салыстыру жасалмайды",
         "Белгілі бөлігіне жауап беріледі"
-      ]
+      ],
+      "expected_domain_route": "project",
+      "expected_task_type": "project_comparison"
     },
     {
       "id": "CMP-KAA-001",
       "language": "kaa",
       "query": "FINZANJIR basqa mámleketlerdegi usas joybarlardan neshe menen parıqlanadı?",
-      "expected_intent": "project_comparison",
       "task_type": "comparison",
       "subquestions": [
         {
@@ -395,13 +404,14 @@
       "acceptance": [
         "Dáliyilsiz salıstırıw jasalmawı kerek",
         "Belgili bólimine juwap beriliwi kerek"
-      ]
+      ],
+      "expected_domain_route": "project",
+      "expected_task_type": "project_comparison"
     },
     {
       "id": "CMP-UZC-001",
       "language": "uz-Cyrl",
       "query": "ФИНЗАНЖИРнинг Ўзбекистондаги ва бошқа давлатлардаги ўхшаш лойиҳалардан фарқи нимада?",
-      "expected_intent": "project_comparison",
       "task_type": "comparison",
       "subquestions": [
         {
@@ -438,7 +448,9 @@
         "Ташқи тизимлар ҳақида далилсиз фарқ ёки устунлик даъво қилинмайди",
         "Билим етишмаслиги бутун жавобни тўхтатмайди",
         "Жавоб ўзбек кирилл ёзувида берилади"
-      ]
+      ],
+      "expected_domain_route": "project",
+      "expected_task_type": "project_comparison"
     }
   ]
 }
