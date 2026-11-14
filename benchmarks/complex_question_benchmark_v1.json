@@ -9,7 +9,7 @@
     "contains_real_customer_or_bank_data": false,
     "external_sources_enter_canonical_corpus": false
   },
-  "evidence_id_mapping": "pending",
+  "evidence_id_mapping": "mapped_to_canonical_v0.6_record_ids_pending_runtime_validation",
   "cases": [
     {
       "id": "cmp_uz_001",
@@ -22,21 +22,30 @@
           "target": "FINZANJIRning hujjatlarda tasdiqlangan maqsadi va ishlash tamoyillari",
           "evidence_scope": "canonical_project",
           "knowledge_state": "must_be_resolved_from_corpus",
-          "answer_required": true
+          "answer_required": true,
+          "expected_evidence_ids": [
+            "ck_000001",
+            "ck_000018"
+          ],
+          "evidence_gap_reason": null
         },
         {
           "id": "b",
           "target": "O'zbekistondagi taqqoslanadigan tizimlar va ularning hujjatlashtirilgan xususiyatlari",
           "evidence_scope": "external_research",
           "knowledge_state": "unknown_until_researched",
-          "answer_required": false
+          "answer_required": false,
+          "expected_evidence_ids": [],
+          "evidence_gap_reason": "Canonical FINZANJIR corpus contains no verified system-by-system comparison evidence; international study is described as future work."
         },
         {
           "id": "c",
           "target": "Boshqa davlatlardagi taqqoslanadigan tizimlar va ularning hujjatlashtirilgan xususiyatlari",
           "evidence_scope": "external_research",
           "knowledge_state": "unknown_until_researched",
-          "answer_required": false
+          "answer_required": false,
+          "expected_evidence_ids": [],
+          "evidence_gap_reason": "Canonical FINZANJIR corpus contains no verified system-by-system comparison evidence; international study is described as future work."
         }
       ],
       "required_behavior": [
@@ -61,14 +70,25 @@
           "target": "Hujjatlarda ko'rsatilgan asosiy arxitektura qismlari",
           "evidence_scope": "canonical_project",
           "knowledge_state": "must_be_resolved_from_corpus",
-          "answer_required": true
+          "answer_required": true,
+          "expected_evidence_ids": [
+            "ck_003257",
+            "ck_000004"
+          ],
+          "evidence_gap_reason": null
         },
         {
           "id": "b",
           "target": "Qismlar o'rtasidagi tasdiqlangan bog'liqlik va ma'lumot oqimi",
           "evidence_scope": "canonical_project",
           "knowledge_state": "must_be_resolved_from_corpus",
-          "answer_required": true
+          "answer_required": true,
+          "expected_evidence_ids": [
+            "ck_003257",
+            "ck_000004",
+            "ck_003265"
+          ],
+          "evidence_gap_reason": null
         }
       ],
       "required_behavior": [
@@ -91,14 +111,24 @@
           "target": "Firibgarlik alomatlari va zanjirini aniqlashga oid hujjatlashtirilgan mexanizmlar",
           "evidence_scope": "canonical_project",
           "knowledge_state": "must_be_resolved_from_corpus",
-          "answer_required": true
+          "answer_required": true,
+          "expected_evidence_ids": [
+            "ck_000003",
+            "ck_000001"
+          ],
+          "evidence_gap_reason": null
         },
         {
           "id": "b",
           "target": "Fuqaro mablag'ini himoya qilishga qaratilgan hujjatlashtirilgan choralar",
           "evidence_scope": "canonical_project",
           "knowledge_state": "must_be_resolved_from_corpus",
-          "answer_required": true
+          "answer_required": true,
+          "expected_evidence_ids": [
+            "ck_000021",
+            "ck_000003"
+          ],
+          "evidence_gap_reason": null
         }
       ],
       "required_behavior": [
@@ -123,21 +153,35 @@
           "target": "Prototipda amalda tasdiqlangan imkoniyatlar",
           "evidence_scope": "canonical_project",
           "knowledge_state": "must_be_resolved_from_corpus",
-          "answer_required": true
+          "answer_required": true,
+          "expected_evidence_ids": [
+            "ck_003255",
+            "ck_000260",
+            "ck_000552"
+          ],
+          "evidence_gap_reason": null
         },
         {
           "id": "b",
           "target": "Reja, taklif yoki hali amalga oshirilmagan imkoniyatlar",
           "evidence_scope": "canonical_project",
           "knowledge_state": "must_be_resolved_from_corpus",
-          "answer_required": true
+          "answer_required": true,
+          "expected_evidence_ids": [
+            "ck_000018",
+            "ck_000004",
+            "ck_003257"
+          ],
+          "evidence_gap_reason": null
         },
         {
           "id": "c",
           "target": "Ishlab chiqarish muhitida tasdiqlangan imkoniyatlar",
           "evidence_scope": "canonical_project",
-          "knowledge_state": "must_be_resolved_from_corpus",
-          "answer_required": true
+          "knowledge_state": "not_confirmed_in_corpus",
+          "answer_required": true,
+          "expected_evidence_ids": [],
+          "evidence_gap_reason": "No source record confirms a production deployment or production operation."
         }
       ],
       "required_behavior": [
@@ -160,14 +204,22 @@
           "target": "FINZANJIR va banklar o'rtasidagi hujjatlashtirilgan hamkorlik modeli",
           "evidence_scope": "canonical_project",
           "knowledge_state": "must_be_resolved_from_corpus",
-          "answer_required": true
+          "answer_required": true,
+          "expected_evidence_ids": [
+            "ck_000001",
+            "ck_000004",
+            "ck_003265"
+          ],
+          "evidence_gap_reason": null
         },
         {
           "id": "b",
           "target": "Boshqa davlatlardagi o'xshash tizimlar",
           "evidence_scope": "external_research",
           "knowledge_state": "unknown_until_researched",
-          "answer_required": false
+          "answer_required": false,
+          "expected_evidence_ids": [],
+          "evidence_gap_reason": "Canonical FINZANJIR corpus contains no verified system-by-system comparison evidence; international study is described as future work."
         }
       ],
       "required_behavior": [
@@ -189,14 +241,25 @@
           "target": "Подтверждённые документами компоненты архитектуры",
           "evidence_scope": "canonical_project",
           "knowledge_state": "must_be_resolved_from_corpus",
-          "answer_required": true
+          "answer_required": true,
+          "expected_evidence_ids": [
+            "ck_003257",
+            "ck_000004"
+          ],
+          "evidence_gap_reason": null
         },
         {
           "id": "b",
           "target": "Подтверждённые связи и потоки данных между компонентами",
           "evidence_scope": "canonical_project",
           "knowledge_state": "must_be_resolved_from_corpus",
-          "answer_required": true
+          "answer_required": true,
+          "expected_evidence_ids": [
+            "ck_003257",
+            "ck_000004",
+            "ck_003265"
+          ],
+          "evidence_gap_reason": null
         }
       ],
       "required_behavior": [
@@ -218,14 +281,21 @@
           "target": "Documented FINZANJIR goals, architecture, and mechanisms",
           "evidence_scope": "canonical_project",
           "knowledge_state": "must_be_resolved_from_corpus",
-          "answer_required": true
+          "answer_required": true,
+          "expected_evidence_ids": [
+            "ck_000001",
+            "ck_000018"
+          ],
+          "evidence_gap_reason": null
         },
         {
           "id": "b",
           "target": "Comparable systems in other countries and their verified features",
           "evidence_scope": "external_research",
           "knowledge_state": "unknown_until_researched",
-          "answer_required": false
+          "answer_required": false,
+          "expected_evidence_ids": [],
+          "evidence_gap_reason": "Canonical FINZANJIR corpus contains no verified system-by-system comparison evidence; international study is described as future work."
         }
       ],
       "required_behavior": [
@@ -248,14 +318,21 @@
           "target": "Documented FINZANJIR characteristics",
           "evidence_scope": "canonical_project",
           "knowledge_state": "must_be_resolved_from_corpus",
-          "answer_required": true
+          "answer_required": true,
+          "expected_evidence_ids": [
+            "ck_000001",
+            "ck_000018"
+          ],
+          "evidence_gap_reason": null
         },
         {
           "id": "b",
           "target": "Verified characteristics of comparable systems",
           "evidence_scope": "external_research",
           "knowledge_state": "unknown_until_researched",
-          "answer_required": false
+          "answer_required": false,
+          "expected_evidence_ids": [],
+          "evidence_gap_reason": "Canonical FINZANJIR corpus contains no verified system-by-system comparison evidence; international study is described as future work."
         }
       ],
       "required_behavior": [
@@ -267,5 +344,14 @@
         "Invent comparison facts"
       ]
     }
+  ],
+  "evidence_id_mapping_notes": [
+    "Evidence IDs were resolved directly from canonical_knowledge_v0.6.json and each record's source-derived statement/provenance.",
+    "ck_000001 and ck_000018 describe the project overview and Master Flow; the Master Flow explicitly distinguishes future full platform architecture from the current prototype.",
+    "ck_003257 and ck_000004 describe conceptual technical architecture and explicitly state that bank-to-bank integration is a future architecture requirement, not current APK integration.",
+    "ck_000003 and ck_000021 support fraud-chain analysis, citizen protection, warning, and lawful recovery; risk context is not an automatic accusation.",
+    "ck_003255, ck_000260, and ck_000552 describe demonstrational prototype capabilities and synthetic/demo boundaries; no production confirmation was found.",
+    "ck_000279 describes international experience as a future research/cooperation direction, not evidence of named comparable systems or measured differences.",
+    "Expected IDs are benchmark targets only; runtime retrieval correctness and ranking still need to be measured."
   ]
 }
