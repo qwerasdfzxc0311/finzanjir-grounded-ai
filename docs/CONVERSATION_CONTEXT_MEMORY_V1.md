@@ -1,5 +1,11 @@
 # FINZANJIR Conversation Context Memory v1
 
+## Alignment with the existing FINZANJIR memory architecture
+
+The project archive's “Bilimlar bazasi va xotira arxitekturasi V1” defines six separate layers: (1) authoritative knowledge, (2) candidate/learning knowledge, (3) current conversation, (4) personal memory, (5) historical/archive data, and (6) source/audit metadata. The 16-layer architecture also places knowledge governance and AI reliability in its own layer.
+
+This PR implements only layer 3 (bounded current-conversation context). It does not implement layer 4 (persistent personal memory), and does not merge chat history into authoritative knowledge or candidate knowledge. The author profile records remain separate, source-backed project biography/history: author_0004 (project motivation), author_0005 (biological mother's story from V14), author_0006 (family roles in the first prototype from the historical working document), and author_0007 (project-origin timeline from the historical working document).
+
 ## Purpose
 
 Resolve follow-up questions across recent turns without treating earlier assistant text as factual evidence.
@@ -9,7 +15,7 @@ Resolve follow-up questions across recent turns without treating earlier assista
 - The browser keeps a bounded recent conversation in its existing in-memory aiConversation array.
 - Before an AI request, the frontend sends up to 12 previous user/assistant turns.
 - The API validates roles and bounds each turn to 1,200 characters.
-- The backend uses only clear multilingual anaphora/ellipsis markers to decide whether to inject recent context.
+- The backend uses only clear multilingual anaphora/ellipsis markers to decide whether to inject recent context. Explicit first/second-question references select the matching earlier pair; otherwise the last two user/assistant pairs are used.
 - Recent assistant responses are explicitly labeled untrusted context and are used only by answer composition to resolve references; previous assistant text is excluded from intent/retrieval query construction.
 - Only previous user questions influence intent and retrieval; prior assistant answers never become search evidence.
 - Retrieval and answer generation still require current canonical or author-confirmed evidence.
