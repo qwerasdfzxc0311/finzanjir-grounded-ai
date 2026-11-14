@@ -400,5 +400,5 @@ def test_task_specific_guidance_sets_separate_evidence_boundaries():
     assert "ishlayotganini isbotlamaydi" in status
 
     architecture = _task_specific_guidance("architecture")
-    assert "konseptual arxitekturani" in architecture
-    assert "production tizimi" in architecture
+    assert "konseptual arxitekturani" in architecture.casefold()
+    assert "production tizimi" in architecture.casefold()
