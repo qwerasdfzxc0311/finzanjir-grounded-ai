@@ -76,3 +76,33 @@ def test_task_intent_baseline_handles_paraphrases_and_common_typos():
     }
     for query, expected in examples.items():
         assert classify_task_type(query) == expected, query
+
+
+
+def test_expected_evidence_ids_are_curated_only_for_internal_knowledge_parts():
+    data = json.loads(FIXTURE.read_text(encoding="utf-8"))
+    known_ids = {
+        "ck_003252", "ck_003254", "ck_003256", "ck_003257",
+        "ck_003258", "ck_003264", "ck_003274", "ck_003275",
+    }
+    for case in data["cases"]:
+        for subquestion in case["subquestions"]:
+            expected = set(subquestion["evidence_ids"])
+            assert expected <= known_ids
+            if subquestion["knowledge_status"] in {
+                "unknown_external",
+                "unknown_until_production_evidence",
+                "unknown_until_implementation_evidence",
+                "unknown_until_evidence_review",
+            }:
+                assert not expected
+
+
+def test_prototype_implementation_status_requires_code_or_test_evidence():
+    data = json.loads(FIXTURE.read_text(encoding="utf-8"))
+    status_case = next(case for case in data["cases"] if case["id"] == "STA-UZ-001")
+    implementation_part = next(
+        item for item in status_case["subquestions"] if item["id"] == "a"
+    )
+    assert implementation_part["knowledge_status"] == "unknown_until_implementation_evidence"
+    assert implementation_part["required_action"] == "inspect_current_code_and_test_artifacts"
