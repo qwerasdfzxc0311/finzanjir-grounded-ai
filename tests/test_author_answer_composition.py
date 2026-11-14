@@ -78,7 +78,7 @@ def test_author_motivation_question_selects_only_motivation_evidence():
         working_memory_scope="author-test",
     )
     assert result.answer.abstained is False
-    assert result.answer.generation_mode == "author_deterministic_fallback"
+    assert result.answer.generation_mode == "author_motivation_grounded"
     assert result.answer.citations == ("author_0004",)
     assert "bank cheklovlari" in result.answer.answer
     assert "qonuniy tranzaksiyalarni" in result.answer.answer
