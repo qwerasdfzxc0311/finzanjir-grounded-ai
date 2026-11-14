@@ -890,6 +890,7 @@ function renderWindowInteractive(windowId) {
       appendChatMessage("user", question);
       input.value = "";
       submit.disabled = true;
+      clearChat.disabled = true;
       submit.textContent = "Javob tayyorlanmoqda...";
       try {
         const runtimeRefs = Array.isArray(lastExecution?.ai?.runtime_context?.runtime_refs)
@@ -925,6 +926,7 @@ function renderWindowInteractive(windowId) {
         appendChatMessage("assistant", "Xatolik: " + error.message);
       } finally {
         submit.disabled = false;
+        clearChat.disabled = false;
         submit.textContent = "Savol yuborish";
         input.focus();
       }
