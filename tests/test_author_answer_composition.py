@@ -84,7 +84,7 @@ def test_author_motivation_question_selects_only_motivation_evidence():
     assert "qonuniy tranzaksiyalarni" in result.answer.answer
     assert "false positive" in result.answer.answer
     assert "false negative" in result.answer.answer
-    assert "fuqaro murojaati" in result.answer.answer
+    assert "fuqaro murojaatlarini" in result.answer.answer
     assert "Kiber Qalqon" in result.answer.answer
     assert "mustaqil tekshirmagan" in result.answer.answer
     assert "100 foiz xatosizlikni va'da qilish emas" in result.answer.answer
