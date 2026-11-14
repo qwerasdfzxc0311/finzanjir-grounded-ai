@@ -160,3 +160,15 @@ def test_explicit_first_question_reference_restores_the_earliest_pair():
     assert context.is_follow_up is True
     assert "FINZANJIR muallifi kim?" in context.context_text
     assert "FINZANJIR banklarga qarshimi?" not in context.context_text
+
+
+def test_prototype_origin_answer_distinguishes_author_direction_from_family_technical_work():
+    result = _offline_ai().answer(
+        "FINZANJIR prototipini kim yaratgan?",
+        runtime_refs=(),
+        working_memory_scope="conversation-memory-test",
+    )
+    assert result.answer.abstained is False
+    assert result.answer.citations == ("author_0006",)
+    assert "otasi Termuxni topish va o‘rnatish" in result.answer.answer
+    assert "muallif yakka o‘zi kodlagan" in result.answer.answer
