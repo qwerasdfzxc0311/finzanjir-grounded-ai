@@ -18,6 +18,12 @@ from finzanjir_ai.memory.conversation import build_conversation_context
 from finzanjir_ai.orchestration.intent import classify_query_intent, is_author_overview_query
 
 
+_NON_EVIDENCE_PROJECT_TITLES = frozenset({
+    "multilingual_query_pattern",
+    "multilingual_domain_alias",
+    "domain_alias",
+})
+
 PROJECT_KNOWLEDGE_DOMAINS = frozenset({
     "finzanjir_project",
     "finzanjir",
@@ -43,6 +49,8 @@ def _is_project_knowledge_record(record: Any) -> bool:
     if domain is None:
         return True
     if domain in PROJECT_KNOWLEDGE_DOMAINS:
+        if domain == "finzanjir" and getattr(record, "title", None) in _NON_EVIDENCE_PROJECT_TITLES:
+            return False
         return True
     if domain != "unclassified":
         return False
