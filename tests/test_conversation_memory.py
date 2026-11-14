@@ -172,3 +172,15 @@ def test_prototype_origin_answer_distinguishes_author_direction_from_family_tech
     assert result.answer.citations == ("author_0006",)
     assert "otasi Termuxni topish va o‘rnatish" in result.answer.answer
     assert "muallif yakka o‘zi kodlagan" in result.answer.answer
+
+
+def test_project_origin_question_uses_historical_timeline_record():
+    result = _offline_ai().answer(
+        "FINZANJIR qanday yaralgan?",
+        runtime_refs=(),
+        working_memory_scope="conversation-memory-test",
+    )
+    assert result.answer.abstained is False
+    assert result.answer.citations == ("author_0007",)
+    assert "Kiber Qalqon" in result.answer.answer
+    assert "ATMOS va SINBAD" in result.answer.answer
