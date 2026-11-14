@@ -43,3 +43,14 @@ Resolve follow-up questions across recent turns without treating earlier assista
 ## Test coverage
 
 Synthetic tests cover Uzbek Latin/Cyrillic, Russian, English, Karakalpak-style markers, history bounds, independent-question isolation, author-motivation follow-up, author-mother follow-up, API limits, and frontend clear-chat behavior.
+
+ 
+## 2026-11-15 — Author motivation answer grounding correction
+
+The family card-blocking story must be narrated precisely: the author heard it during a family gathering. The author did not independently investigate the incident and does not know why the card was blocked. The story is not evidence of bank error or wrongdoing. Do not infer the block reason, blame a bank, or claim the author witnessed the event.
+
+The story is a personal impetus, not the sole or complete explanation of every FINZANJIR mechanism. It strengthened a broader design question: how can anti-fraud analysis avoid harming legitimate transfers and innocent citizens when a signal is wrong? Later project mechanisms and requirements emerged through separate research, audits, events and design work; do not claim every module came from this one story.
+
+For author-motivation questions, answer from author_0004 with a deterministic, localized answer before free-form provider generation. Explain the family story and unknown cause, then connect it to the resulting principles: jointly measure false positives and false negatives; treat a signal as neither proof of guilt nor an automatic block instruction; preserve authorized bank/human review; support prompt, fair citizen complaints; inspect missed fraud and mistaken alerts; reduce errors through evidence-based changes and regression tests. State that FINZANJIR is not created to accuse banks or replace their authority. Core principle: make fraud harder without making lawful life harder. Do not promise zero errors.
+
+Regression tests require the exact unknown-cause caveat and verify that the provider is not called for this author-motivation answer. This is a source-grounded response rule, not model fine-tuning or a production deployment.
