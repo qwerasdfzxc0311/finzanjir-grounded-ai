@@ -62,12 +62,13 @@ def test_author_biography_question_composes_distinct_profile_facts():
     assert result.answer.abstained is False
     assert result.answer.generation_mode == "author_deterministic_fallback"
     assert set(result.answer.citations) == {
-        "author_0001", "author_0002", "author_0003", "author_0004", "author_0005", "author_0006"
+        "author_0001", "author_0002", "author_0003", "author_0004", "author_0005", "author_0006", "author_0007"
     }
     assert "astronomiya" in result.answer.answer
     assert "moliyaviy yo'qotishlar" in result.answer.answer
     assert "onasining hayoti qiyinchiliklar bilan" in result.answer.answer
     assert "otasi Termuxni topish va o‘rnatish" in result.answer.answer
+    assert "ATMOS va SINBAD" in result.answer.answer
     assert "The author and creator" not in result.answer.answer
 
 
