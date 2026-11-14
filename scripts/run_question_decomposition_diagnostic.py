@@ -279,6 +279,28 @@ def main() -> int:
     baseline_retrieved_expected_total = sum(len(sub["baseline_retrieved_expected_evidence_ids"]) for sub in expected_subquestions)
     retrieved_expected_total = sum(len(sub["retrieved_expected_evidence_ids"]) for sub in expected_subquestions)
     grounded_expected_total = sum(len(sub["grounded_expected_evidence_ids"]) for sub in expected_subquestions)
+    language_totals: dict[str, dict[str, int]] = {}
+    for sub in expected_subquestions:
+        language = sub["query_language"]
+        totals = language_totals.setdefault(language, {
+            "expected": 0,
+            "baseline_retrieved": 0,
+            "bridge_retrieved": 0,
+            "grounded": 0,
+        })
+        totals["expected"] += len(sub["expected_evidence_ids"])
+        totals["baseline_retrieved"] += len(sub["baseline_retrieved_expected_evidence_ids"])
+        totals["bridge_retrieved"] += len(sub["retrieved_expected_evidence_ids"])
+        totals["grounded"] += len(sub["grounded_expected_evidence_ids"])
+    report["language_metrics"] = {
+        language: {
+            **totals,
+            "baseline_candidate_recall": round(totals["baseline_retrieved"] / totals["expected"], 4),
+            "bridge_candidate_recall": round(totals["bridge_retrieved"] / totals["expected"], 4),
+            "grounded_recall": round(totals["grounded"] / totals["expected"], 4),
+        }
+        for language, totals in language_totals.items()
+    }
     report["expected_evidence_total"] = expected_total
     report["baseline_retrieved_expected_evidence_total"] = baseline_retrieved_expected_total
     report["baseline_expected_evidence_candidate_recall"] = round(baseline_retrieved_expected_total / expected_total, 4) if expected_total else None
