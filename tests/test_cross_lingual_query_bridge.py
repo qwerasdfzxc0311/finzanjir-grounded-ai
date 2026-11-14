@@ -53,3 +53,19 @@ def test_uzbek_query_does_not_receive_unneeded_translation_hint():
     hint, mapped = translate_search_hint(query, "uz")
     assert hint is None
     assert mapped == 0
+
+
+
+def test_multilingual_financial_security_questions_generate_domain_terms():
+    cases = {
+        "ru": "Какова цель FINZANJIR в защите граждан от финансового мошенничества и как описаны Risk Engine, Fraud Graph, Case Management и межбанковский поток данных?",
+        "en": "What is FINZANJIR's purpose in financial fraud protection, and how are Risk Engine, Fraud Graph, Case Management, and bank/PSP data flow described?",
+        "kk": "FINZANJIR-дің мақсаты қандай және қаржылық алаяқтықтан қорғау, банк/төлем ұйымдарымен дерек алмасу, Risk Engine, Fraud Graph және Case Management қалай сипатталған?",
+        "kaa": "FINZANJIR maqseti qanday, finanslıq firibgarlikten qorǵaw, bankler hám tólem shólkemleri menen maǵlıwmat almasıw, Risk Engine, Fraud Graph hám Case Management qanday isleydi?",
+    }
+    for language, query in cases.items():
+        hint, mapped = translate_search_hint(query, language)
+        assert mapped >= 3, language
+        assert hint is not None, language
+        assert "risk engine" in hint.lower(), language
+        assert "fraud graph" in hint.lower(), language
