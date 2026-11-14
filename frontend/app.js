@@ -863,6 +863,12 @@ function renderWindowInteractive(windowId) {
         log.appendChild(item);
       });
     }
+    const clearChat = element("button", "secondary-button", "Suhbatni tozalash");
+    clearChat.type = "button";
+    clearChat.addEventListener("click", () => {
+      aiConversation.length = 0;
+      renderWindowInteractive("finzanjir_ai");
+    });
     const form = element("form", "ai-chat-form");
     const input = element("textarea", "ai-question");
     input.id = "aiQuestion";
@@ -892,7 +898,15 @@ function renderWindowInteractive(windowId) {
         const response = await fetch(apiUrl("/api/ai/answer"), {
           method: "POST",
           headers: {"Content-Type":"application/json"},
-          body: JSON.stringify({question, runtime_refs:runtimeRefs, working_memory_scope:"prototype-ui-session"})
+          body: JSON.stringify({
+            question,
+            runtime_refs:runtimeRefs,
+            working_memory_scope:"prototype-ui-session",
+            conversation_history:aiConversation.slice(0, -1).filter(message =>
+              (message.role === "user" || message.role === "assistant") &&
+              typeof message.content === "string" && !message.content.startsWith("Xatolik:")
+            ).slice(-12).map(message => ({role:message.role, content:message.content.slice(0, 1200)}))
+          })
         });
         const body = await response.json();
         if (!response.ok) throw new Error(body.detail || "AI javobini olish imkoni bo‘lmadi");
@@ -902,10 +916,12 @@ function renderWindowInteractive(windowId) {
         const providerStatus = body.provider_status || "not_attempted";
         const providerDiagnostics = Array.isArray(body.provider_diagnostics) ? body.provider_diagnostics : [];
         aiConversation.push({role:"assistant", content:answer, refs, mode, providerStatus, providerDiagnostics, confidence:body.confidence, abstained:body.abstained});
+        if (aiConversation.length > 12) aiConversation.splice(0, aiConversation.length - 12);
         appendChatMessage("assistant", answer, refs, mode, providerStatus, providerDiagnostics, body.confidence, body.abstained);
         if (body.abstained) appendChatMessage("assistant", "Eslatma: mavjud dalillar yetarli bo‘lmagani uchun javob cheklangan.");
       } catch (error) {
         aiConversation.push({role:"assistant", content:"Xatolik: " + error.message});
+        if (aiConversation.length > 12) aiConversation.splice(0, aiConversation.length - 12);
         appendChatMessage("assistant", "Xatolik: " + error.message);
       } finally {
         submit.disabled = false;
@@ -913,7 +929,7 @@ function renderWindowInteractive(windowId) {
         input.focus();
       }
     });
-    chat.append(log, form);
+    chat.append(log, clearChat, form);
     target.append(notice, chat);
     return;
   }
