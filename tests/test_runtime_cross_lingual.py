@@ -36,7 +36,7 @@ def test_runtime_retrieval_uses_keyless_cross_lingual_hint(query):
     ai = FINZANJIRAI(index)
     # Keep the test fully offline: no provider-generated rewrites or answer call.
     ai.language_model.expand_question = lambda _query: ()
-    ai.answer_generator.generate = lambda _query, context: AnswerResult(
+    ai.answer_generator.generate = lambda _query, context, **_kwargs: AnswerResult(
         answer="grounded test answer",
         confidence=1.0,
         abstained=False,
