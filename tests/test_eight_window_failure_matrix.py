@@ -66,13 +66,42 @@ def _assert_stopped_at(response, failed_window: str, expected_status_code: int =
 
     assert response.status_code == 200
     assert [item["window_id"] for item in stages] == expected_windows
+
+    # Assert every completed window reached its own terminal state before the
+    # failure, the failing window emitted RUNNING then FAILED, and later
+    # windows were never entered. The AI terminal state is intentionally
+    # allowed to be either COMPLETED or ABSTAINED.
+    terminal_statuses = {
+        "synthetic_bank": {"COMPLETED"},
+        "signal_risk": {"COMPLETED"},
+        "cross_bank_fraud": {"DISABLED"},
+        "human_case": {"SYNTHETIC_REVIEW_ONLY", "SHADOW_ONLY", "NOT_ELIGIBLE"},
+        "audit_kpi": {"COMPLETED"},
+        "finzanjir_ai": {"COMPLETED", "ABSTAINED"},
+        "citizen": {"SYNTHETIC_STATUS_ONLY"},
+        "layers_16": {"PARTIAL"},
+    }
+    expected_statuses = []
+    for position, window_id in enumerate(WINDOWS):
+        if position < index:
+            expected_statuses.extend(["RUNNING", terminal_statuses[window_id]])
+        elif position == index:
+            expected_statuses.extend(["RUNNING", "FAILED"])
+        else:
+            expected_statuses.append("NOT_RUN")
+
+    actual_statuses = [item["status"] for item in stages]
+    assert len(actual_statuses) == len(expected_statuses)
+    for actual, expected in zip(actual_statuses, expected_statuses):
+        if isinstance(expected, set):
+            assert actual in expected
+        else:
+            assert actual == expected
+
     failed = [item for item in stages if item["status"] == "FAILED"]
     assert len(failed) == 1
     assert failed[0]["window_id"] == failed_window
     assert failed[0]["sequence"] == index + 1
-    assert [item["status"] for item in stages if item["sequence"] > index + 1] == [
-        "NOT_RUN"
-    ] * (len(WINDOWS) - index - 1)
     assert errors == [{"status_code": expected_status_code, "detail": "Prototype flow failed safely."}]
     assert results == []
 
