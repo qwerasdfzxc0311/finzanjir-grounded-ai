@@ -40,13 +40,27 @@ class LLMGateway:
             providers.append("openrouter")
         return tuple(providers)
 
-    def _record_failure(self, provider: str, category: str) -> None:
+    def _record_failure(
+        self,
+        provider: str,
+        category: str,
+        *,
+        http_status: int | None = None,
+    ) -> None:
         """Record a sanitized provider failure without logging prompts or exception details."""
         self.last_provider_failures.append({"provider": provider, "status": category})
+        if http_status is None:
+            logger.warning(
+                "LLM provider attempt failed: provider=%s category=%s",
+                provider,
+                category,
+            )
+            return
         logger.warning(
-            "LLM provider attempt failed: provider=%s category=%s",
+            "LLM provider attempt failed: provider=%s category=%s http_status=%d",
             provider,
             category,
+            http_status,
         )
 
     def generate_json(self, *, system: str, prompt: str, max_output_tokens: int = 1800) -> dict[str, Any] | None:
@@ -75,7 +89,7 @@ class LLMGateway:
                     category = "provider_unavailable"
                 else:
                     category = "request_rejected"
-                self._record_failure(provider, category)
+                self._record_failure(provider, category, http_status=code)
             except httpx.TimeoutException:
                 self._record_failure(provider, "timeout")
             except httpx.NetworkError:
