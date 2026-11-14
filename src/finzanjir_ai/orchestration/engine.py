@@ -14,6 +14,7 @@ from finzanjir_ai.retrieval.hybrid import HybridRetriever, RetrievalResult
 from finzanjir_ai.retrieval.rerank import QueryExpander, Reranker
 from finzanjir_ai.retrieval.text import query_script_variants
 from finzanjir_ai.runtime.context import RuntimeContext
+from finzanjir_ai.memory.conversation import build_conversation_context
 from finzanjir_ai.orchestration.intent import classify_query_intent, is_author_overview_query
 
 
@@ -94,11 +95,15 @@ class FINZANJIRAI:
         *,
         runtime_refs: tuple[str, ...],
         working_memory_scope: str,
+        conversation_history: tuple[dict[str, str], ...] = (),
         top_k: int = 8,
     ) -> OrchestrationResult:
+        conversation = build_conversation_context(query, conversation_history)
+        contextual_query = conversation.contextual_query
+
         # Clear general-knowledge questions must not be rejected merely because
         # the closed FINZANJIR project corpus contains no answer for them.
-        query_intent = classify_query_intent(query)
+        query_intent = classify_query_intent(contextual_query)
         if query_intent == "assistant_identity":
             runtime = RuntimeContext.from_refs(
                 knowledge_refs=(),
@@ -132,7 +137,7 @@ class FINZANJIRAI:
                 runtime_refs=runtime_refs,
                 working_memory_scope=working_memory_scope,
             )
-            answer = self.answer_generator.generate_general_knowledge(query)
+            answer = self.answer_generator.generate_general_knowledge(query, conversation_context=conversation.context_text)
             return OrchestrationResult(
                 answer=answer,
                 grounded_context=GroundedContext(items=()),
@@ -142,7 +147,7 @@ class FINZANJIRAI:
         # A broad "tell me about this person" request is an entity lookup,
         # not a keyword-match task. Resolve the canonical entity first, then let
         # the answer composer select and organize its verified biography facets.
-        if query_intent == "author" and is_author_overview_query(query):
+        if query_intent == "author" and is_author_overview_query(contextual_query):
             profile = self.grounder.assemble_entity("person:salamat_smaylov", max_items=top_k)
             if profile.items:
                 runtime = RuntimeContext.from_refs(
@@ -150,7 +155,7 @@ class FINZANJIRAI:
                     runtime_refs=runtime_refs,
                     working_memory_scope=working_memory_scope,
                 )
-                answer = self.answer_generator.generate(query, profile)
+                answer = self.answer_generator.generate(query, profile, context_query=contextual_query, conversation_context=conversation.context_text)
                 return OrchestrationResult(
                     answer=answer,
                     grounded_context=profile,
@@ -188,9 +193,9 @@ class FINZANJIRAI:
         # Reciprocal-rank fusion combines candidate lists without pretending
         # that a rewrite itself is evidence. The final reranker still sees the
         # user's original question.
-        model_queries = self.language_model.expand_question(query)
-        local_queries = self.expander.expand(query)
-        query_specs = [(query, 2.0)]
+        model_queries = self.language_model.expand_question(contextual_query)
+        local_queries = self.expander.expand(contextual_query)
+        query_specs = [(contextual_query, 2.0)]
         # Central-Asian Cyrillic/Latin spellings and cross-lingual domain terms
         # can refer to the same concepts. These are lower-weight search hints,
         # never evidence; the original query remains highest-weight and is used
@@ -201,7 +206,7 @@ class FINZANJIRAI:
         query_specs.extend(
             (value, 0.65) for value in cross_lingual_queries[len(script_queries):]
         )
-        query_specs.extend((value, 1.0) for value in local_queries if value.strip() != query.strip())
+        query_specs.extend((value, 1.0) for value in local_queries if value.strip() != contextual_query.strip())
         query_specs.extend((value, 0.7) for value in model_queries if value.strip())
         deduplicated = []
         seen_queries = set()
@@ -240,7 +245,7 @@ class FINZANJIRAI:
                 semantic_score=0.0,
             ))
         merged.sort(key=lambda item: (-item.score, item.record_id))
-        ranked = self.reranker.rerank(query, tuple(merged))
+        ranked = self.reranker.rerank(contextual_query, tuple(merged))
         if query_intent == "author":
             # Author questions use the separately confirmed biography layer only.
             ranked = tuple(
@@ -256,7 +261,7 @@ class FINZANJIRAI:
             )
         grounded = self.grounder.assemble(
             ranked,
-            query=query,
+            query=contextual_query,
             query_alternatives=tuple(value for value, _ in deduplicated[1:]),
             max_items=top_k,
         )
@@ -265,7 +270,7 @@ class FINZANJIRAI:
             runtime_refs=runtime_refs,
             working_memory_scope=working_memory_scope,
         )
-        answer = self.answer_generator.generate(query, grounded)
+        answer = self.answer_generator.generate(query, grounded, context_query=contextual_query, conversation_context=conversation.context_text)
         return OrchestrationResult(
             answer=answer,
             grounded_context=grounded,
