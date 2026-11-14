@@ -28,7 +28,7 @@ def _is_author_layer_record(record: Any) -> bool:
         return True
     if (record.facet or "").casefold() in {
         "identity", "birth_details", "interests", "project_motivation",
-        "author_biography", "author_profile",
+        "author_biography", "author_profile", "author_mother_story",
     }:
         return True
 
