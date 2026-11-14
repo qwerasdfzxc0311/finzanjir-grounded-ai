@@ -31,7 +31,7 @@ def test_external_comparison_cases_do_not_assume_external_knowledge():
     data = json.loads(FIXTURE.read_text(encoding="utf-8"))
     comparison_cases = [
         case for case in data["cases"]
-        if case["expected_task_type"] in {"comparison", "comparative_claim"}
+        if case["expected_task_type"] in {"project_comparison", "comparative_claim"}
     ]
     assert comparison_cases
     for case in comparison_cases:
