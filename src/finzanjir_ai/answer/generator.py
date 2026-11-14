@@ -471,12 +471,14 @@ class GroundedAnswerGenerator:
         if classify_task_type(query) == "comparison" and language == "uz":
             # Preserve the answerable FINZANJIR side of a comparison even when
             # the corpus has no verified evidence about the external systems.
-            comparison_terms = set(meaningful_tokens(query)) - {
-                "finzanjir", "farq", "farqi", "taqqoslash", "qiyoslash",
-                "boshqa", "davlat", "davlatlar", "davlatlardagi", "tizim",
-                "tizimlar", "tizimlardan", "o'xshash", "nimasi", "bilan",
-                "difference", "different", "compare", "comparison", "similar",
-                "systems", "system", "countries", "country", "versus",
+            comparison_terms = {
+                token for token in meaningful_tokens(query)
+                if not token.startswith((
+                    "finzanjir", "farq", "taqqos", "qiyos", "boshqa",
+                    "davlat", "tizim", "o'xshash", "nim", "bilan",
+                    "difference", "different", "compar", "similar",
+                    "system", "countr", "versus",
+                ))
             }
             short_facts = []
             for item in grounded_items:
