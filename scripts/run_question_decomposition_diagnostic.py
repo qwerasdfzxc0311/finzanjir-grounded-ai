@@ -21,6 +21,7 @@ REVIEW_ONLY_STATUSES = {"unknown_until_evidence_review"}
 NON_EVIDENCE_STATUSES = {
     "unknown_external",
     "unknown_until_production_evidence",
+    "unknown_until_implementation_evidence",
 }
 
 
@@ -125,11 +126,27 @@ def diagnose_case(
             collision_ids = []
             disposition = "unrecognized_knowledge_status_requires_review"
 
+        expected_ids = subquestion.get("evidence_ids", [])
+        candidate_ids = [item["record_id"] for item in candidates]
+        retrieved_expected_ids = [item for item in expected_ids if item in candidate_ids]
+        grounded_expected_ids = [item for item in expected_ids if item in evidence_ids]
+        missed_expected_ids = [item for item in expected_ids if item not in candidate_ids]
+
         subresults.append({
             "subquestion_id": subquestion["id"],
             "question": question,
             "declared_knowledge_status": status,
             "required_action": subquestion["required_action"],
+            "expected_evidence_ids": expected_ids,
+            "retrieved_expected_evidence_ids": retrieved_expected_ids,
+            "grounded_expected_evidence_ids": grounded_expected_ids,
+            "missed_expected_evidence_ids": missed_expected_ids,
+            "expected_evidence_candidate_recall": (
+                round(len(retrieved_expected_ids) / len(expected_ids), 4) if expected_ids else None
+            ),
+            "expected_evidence_grounded_recall": (
+                round(len(grounded_expected_ids) / len(expected_ids), 4) if expected_ids else None
+            ),
             "evidence_disposition": disposition,
             "eligible_grounded_record_ids": evidence_ids,
             "candidate_records_for_manual_review": review_ids,
@@ -188,6 +205,7 @@ def main() -> int:
         "corpus_version": benchmark["corpus_version"],
         "case_count": len(cases),
         "subquestion_count": sum(len(case["subquestions"]) for case in cases),
+        "candidate_retrieval_top_n": top_k * 4,
         "domain_route_matches": 0,
         "domain_route_mismatches": [],
         "task_type_classifier_status": "baseline_implemented_for_diagnostic",
@@ -199,7 +217,7 @@ def main() -> int:
             "Task-type classification is a separate multilingual baseline and is evaluated independently from domain routing.",
             "It does not call an LLM, external API, browser, bank system, or customer data source.",
             "Only known/partial internal-knowledge subquestions can produce eligible grounded candidates.",
-            "External, production-unconfirmed, and manual-review-only hits are not counted as answer evidence.",
+            "External, production-unconfirmed, implementation-unverified, and manual-review-only hits are not counted as answer evidence.",
             "Expected evidence IDs remain subject to human provenance and relevance review.",
         ],
     }
@@ -228,6 +246,19 @@ def main() -> int:
     report["domain_route_accuracy"] = round(
         report["domain_route_matches"] / len(cases), 4
     )
+    expected_subquestions = [
+        sub for case in report["cases"] for sub in case["subquestions"]
+        if sub["expected_evidence_ids"]
+    ]
+    expected_total = sum(len(sub["expected_evidence_ids"]) for sub in expected_subquestions)
+    retrieved_expected_total = sum(len(sub["retrieved_expected_evidence_ids"]) for sub in expected_subquestions)
+    grounded_expected_total = sum(len(sub["grounded_expected_evidence_ids"]) for sub in expected_subquestions)
+    report["expected_evidence_total"] = expected_total
+    report["retrieved_expected_evidence_total"] = retrieved_expected_total
+    report["grounded_expected_evidence_total"] = grounded_expected_total
+    report["missed_expected_evidence_total"] = expected_total - retrieved_expected_total
+    report["expected_evidence_candidate_recall"] = round(retrieved_expected_total / expected_total, 4) if expected_total else None
+    report["expected_evidence_grounded_recall"] = round(grounded_expected_total / expected_total, 4) if expected_total else None
     report["eligible_evidence_count"] = sum(
         len(sub["eligible_grounded_record_ids"])
         for case in report["cases"]
