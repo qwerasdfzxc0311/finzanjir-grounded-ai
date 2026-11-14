@@ -10,12 +10,15 @@ def test_question_decomposition_fixture_has_safe_and_complete_case_contracts():
     cases = data["cases"]
     assert data["benchmark_id"] == "FINZANJIR-QUESTION-DECOMPOSITION-v1"
     assert data["corpus_version"] == "0.6"
-    assert len(cases) >= 8
+    assert len(cases) >= 12
     assert len({case["id"] for case in cases}) == len(cases)
-    assert {"uz-Latn", "ru", "en", "kk", "kaa"} <= {case["language"] for case in cases}
+    assert {"uz-Latn", "uz-Cyrl", "ru", "en", "kk", "kaa"} <= {
+        case["language"] for case in cases
+    }
     for case in cases:
         assert case["query"].strip()
-        assert case["expected_intent"].strip()
+        assert case["expected_domain_route"] == "project"
+        assert case["expected_task_type"].strip()
         assert len(case["subquestions"]) >= 2
         assert all(item["question"].strip() for item in case["subquestions"])
         assert all(item["knowledge_status"] for item in case["subquestions"])
@@ -26,10 +29,16 @@ def test_question_decomposition_fixture_has_safe_and_complete_case_contracts():
 
 def test_external_comparison_cases_do_not_assume_external_knowledge():
     data = json.loads(FIXTURE.read_text(encoding="utf-8"))
-    comparison_cases = [case for case in data["cases"] if case["task_type"] in {"comparison", "comparative_claim"}]
+    comparison_cases = [
+        case for case in data["cases"]
+        if case["expected_task_type"] in {"comparison", "comparative_claim"}
+    ]
     assert comparison_cases
     for case in comparison_cases:
-        external_parts = [item for item in case["subquestions"] if item["knowledge_status"] == "unknown_external"]
+        external_parts = [
+            item for item in case["subquestions"]
+            if item["knowledge_status"] == "unknown_external"
+        ]
         assert external_parts
         assert case["answer_policy"]["withhold_unsupported_parts"] is True
 
@@ -39,3 +48,9 @@ def test_fixture_never_treats_comparison_prompts_as_canonical_facts():
     assert data["safety"]["canonical_corpus_mutable"] is False
     assert data["safety"]["external_sources_auto_ingested"] is False
     assert data["safety"]["real_customer_or_bank_data"] is False
+
+
+def test_runtime_task_type_is_not_misrepresented_as_existing_classifier():
+    data = json.loads(FIXTURE.read_text(encoding="utf-8"))
+    assert all("expected_task_type" in case for case in data["cases"])
+    assert all("expected_domain_route" in case for case in data["cases"])
