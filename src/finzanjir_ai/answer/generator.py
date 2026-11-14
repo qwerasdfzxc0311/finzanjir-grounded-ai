@@ -525,6 +525,18 @@ class GroundedAnswerGenerator:
                     generation_mode="comparison_partial_grounded_fallback",
                     provider_status=provider_status,
                 )
+            return AnswerResult(
+                answer=(
+                    "Bu taqqoslash savoli uchun FINZANJIR haqidagi bevosita mos, "
+                    "tasdiqlangan dalil ajratilmadi. Boshqa tizimlar bilan farqni "
+                    "yoki FINZANJIR xususiyatlarini taxmin qilib aytmayman."
+                ),
+                confidence=0.0,
+                abstained=True,
+                citations=(),
+                generation_mode="comparison_no_relevant_evidence",
+                provider_status=provider_status,
+            )
 
         # When the model is unavailable, extract only query-relevant sentences
         # from long grounded records. Never expose a raw multi-page source dump.
