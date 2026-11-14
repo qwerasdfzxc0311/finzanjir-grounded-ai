@@ -52,7 +52,7 @@
         "Bilim yetishmasligi butun javobni to‘xtatmaydi"
       ],
       "expected_domain_route": "project",
-      "expected_task_type": "project_comparison"
+      "expected_task_type": "comparison"
     },
     {
       "id": "ARC-UZ-001",
@@ -93,7 +93,7 @@
         "Bankning vakolatli qarori FINZANJIRning avtomatik qaroridan ajratiladi"
       ],
       "expected_domain_route": "project",
-      "expected_task_type": "project_architecture"
+      "expected_task_type": "architecture"
     },
     {
       "id": "CMP-UZ-002",
@@ -127,7 +127,7 @@
         "Tizimlar mavjud yoki mavjud emasligi dalilsiz aytilmaydi"
       ],
       "expected_domain_route": "project",
-      "expected_task_type": "project_comparison"
+      "expected_task_type": "comparison"
     },
     {
       "id": "ARC-UZ-002",
@@ -160,7 +160,7 @@
         "Mavjud bo‘lmagan bosqichlar taxmin bilan to‘ldirilmaydi"
       ],
       "expected_domain_route": "project",
-      "expected_task_type": "project_process"
+      "expected_task_type": "process"
     },
     {
       "id": "STA-UZ-001",
@@ -201,7 +201,7 @@
         "Kod mavjudligi ishlayotgan production xizmati borligini anglatmaydi"
       ],
       "expected_domain_route": "project",
-      "expected_task_type": "project_status"
+      "expected_task_type": "status_audit"
     },
     {
       "id": "CMP-UZ-003",
@@ -241,7 +241,7 @@
         "FINZANJIRning ma’lum afzalliklari va cheklovlari alohida ko‘rsatiladi"
       ],
       "expected_domain_route": "project",
-      "expected_task_type": "project_comparison"
+      "expected_task_type": "comparison"
     },
     {
       "id": "PAR-UZ-001",
@@ -274,7 +274,7 @@
         "Tashqi taqqoslash dalilsiz to‘qilmaydi"
       ],
       "expected_domain_route": "project",
-      "expected_task_type": "project_comparison"
+      "expected_task_type": "comparison"
     },
     {
       "id": "CMP-RU-001",
@@ -307,7 +307,7 @@
         "Не выдумывать внешние системы и их характеристики"
       ],
       "expected_domain_route": "project",
-      "expected_task_type": "project_comparison"
+      "expected_task_type": "comparison"
     },
     {
       "id": "CMP-EN-001",
@@ -340,7 +340,7 @@
         "Do not invent foreign comparators or superiority claims"
       ],
       "expected_domain_route": "project",
-      "expected_task_type": "project_comparison"
+      "expected_task_type": "comparison"
     },
     {
       "id": "CMP-KK-001",
@@ -373,7 +373,7 @@
         "Белгілі бөлігіне жауап беріледі"
       ],
       "expected_domain_route": "project",
-      "expected_task_type": "project_comparison"
+      "expected_task_type": "comparison"
     },
     {
       "id": "CMP-KAA-001",
@@ -406,7 +406,7 @@
         "Belgili bólimine juwap beriliwi kerek"
       ],
       "expected_domain_route": "project",
-      "expected_task_type": "project_comparison"
+      "expected_task_type": "comparison"
     },
     {
       "id": "CMP-UZC-001",
@@ -450,7 +450,7 @@
         "Жавоб ўзбек кирилл ёзувида берилади"
       ],
       "expected_domain_route": "project",
-      "expected_task_type": "project_comparison"
+      "expected_task_type": "comparison"
     }
   ]
 }
