@@ -10,17 +10,17 @@ MAX_CONTEXT_CHARS = 4800
 
 # Conservative markers: only clear anaphora / ellipsis trigger context injection.
 _FOLLOW_UP_PATTERNS = (
-    r"(?<!\\w)(?:u|uning|unga|undan|bunga|buni|shuni|shu|o'sha|o\u2018sha|"
+    r"(?<!\w)(?:u|uning|unga|undan|bunga|buni|shuni|shu|o'sha|o‘sha|"
     r"oldingi|avvalgi|birinchi|ikkinchi|undan\s+oldin|yuqoridagi|"
-    r"onasi|otasi|uning\s+onasi|uning\s+otasi|ular|ularning)(?!\\w)",
-    r"(?<!\\w)(?:у|унинг|унга|ундан|бу|буни|шун|ўша|олдинги|аввалги|"
-    r"биринчи|иккинчи|онаси|отаси|улар|уларнинг)(?!\\w)",
-    r"(?<!\\w)(?:он|она|его|её|ему|ей|этот|эта|это|этом|тот|та|те|они|их)(?!\\w)",
-    r"(?<!\\w)(?:he|she|it|they|him|her|his|its|them|this|that|those|"
-    r"these|former|previous|first|second)(?!\\w)|\\bwhat about\\b|\\band then\\b",
-    r"(?<!\\w)(?:ol|onı|onıń|oǵan|onnan|bul|bunı|sonı|sonıń|"
-    r"aldıńǵı|birinshi|ekinshi|anasi|anası)(?!\\w)",
-    r"(?<!\\w)(?:ол|оны|оның|оған|одан|бұл|мұны|соның|алдыңғы|бірінші|екінші)(?!\\w)",
+    r"onasi|otasi|uning\s+onasi|uning\s+otasi|ular|ularning)(?!\w)",
+    r"(?<!\w)(?:у|унинг|унга|ундан|бу|буни|шун|ўша|олдинги|аввалги|"
+    r"биринчи|иккинчи|онаси|отаси|улар|уларнинг)(?!\w)",
+    r"(?<!\w)(?:он|она|его|её|ему|ей|этот|эта|это|этом|тот|та|те|они|их)(?!\w)",
+    r"(?<!\w)(?:he|she|it|they|him|her|his|its|them|this|that|those|"
+    r"these|former|previous|first|second)(?!\w)|\bwhat about\b|\band then\b",
+    r"(?<!\w)(?:ol|onı|onıń|oǵan|onnan|bul|bunı|sonı|sonıń|"
+    r"aldıńǵı|birinshi|ekinshi|anasi|anası)(?!\w)",
+    r"(?<!\w)(?:ол|оны|оның|оған|одан|бұл|мұны|соның|алдыңғы|бірінші|екінші)(?!\w)",
 )
 _FOLLOW_UP_RE = re.compile("|".join(f"(?:{pattern})" for pattern in _FOLLOW_UP_PATTERNS), re.IGNORECASE)
 
@@ -59,10 +59,7 @@ def is_context_dependent_query(query: str) -> bool:
     return bool(_FOLLOW_UP_RE.search(value))
 
 
-def build_conversation_context(
-    query: str,
-    history: Any,
-) -> ConversationContext:
+def build_conversation_context(query: str, history: Any) -> ConversationContext:
     """Resolve clear follow-ups using recent turns as context, never as evidence."""
     turns = normalize_conversation_history(history)
     current = str(query or "").strip()
@@ -76,15 +73,15 @@ def build_conversation_context(
         )
 
     selected = turns[-8:]
-    role_labels = {"user": "Foydalanuvchi", "assistant": "Oldingi AI javobi (ishonchsiz kontekst)"}
-    lines = [
-        f"{role_labels[item['role']]}: {item['content']}"
-        for item in selected
-    ]
-    context_text = "\\n".join(lines)[:MAX_CONTEXT_CHARS]
+    role_labels = {
+        "user": "Foydalanuvchi",
+        "assistant": "Oldingi AI javobi (ishonchsiz kontekst)",
+    }
+    lines = [f"{role_labels[item['role']]}: {item['content']}" for item in selected]
+    context_text = "\n".join(lines)[:MAX_CONTEXT_CHARS]
     contextual_query = (
         current
-        + "\\n\\nSuhbat konteksti (faqat ishora va mavzuni aniqlash uchun; fakt yoki dalil emas):\\n"
+        + "\n\nSuhbat konteksti (faqat ishora va mavzuni aniqlash uchun; fakt yoki dalil emas):\n"
         + context_text
     )
     return ConversationContext(
