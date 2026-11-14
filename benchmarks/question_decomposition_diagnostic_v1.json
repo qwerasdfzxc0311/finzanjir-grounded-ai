@@ -321,7 +321,7 @@
       "subquestions": [
         {
           "id": "a",
-          "question": "Какие особенности FINZANJIR подтверждены проектными документами?",
+          "question": "Какова цель FINZANJIR в защите граждан от финансового мошенничества и как описаны Risk Engine, Fraud Graph, Case Management и межбанковский поток данных?",
           "knowledge_status": "known_in_corpus",
           "evidence_ids": [
             "ck_003252",
@@ -358,7 +358,7 @@
       "subquestions": [
         {
           "id": "a",
-          "question": "Which FINZANJIR capabilities and design principles are documented?",
+          "question": "What is FINZANJIR's purpose in financial fraud protection, and how are Risk Engine, Fraud Graph, Case Management, and bank/PSP data flow described?",
           "knowledge_status": "known_in_corpus",
           "evidence_ids": [
             "ck_003252",
@@ -395,7 +395,7 @@
       "subquestions": [
         {
           "id": "a",
-          "question": "FINZANJIR туралы құжаттарда расталған мәліметтер қандай?",
+          "question": "FINZANJIR-дің мақсаты қандай және қаржылық алаяқтықтан қорғау, банк/төлем ұйымдарымен дерек алмасу, Risk Engine, Fraud Graph және Case Management қалай сипатталған?",
           "knowledge_status": "known_in_corpus",
           "evidence_ids": [
             "ck_003252",
@@ -432,7 +432,7 @@
       "subquestions": [
         {
           "id": "a",
-          "question": "FINZANJIR haqqında tastıyıqlanǵan joybar maǵlıwmatları qanday?",
+          "question": "FINZANJIR maqseti qanday, finanslıq firibgarlikten qorǵaw, bankler hám tólem shólkemleri menen maǵlıwmat almasıw, Risk Engine, Fraud Graph hám Case Management qanday isleydi?",
           "knowledge_status": "known_in_corpus",
           "evidence_ids": [
             "ck_003252",
