@@ -56,6 +56,8 @@ def is_context_dependent_query(query: str) -> bool:
     value = str(query or "").strip().casefold()
     if not value:
         return False
+    if re.fullmatch(r"(?:nega|nima uchun|nima sababdan|why|почему|не үшін)[?!.,\s]*", value):
+        return True
     return bool(_FOLLOW_UP_RE.search(value))
 
 
@@ -84,10 +86,17 @@ def build_conversation_context(query: str, history: Any) -> ConversationContext:
     }
     lines = [f"{role_labels[item['role']]}: {item['content']}" for item in selected]
     context_text = "\n".join(lines)[:MAX_CONTEXT_CHARS]
+    # Only prior user questions influence intent/retrieval. Earlier assistant
+    # answers remain available as explicitly untrusted context for composition.
+    user_context = "\n".join(
+        f"Foydalanuvchi: {item['content']}"
+        for item in selected
+        if item["role"] == "user"
+    )
     contextual_query = (
         current
-        + "\n\nSuhbat konteksti (faqat ishora va mavzuni aniqlash uchun; fakt yoki dalil emas):\n"
-        + context_text
+        + "\n\nOldingi foydalanuvchi savollari (faqat mavzu/is horani aniqlash uchun; dalil emas):\n"
+        + user_context
     )
     return ConversationContext(
         turns=turns,
