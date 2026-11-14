@@ -38,6 +38,7 @@ def _offline_ai():
 
 def test_follow_up_markers_cover_uzbek_and_supported_scripts():
     assert is_context_dependent_query("U nima sababdan yaratgan?")
+    assert is_context_dependent_query("Nima uchun?")
     assert is_context_dependent_query("Onasi haqida nima yozilgan?")
     assert is_context_dependent_query("У нима учун яратган?")
     assert is_context_dependent_query("What about his mother?")
@@ -79,7 +80,8 @@ def test_follow_up_context_marks_previous_assistant_text_as_untrusted():
     assert context.is_follow_up is True
     assert "FINZANJIR muallifi kim?" in context.contextual_query
     assert "Oldingi AI javobi (ishonchsiz kontekst)" in context.context_text
-    assert "fakt yoki dalil emas" in context.contextual_query
+    assert "fakt yoki dalil emas" in context.context_text or "fakt yoki dalil emas" in context.contextual_query
+    assert "Muallif Salamat Smaylov." not in context.contextual_query
 
 
 def test_author_motivation_follow_up_resolves_to_authoritative_profile_record():
