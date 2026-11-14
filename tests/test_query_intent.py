@@ -140,3 +140,21 @@ def test_uzbek_cyrillic_comparison_question_is_not_misclassified_as_russian():
     query = "FINZANJIR бошқа давлатлардаги ўхшаш тизимлардан нимаси билан фарқ қилади?"
     assert detect_query_language(query) == "uz"
     assert classify_task_type(query) == "comparison"
+
+
+def test_cyrillic_comparison_routing_keeps_kazakh_distinct_from_uzbek():
+    from finzanjir_ai.orchestration.intent import detect_query_language
+    from finzanjir_ai.orchestration.task_intent import classify_task_type
+
+    query = "FINZANJIR басқа елдердегі ұқсас жүйелерден несімен ерекшеленеді?"
+    assert detect_query_language(query) == "kk"
+    assert classify_task_type(query) == "comparison"
+
+
+def test_karakalpak_latin_comparison_routing_remains_supported():
+    from finzanjir_ai.orchestration.intent import detect_query_language
+    from finzanjir_ai.orchestration.task_intent import classify_task_type
+
+    query = "FINZANJIR basqa mámleketlerdegi usas joybarlardan qanday parıqlanadı, qáwip qanday?"
+    assert detect_query_language(query) == "kaa"
+    assert classify_task_type(query) == "comparison"
