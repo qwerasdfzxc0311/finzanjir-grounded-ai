@@ -74,7 +74,8 @@ def diagnose_case(
             record = record_map.get(candidate["record_id"])
             candidate_details.append({
                 **candidate,
-                "statement_preview": record.statement[:260] if record else "",
+                "statement": record.statement if record else "",
+                "aliases": list(record.aliases) if record else [],
                 "evidence_status": (
                     record.evidence.get("status")
                     if record and isinstance(record.evidence, dict) else None
@@ -83,7 +84,8 @@ def diagnose_case(
                     record.evidence.get("verification")
                     if record and isinstance(record.evidence, dict) else None
                 ),
-                "provenance": list(record.provenance[:2]) if record else [],
+                "provenance": list(record.provenance) if record else [],
+                "evidence_metadata": record.evidence if record else None,
             })
 
         if status in ANSWERABLE_STATUSES:
