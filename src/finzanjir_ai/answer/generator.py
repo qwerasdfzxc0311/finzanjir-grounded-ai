@@ -344,7 +344,7 @@ class GroundedAnswerGenerator:
     }
 
     COMPARISON_LIMIT_MESSAGES = {
-        "uz": "Taqqoslash chegarasi: boshqa davlatlardagi yoki boshqa tashkilotlarga tegishli o'xshash tizimlar haqida yetarli, tekshirilgan qiyosiy ma'lumot yo'q. Ularning arxitekturasi, natijasi yoki FINZANJIRdan ustun-kamligini taxmin qilmayman.",
+        "uz": "Taqqoslash chegarasi: boshqa davlatlardagi yoki boshqa tashkilotlarga tegishli o'xshash tizimlar haqida yetarli, tekshirilgan qiyosiy ma'lumot yo'q. Ularning arxitekturasi, natijasi yoki FINZANJIRdan ustun-kamligini taxmin qilib aytmayman.",
         "ru": "Ограничение сравнения: в имеющихся источниках нет достаточных проверенных данных о подобных системах других стран или организаций. Поэтому я не предполагаю их архитектуру, результаты или превосходство над FINZANJIR.",
         "en": "Comparison limit: the available sources do not provide enough verified information about similar systems in other countries or organizations. I will not guess their architecture, results, or whether they are better or worse than FINZANJIR.",
         "kk": "Салыстыру шегі: қолда бар дереккөздерде басқа елдердегі немесе ұйымдардағы ұқсас жүйелер туралы жеткілікті расталған салыстырмалы мәлімет жоқ. Сондықтан олардың архитектурасы, нәтижесі немесе FINZANJIR-ден артық-кемдігі туралы болжам жасамаймын.",
@@ -664,12 +664,12 @@ class GroundedAnswerGenerator:
                     language, self.COMPARISON_LIMIT_MESSAGES["uz"]
                 )
                 answer = (
-                    intro + "\\n\\n"
+                    intro + "\n\n"
                     + "\\n\\n".join(
                         f"{index}. {item.statement.strip()}"
                         for index, item in enumerate(short_facts, start=1)
                     )
-                    + "\\n\\n" + limit
+                    + "\n\n" + limit
                 )
                 return AnswerResult(
                     answer=answer,
@@ -720,7 +720,7 @@ class GroundedAnswerGenerator:
                 provider_status=provider_status,
             )
 
-        answer = "Loyiha bilimlar bazasidagi tasdiqlangan ma'lumotlar:\\n\\n" + "\\n\\n".join(
+        answer = "Loyiha bilimlar bazasidagi tasdiqlangan ma'lumotlar:\n\n" + "\n\n".join(
             f"{index}. {item.statement}" for index, item in enumerate(grounded_items, start=1)
         )
         return AnswerResult(
