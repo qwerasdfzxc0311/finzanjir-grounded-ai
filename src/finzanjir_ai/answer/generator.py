@@ -7,6 +7,43 @@ from typing import Any
 
 from finzanjir_ai.retrieval.grounding import GroundedContext, is_grounded_evidence
 from finzanjir_ai.retrieval.text import meaningful_tokens
+from finzanjir_ai.orchestration.task_intent import classify_task_type
+
+
+def _task_specific_guidance(task_type: str) -> str:
+    """Add answer-shape and evidence-boundary guidance without creating facts."""
+    guidance = {
+        "comparison": (
+            "Bu taqqoslash savoli. Uni alohida qismlarga ajrating: "
+            "(1) FINZANJIR haqida berilgan dalillar bilan tasdiqlanadigan xususiyatlar; "
+            "(2) boshqa davlatlar yoki boshqa tizimlar haqidagi qiyosiy da'volar. "
+            "Faqat birinchi qismni mavjud loyiha dalillari bilan tushuntiring. "
+            "Ikkinchi qism uchun aniq tizim va ishonchli qiyosiy dalil berilmagan bo'lsa, "
+            "buni ochiq ayting; tizimlar nomi, arxitekturasi, natijasi yoki ustunligini "
+            "o'zingizdan to'qimang. Dalil yetishmasligi FINZANJIR haqidagi tasdiqlangan "
+            "qismni javobsiz qoldirishga sabab bo'lmasin."
+        ),
+        "status_audit": (
+            "Bu holat yoki joriy etilish auditi. Har bir imkoniyatni faqat dalilga ko'ra "
+            "tasdiqlangan amaldagi prototip, hujjatdagi talab/taklif/reja, ishlab chiqarish "
+            "holati tasdiqlanmagan yoki noma'lum deb ajrating. Konsepsiyada yozilgani "
+            "funksiya ishlayotganini isbotlamaydi."
+        ),
+        "architecture": (
+            "Bu arxitektura savoli. Faqat manbada aniq ko'rsatilgan komponent, aloqa va "
+            "ma'lumot oqimini tushuntiring. Konseptual arxitekturani ishlayotgan kod yoki "
+            "production tizimi sifatida ko'rsatmang."
+        ),
+        "process": (
+            "Bu jarayon savoli. Bosqichlarni faqat manbada ko'rsatilgan ketma-ketlikda "
+            "bayon qiling; manbada yo'q bosqich yoki avtomatik qaror qo'shmang."
+        ),
+        "reason": (
+            "Bu sabab/maqsad savoli. Loyiha maqsadini muallifning shaxsiy motivatsiyasi "
+            "yoki tahliliy fikridan ajrating; ularni dalilsiz bir-biriga tenglashtirmang."
+        ),
+    }
+    return guidance.get(task_type, "")
 
 
 @dataclass(frozen=True)
@@ -431,6 +468,36 @@ class GroundedAnswerGenerator:
                     provider_status=provider_status,
                 )
 
+        if classify_task_type(query) == "comparison" and language == "uz":
+            # Preserve the answerable FINZANJIR side of a comparison even when
+            # the corpus has no verified evidence about the external systems.
+            short_facts = [
+                item for item in grounded_items
+                if item.statement.strip()
+                and len(item.statement.strip()) <= self.MAX_RAW_FALLBACK_STATEMENT_CHARS
+            ][:4]
+            if short_facts:
+                answer = (
+                    "FINZANJIR bo'yicha loyiha manbalarida tasdiqlangan ma'lumotlar:\n\n"
+                    + "\n\n".join(
+                        f"{index}. {item.statement.strip()}"
+                        for index, item in enumerate(short_facts, start=1)
+                    )
+                    + "\n\nTaqqoslash chegarasi: boshqa davlatlardagi yoki boshqa tashkilotlarga "
+                    "tegishli o'xshash tizimlar haqida ushbu dalillar orasida yetarli, "
+                    "tekshirilgan qiyosiy ma'lumot yo'q. Shu sababli ularning arxitekturasi, "
+                    "natijasi yoki FINZANJIRdan ustun-kamligini taxmin qilib aytmayman. "
+                    "FINZANJIR haqidagi yuqoridagi ma'lumotlar esa loyiha manbalariga asoslangan."
+                )
+                return AnswerResult(
+                    answer=answer,
+                    confidence=confidence,
+                    abstained=False,
+                    citations=tuple(item.record_id for item in short_facts),
+                    generation_mode="comparison_partial_grounded_fallback",
+                    provider_status=provider_status,
+                )
+
         # When the model is unavailable, extract only query-relevant sentences
         # from long grounded records. Never expose a raw multi-page source dump.
         if any(len(item.statement) > self.MAX_RAW_FALLBACK_STATEMENT_CHARS for item in grounded_items):
@@ -500,6 +567,8 @@ class GroundedAnswerGenerator:
             "Yetarli muallif dalili bo'lmasa, qaysi ma'lumot yetishmayotganini ochiq ayting."
             if author_question else ""
         )
+        task_type = classify_task_type(query)
+        task_guidance = _task_specific_guidance(task_type)
         system = (
             "Siz FINZANJIR loyihasining bilimlarga tayangan yordamchisisiz. "
             "Faqat berilgan tasdiqlangan loyiha dalillaridan foydalaning. "
@@ -518,7 +587,7 @@ class GroundedAnswerGenerator:
             "faqat kelajakdagi talab sifatida ayting, agar dalil ularning amalda joriy etilganini ko'rsatmasa. "
             "Agar dalil savolning faqat bir qismini yoritsa, shu chegarani ochiq ayting. "
             "Yashirin fikrlash zanjirini emas, tekshiriladigan qisqa asos va xulosani bering. "
-            "Faqat JSON qaytaring." + author_guidance
+            "Faqat JSON qaytaring. " + task_guidance + author_guidance
         )
         prompt = (
             "Foydalanuvchi savoli:\n" + query + "\n\n"
