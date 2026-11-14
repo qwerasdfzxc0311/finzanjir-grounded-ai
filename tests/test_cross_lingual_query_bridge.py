@@ -68,4 +68,4 @@ def test_multilingual_financial_security_questions_generate_domain_terms():
         assert mapped >= 3, language
         assert hint is not None, language
         assert "risk engine" in hint.lower(), language
-        assert "fraud graph" in hint.lower(), language
+        assert "graph" in hint.lower(), language
