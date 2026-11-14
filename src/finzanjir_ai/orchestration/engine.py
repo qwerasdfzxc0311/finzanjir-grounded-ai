@@ -42,6 +42,8 @@ def _is_project_knowledge_record(record: Any) -> bool:
         return False
     if record.record_id.startswith("project_"):
         return True
+    if getattr(record, "title", None) in _NON_EVIDENCE_PROJECT_TITLES:
+        return False
 
     domain = getattr(record, "domain", None)
     # Synthetic fixtures and legacy in-memory records may omit domain metadata.
@@ -49,8 +51,6 @@ def _is_project_knowledge_record(record: Any) -> bool:
     if domain is None:
         return True
     if domain in PROJECT_KNOWLEDGE_DOMAINS:
-        if domain == "finzanjir" and getattr(record, "title", None) in _NON_EVIDENCE_PROJECT_TITLES:
-            return False
         return True
     if domain != "unclassified":
         return False
