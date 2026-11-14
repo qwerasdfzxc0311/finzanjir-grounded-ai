@@ -43,6 +43,14 @@ def detect_query_language(query: str) -> str:
     tokens = set(re.findall(r"[^\W\d_]+", value, flags=re.UNICODE))
     kaa_hits = len(tokens & _LANGUAGE_MARKERS["kaa"])
     kk_hits = len(tokens & _LANGUAGE_MARKERS["kk"])
+    # Several Uzbek-Cyrillic words also contain letters used in Kazakh.
+    # Resolve a strong Uzbek lexical signature before generic script detection.
+    uz_cyrillic_hits = len(tokens & {
+        "бошқа", "давлат", "фарқ", "фарқи", "ўхшаш",
+        "нимаси", "таққослаш", "лойиҳа", "молиявий", "фуқаро",
+    })
+    if uz_cyrillic_hits >= 2:
+        return "uz"
     if re.search(r"[әіңғқөұүһ]", value):
         return "kaa" if kaa_hits > kk_hits else "kk"
     uzbek_phrases = (
