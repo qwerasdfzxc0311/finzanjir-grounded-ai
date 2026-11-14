@@ -199,11 +199,15 @@ def is_c_model_query(query: str) -> bool:
 
 
 def is_sixteen_layer_query(query: str) -> bool:
+    raw = " ".join(str(query).casefold().replace("’", "'").split())
     normalized = normalize_query_for_intent(query)
-    return any(marker in normalized for marker in (
-        "16 qatlam", "o'n olti qatlam", "on olti qatlam",
-        "16 layer", "sixteen layer", "16 қабат", "16 қабатты",
-    ))
+    return (
+        ("16" in raw and ("qatlam" in raw or "layer" in raw or "қабат" in raw))
+        or any(marker in raw for marker in (
+            "o'n olti qatlam", "on olti qatlam", "sixteen layer",
+        ))
+        or any(marker in normalized for marker in ("16 qatlam", "16 layer", "16 қабат", "16 қабатты"))
+    )
 
 
 def is_author_overview_query(query: str) -> bool:
