@@ -1,9 +1,20 @@
+import pytest
+
 from finzanjir_ai.answer.generator import AnswerResult
 from finzanjir_ai.knowledge.index import build_knowledge_index
 from finzanjir_ai.orchestration.engine import FINZANJIRAI
 
 
-def test_runtime_retrieval_uses_keyless_cross_lingual_hint_for_russian_project_query():
+@pytest.mark.parametrize(
+    "query",
+    [
+        "Какова цель FINZANJIR в защите граждан от финансового мошенничества?",
+        "What is FINZANJIR's purpose in financial fraud protection?",
+        "FINZANJIR-дің мақсаты қандай және қаржылық алаяқтықтан қорғау?",
+        "FINZANJIR maqseti qanday, finanslıq firibgarlikten qorǵaw?",
+    ],
+)
+def test_runtime_retrieval_uses_keyless_cross_lingual_hint(query):
     index = build_knowledge_index([
         {
             "id": "ck-project-purpose",
@@ -33,7 +44,7 @@ def test_runtime_retrieval_uses_keyless_cross_lingual_hint_for_russian_project_q
     )
 
     result = ai.answer(
-        "Какова цель FINZANJIR в защите граждан от финансового мошенничества?",
+        query,
         runtime_refs=(),
         working_memory_scope="synthetic-test",
     )
