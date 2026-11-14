@@ -72,7 +72,12 @@ def build_conversation_context(query: str, history: Any) -> ConversationContext:
             contextual_query=current,
         )
 
-    selected = turns[-8:]
+    if re.search(r"(?<!\w)(?:birinchi|first|первый|бірінші|birinshi)(?!\w)", current, re.IGNORECASE):
+        selected = turns[:2]
+    elif re.search(r"(?<!\w)(?:ikkinchi|second|второй|екінші|ekinshi)(?!\w)", current, re.IGNORECASE):
+        selected = turns[2:4]
+    else:
+        selected = turns[-4:]
     role_labels = {
         "user": "Foydalanuvchi",
         "assistant": "Oldingi AI javobi (ishonchsiz kontekst)",
