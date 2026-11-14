@@ -131,3 +131,12 @@ def test_signal_process_query_rewrite_includes_architecture_stage_sequence():
         "Transaction → Signal → Evidence → Risk → Threshold → Case → HumanDecision → AuditEvent" in value
         for value in expanded
     )
+
+
+def test_uzbek_cyrillic_comparison_question_is_not_misclassified_as_russian():
+    from finzanjir_ai.orchestration.intent import detect_query_language
+    from finzanjir_ai.orchestration.task_intent import classify_task_type
+
+    query = "FINZANJIR бошқа давлатлардаги ўхшаш тизимлардан нимаси билан фарқ қилади?"
+    assert detect_query_language(query) == "uz"
+    assert classify_task_type(query) == "comparison"
