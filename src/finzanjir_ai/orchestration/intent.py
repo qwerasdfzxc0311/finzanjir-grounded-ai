@@ -29,7 +29,7 @@ def normalize_query_for_intent(query: str) -> str:
 
 
 _LANGUAGE_MARKERS = {
-    "uz": {"nima", "haqida", "uchun", "kerak", "loyiha", "moliyaviy", "firibgarlik", "fuqaro", "maqsad", "tahlil", "xavf", "va", "muhim", "bank", "karta", "kartani", "kartasini", "bloklay", "bloklashi", "oladi", "oladimi", "qanday", "qila", "mumkin", "emas", "qonuniy", "ozi", "нима", "лойиҳа", "учун", "керак", "мақсад", "фуқаро", "молиявий"},
+    "uz": {"nima", "haqida", "uchun", "kerak", "loyiha", "moliyaviy", "firibgarlik", "fuqaro", "maqsad", "tahlil", "xavf", "va", "muhim", "bank", "karta", "kartani", "kartasini", "bloklay", "bloklashi", "oladi", "oladimi", "qanday", "qila", "mumkin", "emas", "qonuniy", "ozi", "нима", "лойиҳа", "учун", "керак", "мақсад", "фуқаро", "молиявий", "фарқ", "фарқи", "ўхшаш", "бошқа", "давлат", "нимаси", "қилади", "таққослаш"},
     "ru": {"что", "такое", "проект", "расскажи", "объясни", "зачем", "финансовый", "мошенничество", "граждан"},
     "en": {"what", "is", "about", "tell", "explain", "project", "financial", "fraud", "citizen", "purpose", "the", "and", "why", "how", "does", "can", "card", "bank", "false", "positive", "negative", "important", "mean", "means", "risk", "signal", "case", "escalation", "requires", "evidence", "threshold", "assessment", "supporting", "transaction", "suspicious", "legitimate", "account", "money", "flow", "data", "privacy", "system", "help", "protect", "funds", "decision", "human", "review"},
     "kk": {"жоба", "қаржы", "алаяқтық", "азамат", "туралы", "мақсат", "деген", "не", "zhoba", "qarzhy", "azamat", "turaly", "maqset", "ushin"},
