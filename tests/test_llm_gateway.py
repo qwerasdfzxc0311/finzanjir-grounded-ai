@@ -108,3 +108,27 @@ def test_gateway_reports_timeout_category(monkeypatch):
     assert gateway.last_provider_failures == [
         {"provider": "gemini", "status": "timeout"}
     ]
+
+def test_gateway_logs_only_sanitized_provider_failure_category(caplog, monkeypatch):
+    gateway = LLMGateway(environ={"GEMINI_API_KEY": "not-a-real-test-secret"})
+    request = httpx.Request("POST", "https://example.invalid")
+    response = httpx.Response(401, request=request)
+
+    def fail_request(*_args, **_kwargs):
+        raise httpx.HTTPStatusError(
+            "secret-bearing provider body must never appear in logs",
+            request=request,
+            response=response,
+        )
+
+    monkeypatch.setattr(gateway, "_generate_with", fail_request)
+    with caplog.at_level("WARNING", logger="finzanjir_ai.answer.providers"):
+        assert gateway.generate_json(system="private prompt", prompt="private user text") is None
+
+    assert "provider=gemini" in caplog.text
+    assert "category=authentication_or_permission_failed" in caplog.text
+    assert "secret-bearing" not in caplog.text
+    assert "not-a-real-test-secret" not in caplog.text
+    assert "private prompt" not in caplog.text
+    assert "private user text" not in caplog.text
+
