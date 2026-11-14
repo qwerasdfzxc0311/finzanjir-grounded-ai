@@ -40,3 +40,14 @@ The task-type and cross-lingual recall scores are development-fixture results, n
 - No bank/customer/card data was used.
 - No external API, model provider, deployment secret, or bank integration was touched.
 - PR remains draft/open and unmerged.
+
+
+## Candidate provenance requiring manual review
+
+The bridge surfaced additional potentially relevant records that are not yet in the curated expected-evidence set:
+
+- `ck_000063` and `ck_000001`: source-derived from `16.10.12index.html`, with provenance pointing to `knowledge/source_knowledge.json` and `knowledge/knowledge_corpus.json`. Their statements cover conceptual architecture, project purpose, data flow, and the boundary that bank integration is future/proposed. Confirm the underlying source/version before adding them to the gold evidence set.
+- `ck_000472`, `ck_000473`, `ck_000474`, `ck_000476`: source-derived records from `knowledge/deep_domain_ontology_candidate.json`, but their source_id/section fields are empty. They may help cross-language retrieval, but require provenance review before being treated as authoritative.
+- `src3_000107` and `src3_000108`: V14 PDF records with status `proposal_or_future`. They explicitly describe bank/PSP integration as a future model, not current APK functionality.
+
+The Kazakh query returned other grounded FINZANJIR records, but none of the currently curated expected IDs passed the grounding output. This is not proof that no useful evidence was found; it means the expected set and candidate provenance need review before drawing a final language-level quality conclusion.
