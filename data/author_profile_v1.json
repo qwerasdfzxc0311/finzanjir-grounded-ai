@@ -238,6 +238,46 @@
         "status": "author_confirmed",
         "scope": "project_origin_contribution"
       }
+    },
+    {
+      "id": "author_0007",
+      "entity_id": "person:salamat_smaylov",
+      "facet": "project_origin_timeline",
+      "concept_id": "project_origin_timeline_finzanjir",
+      "canonical_concept_id": "project_origin_timeline_finzanjir",
+      "statement": "FINZANJIR tarixiy ishchi hujjatidagi muallif bayoniga ko‘ra, loyiha birdaniga tayyor platforma sifatida paydo bo‘lmagan. Muallif avval ATMOS va SINBAD bo‘yicha mustaqil kuzatuvlar olib borgan; bu kuzatuvlar o‘sha paytda FINZANJIR uchun maxsus tadqiqot bo‘lmagan. Keyin taxminan yetti sahifalik dastlabki “Kiber Qalqon” materiali shakllangan: unda kartani ko‘rish va himoya qilish, zarur bank yoki hamkor aloqasi bo‘lgandagina bloklash kabi tor g‘oyalar ko‘rib chiqilgan. Dastlabki prototip oilaviy yordam va amaliy o‘rganish orqali sinab ko‘rilgan. Keyingi takroriy auditlar, yangi savollar va izlanishlar davomida loyiha karta funksiyasidan kengroq moliyaviy xavfsizlik g‘oyasiga o‘sgan; xavf signallari, Case yondashuvi, FINZANJIR nomi va logotipi, keyinchalik “Bilim daraxti” hamda AI yo‘nalishi bosqichma-bosqich shakllangan. Ayrim vaqtlar taxminiy; bu tarixiy rivojlanish ketma-ketligi, har bir bosqich to‘liq ishga tushgan mahsulot degani emas.",
+      "aliases": [
+        "FINZANJIR qanday yaralgan",
+        "FINZANJIR qanday boshlangan",
+        "loyiha qanday paydo bo'lgan",
+        "Kiber Qalqondan FINZANJIRga o'tish",
+        "Kiber Qalqon g'oyasi qayerdan kelgan",
+        "yetti sahifalik Kiber Qalqon hujjati",
+        "ATMOS va SINBAD kuzatuvlari FINZANJIRga qanday bog'langan",
+        "FINZANJIR nomi qanday paydo bo'lgan",
+        "FINZANJIR logotipi qachon shakllangan",
+        "Bilim daraxti g'oyasi qanday paydo bo'lgan",
+        "loyiha bosqichma-bosqich qanday rivojlangan",
+        "FINZANJIR project origin and history"
+      ],
+      "evidence": {
+        "status": "project_source",
+        "verification": "author_confirmed",
+        "scope": "project_origin_timeline"
+      },
+      "provenance": [
+        {
+          "source_type": "project_archive_document",
+          "source_id": "FINZANJIR_Tarixiy_Ishchi_Hujjat!.pdf",
+          "authority": "project_author_supplied_archive",
+          "sections": "1–8: ATMOS/SINBAD observations, initial Kiber Qalqon material, prototype, Case, FINZANJIR name/logo, Bilim daraxti",
+          "note": "Timeline is author-reported; ATMOS/SINBAD observations are explicitly not presented as FINZANJIR-specific research or proof of wrongdoing."
+        }
+      ],
+      "reconciliation": {
+        "status": "author_confirmed",
+        "scope": "project_origin_timeline"
+      }
     }
   ]
 }
