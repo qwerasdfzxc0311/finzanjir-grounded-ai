@@ -29,7 +29,7 @@ def normalize_query_for_intent(query: str) -> str:
 
 
 _LANGUAGE_MARKERS = {
-    "uz": {"nima", "haqida", "uchun", "kerak", "loyiha", "moliyaviy", "firibgarlik", "fuqaro", "maqsad", "tahlil", "xavf", "va", "muhim", "bank", "karta", "kartani", "kartasini", "bloklay", "bloklashi", "oladi", "oladimi", "qanday", "qila", "mumkin", "emas", "qonuniy", "ozi", "нима", "лойиҳа", "учун", "керак", "мақсад", "фуқаро", "молиявий", "фарқ", "фарқи", "ўхшаш", "бошқа", "давлат", "нимаси", "қилади", "таққослаш"},
+    "uz": {"nima", "haqida", "uchun", "kerak", "loyiha", "moliyaviy", "firibgarlik", "fuqaro", "maqsad", "tahlil", "xavf", "va", "muhim", "bank", "karta", "kartani", "kartasini", "bloklay", "bloklashi", "oladi", "oladimi", "qanday", "qila", "mumkin", "emas", "qonuniy", "ozi", "shubhali", "nimani", "anglatadi", "fuqaroning", "aybdorligini", "isbotlaydimi", "banklarga", "qarshimi", "ochiladi", "qatlamli", "arxitekturasi", "toshvaqa", "qansha", "umir", "koradi", "нима", "лойиҳа", "учун", "керак", "мақсад", "фуқаро", "молиявий", "фарқ", "фарқи", "ўхшаш", "бошқа", "давлат", "нимаси", "қилади", "таққослаш"},
     "ru": {"что", "такое", "проект", "расскажи", "объясни", "зачем", "финансовый", "мошенничество", "граждан"},
     "en": {"what", "is", "about", "tell", "explain", "project", "financial", "fraud", "citizen", "purpose", "the", "and", "why", "how", "does", "can", "card", "bank", "false", "positive", "negative", "important", "mean", "means", "risk", "signal", "case", "escalation", "requires", "evidence", "threshold", "assessment", "supporting", "transaction", "suspicious", "legitimate", "account", "money", "flow", "data", "privacy", "system", "help", "protect", "funds", "decision", "human", "review"},
     "kk": {"жоба", "қаржы", "алаяқтық", "азамат", "туралы", "мақсат", "деген", "не", "zhoba", "qarzhy", "azamat", "turaly", "maqset", "ushin"},
@@ -161,6 +161,53 @@ def is_bank_authority_query(query: str) -> bool:
         "block", "blocks", "blocking", "freeze", "freezes",
     }
     return has_project and bool(tokens & card_terms) and bool(tokens & action_terms)
+
+
+def is_signal_guilt_query(query: str) -> bool:
+    """Recognize questions asking whether a risk signal proves a person's guilt."""
+    normalized = normalize_query_for_intent(query)
+    tokens = set(normalized.split())
+    signal_terms = {"signal", "сигнал", "qáwip", "belgi"}
+    guilt_terms = {
+        "aybdor", "aybdorligini", "aybdorlik", "isbot", "isbotlaydimi",
+        "guilt", "prove", "proves", "винов", "доказ", "кінә", "айып",
+    }
+    return bool(tokens & signal_terms) and bool(
+        tokens & guilt_terms or any(term in normalized for term in ("aybdorligini isbot", "prove guilt", "доказательство вины"))
+    )
+
+
+def is_case_purpose_query(query: str) -> bool:
+    """Recognize a request for the purpose of opening a Case."""
+    normalized = normalize_query_for_intent(query)
+    tokens = set(normalized.split())
+    return "case" in tokens and any(
+        marker in normalized
+        for marker in ("nima uchun", "nega", "maqsad", "ochil", "why", "для чего", "зачем")
+    )
+
+
+def is_fraud_graph_definition_query(query: str) -> bool:
+    """Recognize a direct definition question about the Fraud Graph concept."""
+    normalized = normalize_query_for_intent(query)
+    return any(marker in normalized for marker in ("fraud graph", "fraudgraph", "firibgarlik grafigi"))
+
+
+def is_c_model_query(query: str) -> bool:
+    normalized = normalize_query_for_intent(query)
+    return any(marker in normalized for marker in ("c modeli", "c model", "model c"))
+
+
+def is_sixteen_layer_query(query: str) -> bool:
+    raw = " ".join(str(query).casefold().replace("’", "'").split())
+    normalized = normalize_query_for_intent(query)
+    return (
+        ("16" in raw and ("qatlam" in raw or "layer" in raw or "қабат" in raw))
+        or any(marker in raw for marker in (
+            "o'n olti qatlam", "on olti qatlam", "sixteen layer",
+        ))
+        or any(marker in normalized for marker in ("16 qatlam", "16 layer", "16 қабат", "16 қабатты"))
+    )
 
 
 def is_author_overview_query(query: str) -> bool:
