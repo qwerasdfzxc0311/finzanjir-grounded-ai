@@ -203,3 +203,14 @@ def test_author_mother_facet_is_not_swallowed_by_broad_author_overview():
 
     assert is_author_overview_query("Muallif haqida aytib ber") is True
     assert is_author_overview_query("Muallifning onasi haqida aytib ber") is False
+
+
+def test_explicit_author_mother_question_retrieves_private_family_record():
+    result = _offline_ai().answer(
+        "Muallifning onasi haqida aytib ber",
+        runtime_refs=(),
+        working_memory_scope="conversation-memory-test",
+    )
+    assert result.answer.abstained is False
+    assert result.answer.citations == ("author_0005",)
+    assert "2023-yil may oyining oxirida" in result.answer.answer
