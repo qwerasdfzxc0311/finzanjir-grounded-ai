@@ -33,7 +33,7 @@ _LANGUAGE_MARKERS = {
     "ru": {"что", "такое", "проект", "расскажи", "объясни", "зачем", "финансовый", "мошенничество", "граждан"},
     "en": {"what", "is", "about", "tell", "explain", "project", "financial", "fraud", "citizen", "purpose", "the", "and", "why", "how", "does", "can", "card", "bank", "false", "positive", "negative", "important", "mean", "means", "risk", "signal", "case", "escalation", "requires", "evidence", "threshold", "assessment", "supporting", "transaction", "suspicious", "legitimate", "account", "money", "flow", "data", "privacy", "system", "help", "protect", "funds", "decision", "human", "review"},
     "kk": {"жоба", "қаржы", "алаяқтық", "азамат", "туралы", "мақсат", "деген", "не", "zhoba", "qarzhy", "azamat", "turaly", "maqset", "ushin"},
-    "kaa": {"joybar", "qarjı", "puqara", "haqqında", "haqqinda", "maqset", "qáwip", "degen", "ushın", "ushin", "maǵlıwmat", "joybar", "мақсет", "пуқара", "ҳаққында", "қаўип"},
+    "kaa": {"joybar", "qarjı", "puqara", "haqqında", "haqqinda", "maqset", "qáwip", "degen", "ushın", "ushin", "maǵlıwmat", "joybar", "avtor", "avtordıń", "jaratqan", "мақсет", "пуқара", "ҳаққында", "қаўип"},
 }
 
 
@@ -51,7 +51,7 @@ def detect_query_language(query: str) -> str:
     })
     if uz_cyrillic_hits >= 2:
         return "uz"
-    if re.search(r"[әіңғқөұүһ]", value):
+    if re.search(r"[әіңғқөұүһі]", value):
         return "kaa" if kaa_hits > kk_hits else "kk"
     uzbek_phrases = (
         "bank kartasini", "bank kartani", "kartasini o'zi", "kartani o'zi",
@@ -114,7 +114,7 @@ def classify_query_intent(query: str) -> str:
     author_markers = {
         "muallif", "muallifi", "muallifning", "yaratuvchi", "asoschi",
         "biografiya", "tarjimai", "hayoti", "qiziqishlari", "motivatsiya",
-        "salamat", "smaylov", "author", "автор",
+        "salamat", "smaylov", "author", "автор", "avtor", "avtordıń",
     }
     if tokens & author_markers or {"kim", "yaratgan"} <= tokens:
         return "author"
