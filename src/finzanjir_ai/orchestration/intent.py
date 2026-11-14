@@ -123,6 +123,11 @@ def classify_query_intent(query: str) -> str:
         and any(phrase in normalized for phrase in ("qanday yaralgan", "qanday boshlangan", "qayerdan boshlangan", "kelib chiqishi"))
     ):
         return "author"
+    if (
+        "finzanjir" in tokens
+        and any(phrase in normalized for phrase in ("nima uchun yaratilgan", "nima sababdan yaratilgan", "nima maqsadda yaratilgan"))
+    ):
+        return "author"
     if "kiber qalqon" in normalized and any(
         marker in normalized for marker in ("qanday", "paydo", "boshlanish", "finzanjir")
     ):
