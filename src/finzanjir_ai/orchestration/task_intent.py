@@ -8,6 +8,7 @@ def _normalize(value: str) -> str:
     text = unicodedata.normalize("NFKC", str(value)).casefold()
     text = (
         text.replace("ʻ", "'")
+        .replace("‘", "'")
         .replace("’", "'")
         .replace("ʼ", "'")
         .replace("`", "'")
