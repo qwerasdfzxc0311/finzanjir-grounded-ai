@@ -474,3 +474,49 @@ def test_comparison_fallback_does_not_turn_irrelevant_context_into_an_answer():
     assert result.generation_mode == "comparison_no_relevant_evidence"
     assert result.citations == ()
     assert "Ob-havo" not in result.answer
+
+
+def test_provider_failure_rejects_unrelated_short_kazakh_record():
+    unrelated = (
+        "Жасуша — тірі ағзалардың негізгі құрылымдық және функционалдық бірлігі. "
+        "Әртүрлі ағзаларда жасушалар құрылысы мен қызметі бойынша ерекшеленеді."
+    )
+    context = GroundedContext(items=(GroundedContextItem(
+        record_id="ck_001693",
+        concept_id="cell_biology",
+        statement=unrelated,
+        score=0.94,
+        provenance=({"source": "canonical-v0.6"},),
+        evidence={"status": "supported"},
+    ),))
+
+    result = GroundedAnswerGenerator(FailedProvider()).generate(
+        "FINZANJIR басқа елдерден несімен ерекшеленеді?", context
+    )
+
+    assert result.abstained is True
+    assert result.generation_mode == "fallback_refused_unmatched_short_source"
+    assert result.citations == ("ck_001693",)
+    assert "Жасуша" not in result.answer
+    assert "Табылған дерек сұраққа тікелей сәйкес келмейді" in result.answer
+
+
+def test_provider_failure_still_returns_a_relevant_short_extractive_answer_in_query_language():
+    context = GroundedContext(items=(GroundedContextItem(
+        record_id="ck-short-evidence",
+        concept_id="evidence-requirement",
+        statement="Fraud signal requires supporting evidence.",
+        score=0.9,
+        provenance=({"source": "canonical-v0.6"},),
+        evidence={"status": "supported"},
+    ),))
+
+    result = GroundedAnswerGenerator(FailedProvider()).generate(
+        "Why is evidence required?", context
+    )
+
+    assert result.abstained is False
+    assert result.generation_mode == "extractive_grounded_fallback"
+    assert result.citations == ("ck-short-evidence",)
+    assert result.answer.startswith("Verified information found in the sources:")
+    assert "Fraud signal requires supporting evidence." in result.answer
