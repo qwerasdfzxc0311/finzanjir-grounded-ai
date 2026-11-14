@@ -164,8 +164,8 @@
     },
     {
       "id": "author_0005",
-      "entity_id": "person:salamat_smaylov",
-      "facet": "author_mother_story",
+      "entity_id": "person:mother_of_salamat_smaylov",
+      "facet": "family_biography",
       "concept_id": "author_mother_story_salamat_smaylov",
       "canonical_concept_id": "author_mother_story_salamat_smaylov",
       "statement": "Muallifning FINZANJIR V14 konsepsiyasidagi bayoniga ko‘ra, tug‘ishgan onasi unga to‘g‘ri yo‘ldan yurish, izlanish va bilim olish haqida nasihat qilgan. Muallif onasining hayoti qiyinchiliklar bilan o‘tganini va u yetarlicha rohat ko‘rishga ulgurmaganini yozadi. 2023-yil may oyining oxirida onasidan ayrilgach, muallif chuqur qayg‘u va pushaymonlikni boshdan kechirgan; onasiga bergan va’dalarining mazmunini yo‘qotmay, imkon qadar amalga oshirishga va o‘z tajribasini bilim hamda jamiyatga foydali ishga aylantirishga intilgan.",
@@ -198,7 +198,9 @@
       "reconciliation": {
         "status": "author_confirmed",
         "scope": "author_mother_story"
-      }
+      },
+      "privacy_class": "personal_family_biography",
+      "disclosure_policy": "only_when_explicitly_requested_or_directly_relevant"
     },
     {
       "id": "author_0006",
