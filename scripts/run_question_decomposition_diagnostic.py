@@ -8,6 +8,7 @@ from typing import Any
 from finzanjir_ai.knowledge.index import build_index_from_document
 from finzanjir_ai.knowledge.loader import load_canonical_knowledge
 from finzanjir_ai.orchestration.intent import classify_query_intent
+from finzanjir_ai.orchestration.task_intent import classify_task_type
 from finzanjir_ai.retrieval.grounding import GroundedContextAssembler
 from finzanjir_ai.retrieval.hybrid import HybridRetriever, RetrievalResult
 from finzanjir_ai.retrieval.text import query_script_variants
@@ -61,6 +62,7 @@ def diagnose_case(
 ) -> dict[str, Any]:
     query = case["query"]
     actual_domain_route = classify_query_intent(query)
+    actual_task_type = classify_task_type(query)
     subresults = []
     record_map = {record.record_id: record for record in index.records}
 
@@ -142,7 +144,8 @@ def diagnose_case(
         "actual_domain_route": actual_domain_route,
         "domain_route_match": actual_domain_route == case["expected_domain_route"],
         "expected_task_type": case["expected_task_type"],
-        "task_type_classifier_status": "not_implemented_in_runtime",
+        "actual_task_type": actual_task_type,
+        "task_type_match": actual_task_type == case["expected_task_type"],
         "subquestions": subresults,
         "diagnostic_only": True,
         "note": (
@@ -187,11 +190,13 @@ def main() -> int:
         "subquestion_count": sum(len(case["subquestions"]) for case in cases),
         "domain_route_matches": 0,
         "domain_route_mismatches": [],
-        "task_type_classifier_status": "not_implemented_in_runtime",
+        "task_type_classifier_status": "baseline_implemented_for_diagnostic",
+        "task_type_matches": 0,
+        "task_type_mismatches": [],
         "cases": [],
         "limitations": [
             "This runner measures domain routing and per-subquestion lexical retrieval only.",
-            "It does not measure task-type classification because that runtime classifier does not yet exist.",
+            "Task-type classification is a separate multilingual baseline and is evaluated independently from domain routing.",
             "It does not call an LLM, external API, browser, bank system, or customer data source.",
             "Only known/partial internal-knowledge subquestions can produce eligible grounded candidates.",
             "External, production-unconfirmed, and manual-review-only hits are not counted as answer evidence.",
@@ -210,7 +215,16 @@ def main() -> int:
                 "expected": result["expected_domain_route"],
                 "actual": result["actual_domain_route"],
             })
+        if result["task_type_match"]:
+            report["task_type_matches"] += 1
+        else:
+            report["task_type_mismatches"].append({
+                "case_id": result["case_id"],
+                "expected": result["expected_task_type"],
+                "actual": result["actual_task_type"],
+            })
 
+    report["task_type_accuracy"] = round(report["task_type_matches"] / len(cases), 4)
     report["domain_route_accuracy"] = round(
         report["domain_route_matches"] / len(cases), 4
     )
