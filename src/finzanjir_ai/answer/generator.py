@@ -479,7 +479,7 @@ class GroundedAnswerGenerator:
                     "difference", "different", "compar", "similar",
                     "system", "countr", "versus", "бошқа", "давлат",
                     "тизим", "ўхшаш", "ним", "фарқ", "таққос", "қиёс",
-                    "билан",
+                    "билан", "қил",
                 ))
             }
             short_facts = []
