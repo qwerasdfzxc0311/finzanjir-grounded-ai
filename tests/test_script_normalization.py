@@ -25,3 +25,8 @@ def test_script_variants_keep_original_query_first_and_do_not_duplicate():
         "finzanjir haqqinda",
     )
     assert query_script_variants("FINZANJIR nima?") == ("FINZANJIR nima?",)
+
+
+
+def test_common_uzbek_cyrillic_words_are_transliterated_even_without_unique_letters():
+    assert cyrillic_to_latin_search_variant("Сенинг вазифанг нима?") == "sening vazifang nima?"
