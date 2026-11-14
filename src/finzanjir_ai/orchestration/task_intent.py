@@ -79,17 +79,17 @@ _PATTERNS = {
         r"\bbosqich\w*\b", r"\bketma ket\b",
         # Uzbek Cyrillic
         r"\bқандай ишл\w*\b", r"\bкейин нима бўл\w*\b",
-        r"\bжараён\w*\b", r"\ббосқич\w*\b",
+        r"\bжараён\w*\b", r"\bбосқич\w*\b", r"\bқадам\w*\b",
         # Russian
-        r"\bкак работает\b", r"\bпроцесс\w*\b",
+        r"\bкак работает\b", r"\bпроцесс\w*\b", r"\bшаг\w*\b",
         r"\bпосле сигнал\w*\b", r"\bчто происходит\b",
         r"\bэтап\w*\b",
         # English
-        r"\bhow does .* work\b", r"\bhow .* works\b",
+        r"\bhow does .* work\b", r"\bhow .* works\b", r"\bstep\w*\b",
         r"\bprocess\w*\b", r"\bworkflow\w*\b",
         r"\bwhat happens (next|after)\b", r"\bafter the signal\b",
         # Kazakh / Karakalpak
-        r"\bқалай жұмыс іст\w*\b", r"\bкейін не бол\w*\b",
+        r"\bқалай жұмыс іст\w*\b", r"\bкейін не бол\w*\b", r"\bкезең\w*\b",
         r"\bпроцесс\w*\b", r"\bqalay isle\w*\b",
         r"\bkeyin ne bol\w*\b", r"\bbasqısh\w*\b",
     ),
@@ -97,6 +97,9 @@ _PATTERNS = {
         r"\bnega\b", r"\bnima uchun\b", r"\bsabab\w*\b",
         r"\bпочему\b", r"\bзачем\b", r"\bпричин\w*\b",
         r"\bwhy\b", r"\breason\w*\b", r"\bнеге\b",
+        # Uzbek Cyrillic / Kazakh / Karakalpak
+        r"\bнега\b", r"\bнима учун\b", r"\bсабаб\w*\b",
+        r"\bсебеп\w*\b", r"\bnege\b", r"\bsebep\w*\b",
     ),
     "definition": (
         r"\bnima\b", r"\bчто такое\b", r"\bwhat is\b",
