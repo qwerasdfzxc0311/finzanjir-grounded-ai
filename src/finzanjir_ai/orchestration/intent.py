@@ -118,6 +118,17 @@ def classify_query_intent(query: str) -> str:
     }
     if tokens & author_markers or {"kim", "yaratgan"} <= tokens:
         return "author"
+    if (
+        "finzanjir" in tokens
+        and any(phrase in normalized for phrase in ("qanday yaralgan", "qanday boshlangan", "qayerdan boshlangan", "kelib chiqishi"))
+    ):
+        return "author"
+    if "kiber qalqon" in normalized and any(
+        marker in normalized for marker in ("qanday", "paydo", "boshlanish", "finzanjir")
+    ):
+        return "author"
+    if any(term in tokens for term in ("atmos", "sinbad")) and "finzanjir" in tokens:
+        return "author"
     if is_project_overview_query(query):
         return "project_overview"
     if tokens & _PROJECT_MARKERS:
