@@ -120,12 +120,13 @@ def test_project_question_excludes_legacy_author_record_using_entity_and_provena
     assert "ck-project-protection" in refs
 
 
-def _domain_record(record_id, statement, aliases, domain, source_files=()):
+def _domain_record(record_id, statement, aliases, domain, source_files=(), title="synthetic_project_source"):
     return {
         "id": record_id,
         "concept_id": record_id,
         "canonical_concept_id": record_id,
         "domain": domain,
+        "title": title,
         "statement": statement,
         "aliases": aliases,
         "evidence": {"status": "supported", "verification": "confirmed"},
@@ -180,7 +181,15 @@ def test_project_question_keeps_finZanjir_project_domain_and_project_source_uncl
         "biology",
         ("knowledge/specific_learning_cards.json",),
     )
-    result = FINZANJIRAI(build_knowledge_index([biology, project, unclassified_project])).answer(
+    query_alias = _domain_record(
+        "ck-finzanjir-query-alias",
+        "FINZANJIR",
+        [query],
+        "finzanjir",
+        ("knowledge/multilingual_query_patterns.json",),
+        title="multilingual_query_pattern",
+    )
+    result = FINZANJIRAI(build_knowledge_index([biology, project, unclassified_project, query_alias])).answer(
         query,
         runtime_refs=(),
         working_memory_scope="project-domain-allowlist",
@@ -190,4 +199,5 @@ def test_project_question_keeps_finZanjir_project_domain_and_project_source_uncl
     assert "ck-project-purpose" in refs
     assert "ck-project-legacy" in refs
     assert "ck-unrelated-biology" not in refs
+    assert "ck-finzanjir-query-alias" not in refs
     assert result.answer.abstained is False
