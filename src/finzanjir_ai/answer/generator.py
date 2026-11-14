@@ -250,6 +250,30 @@ class GroundedAnswerGenerator:
         "kaa": "Joq. FINZANJIR bank kartasın ózi bloklamaydı hám bank qararın ózgertpeydi. Kerek bolsa, ol gúmanlı jaǵday boyınsha signal yamasa tallaw nátiyjesin banktiń wákiletli qızmetkerlerine kórip shıǵıw ushın jiberiwi múmkin. Hár qanday sheklew yamasa qarar nızamlı tiykar hám banktiń wákiletli tártipleri boyınsha qabıl etiledi.",
     }
 
+    SIGNAL_GUILT_ANSWERS = {
+        "uz": "Yo'q. Shubhali signal fuqaroning aybdorligini isbotlamaydi. U faqat qo'shimcha tekshiruv talab qilishi mumkin bo'lgan xavf belgisi. Yakuniy baho dalillar, tranzaksiya konteksti va bankning vakolatli inson ko'rigiga tayanadi. Signal avtomatik bloklash buyrug'i emas.",
+        "ru": "Нет. Подозрительный сигнал не доказывает вину гражданина. Это лишь признак риска, который может потребовать дополнительной проверки. Итоговая оценка должна учитывать доказательства, контекст операции и проверку уполномоченными сотрудниками банка. Сигнал не является автоматической командой заблокировать карту.",
+        "en": "No. A suspicious signal does not prove that a citizen is guilty. It is only a risk indicator that may warrant further review. Any assessment must consider evidence, transaction context, and the bank's authorized human review. A signal is not an automatic card-block instruction.",
+        "kk": "Жоқ. Күмәнді сигнал азаматтың кінәсін дәлелдемейді. Ол тек қосымша тексеруді қажет етуі мүмкін тәуекел белгісі. Қорытынды баға дәлелдерге, операцияның мәнмәтініне және банктің уәкілетті қызметкерлерінің тексеруіне сүйенуі керек. Сигнал картаны автоматты бұғаттау пәрмені емес.",
+        "kaa": "Joq. Gúmanlı signal puqaranıń ayıplılıǵın dálillemeydi. Ol tek qosımsha tekseriwdi talap etiwi múmkin bolǵan qáwip belgisi. Aqırǵı baha dálillerge, operaciya kontekstine hám banktiń wákiletli qızmetkerleri tekseriwine súyeniwi kerek. Signal kartanı avtomat bloklaw buyrıǵı emes.",
+    }
+
+    CASE_PURPOSE_ANSWERS = {
+        "uz": "Case — tekshiruv talab qiladigan shubhali holat bo'yicha ish yozuvi. Unda signal, tegishli dalillar va ko'rib chiqish bosqichlari tartibli yuritiladi. Case yakuniy aybdorlik hukmi emas; u vakolatli tekshiruv va qaror jarayonini qo'llab-quvvatlaydi.",
+        "ru": "Case — рабочая запись по подозрительной ситуации, требующей проверки. В ней упорядоченно фиксируются сигнал, относящиеся к нему материалы и этапы рассмотрения. Case не является окончательным выводом о виновности; он поддерживает уполномоченную проверку и принятие решения.",
+        "en": "A Case is a structured work record for a suspicious situation that requires review. It organizes the signal, relevant evidence, and review stages. A Case is not a final finding of guilt; it supports the authorized investigation and decision process.",
+        "kk": "Case — тексеруді қажет ететін күмәнді жағдай бойынша жұмыс жазбасы. Онда сигнал, тиісті дәлелдер және қарау кезеңдері реттеліп тіркеледі. Case кінә туралы түпкілікті шешім емес; ол уәкілетті тексеру мен шешім қабылдау үдерісін қолдайды.",
+        "kaa": "Case — tekseriwdi talap etetuǵın gúmanlı jaǵday boyınsha jumıs jazbası. Onda signal, tiyisli dáliller hám qarap shıǵıw basqıshları tártip penen belgilenedi. Case ayıplılıq haqqında aqırǵı húkim emes; ol wákiletli tekseriw hám qarar qabıl etiw processin qollap-quwatlaydı.",
+    }
+
+    FRAUD_GRAPH_ANSWERS = {
+        "uz": "Fraud Graph — firibgarlikka aloqador bo'lishi mumkin bo'lgan karta, hisob, telefon yoki qurilma, qabul qiluvchi va tranzaksiyalar o'rtasidagi bog'lanishlarni grafik ko'rinishida tahlil qilish yondashuvi. Bog'lanishning o'zi aybdorlik isboti emas; u tekshiruv uchun qo'shimcha kontekst beradi.",
+        "ru": "Fraud Graph — подход к графовому анализу связей между картами, счетами, телефонами или устройствами, получателями и транзакциями, которые могут быть связаны с мошенничеством. Сам факт связи не доказывает вину; он дает дополнительный контекст для проверки.",
+        "en": "A Fraud Graph is an approach for analyzing links among cards, accounts, phones or devices, recipients, and transactions that may be related to fraud. A link by itself is not proof of guilt; it provides additional context for review.",
+        "kk": "Fraud Graph — алаяқтықпен байланысты болуы мүмкін карталар, шоттар, телефондар немесе құрылғылар, алушылар және транзакциялар арасындағы байланыстарды граф түрінде талдау тәсілі. Байланыстың өзі кінәні дәлелдемейді; ол тексеруге қосымша мәнмәтін береді.",
+        "kaa": "Fraud Graph — aldawshılıqqa baylanıslı bolıwı múmkin karta, esap, telefon yamasa qurılma, qabıl etiwshi hám tranzakciyalar arasındaǵı baylanıslardı graf túrinde tallaw usılı. Baylanıstıń ózi ayıplılıq dálili emes; ol tekseriw ushın qosımsha kontekst beredi.",
+    }
+
     AUTHOR_MOTIVATION_ANSWERS = {
         "uz": (
             "Muallifning bayoniga ko'ra, FINZANJIR g'oyasining muhim turtkilaridan biri oilaviy davrada eshitilgan voqea bo'lgan: "
@@ -423,7 +447,11 @@ class GroundedAnswerGenerator:
         )
 
     def generate(self, query: str, context: GroundedContext, *, context_query: str | None = None, conversation_context: str = "") -> AnswerResult:
-        from finzanjir_ai.orchestration.intent import classify_query_intent, detect_query_language, is_bank_authority_query
+        from finzanjir_ai.orchestration.intent import (
+            classify_query_intent, detect_query_language, is_bank_authority_query,
+            is_signal_guilt_query, is_case_purpose_query, is_fraud_graph_definition_query,
+            is_c_model_query, is_sixteen_layer_query,
+        )
 
         intent_query = context_query or query
         language = detect_query_language(query)
@@ -458,6 +486,49 @@ class GroundedAnswerGenerator:
                 abstained=False,
                 citations=tuple(item.record_id for item in grounded_items if item.record_id == "project_0001"),
                 generation_mode="project_overview_localized",
+                provider_status="not_attempted",
+            )
+
+        if is_signal_guilt_query(intent_query) and any(
+            item.record_id == "project_0002" for item in grounded_items
+        ):
+            return AnswerResult(
+                answer=self.SIGNAL_GUILT_ANSWERS.get(language, self.SIGNAL_GUILT_ANSWERS["uz"]),
+                confidence=confidence,
+                abstained=False,
+                citations=("project_0002",),
+                generation_mode="signal_not_proof_localized",
+                provider_status="not_attempted",
+            )
+
+        case_items = [
+            item for item in grounded_items
+            if item.record_id in {"ck_003254", "src3_001247"}
+        ]
+        if is_case_purpose_query(intent_query) and case_items:
+            return AnswerResult(
+                answer=self.CASE_PURPOSE_ANSWERS.get(language, self.CASE_PURPOSE_ANSWERS["uz"]),
+                confidence=confidence,
+                abstained=False,
+                citations=tuple(item.record_id for item in case_items),
+                generation_mode="case_purpose_localized",
+                provider_status="not_attempted",
+            )
+
+        graph_items = [
+            item for item in grounded_items
+            if item.record_id in {
+                "ck_000290", "ck_001671", "ck_003148", "ck_003149",
+                "ck_003152", "ck_003150", "ck_003151", "ck_003277",
+            }
+        ]
+        if is_fraud_graph_definition_query(intent_query) and graph_items:
+            return AnswerResult(
+                answer=self.FRAUD_GRAPH_ANSWERS.get(language, self.FRAUD_GRAPH_ANSWERS["uz"]),
+                confidence=confidence,
+                abstained=False,
+                citations=tuple(item.record_id for item in graph_items[:4]),
+                generation_mode="fraud_graph_localized",
                 provider_status="not_attempted",
             )
 
@@ -697,6 +768,54 @@ class GroundedAnswerGenerator:
                 intent_query, grounded_items
             )
             if extractive_answer:
+                normalized_fallback = extractive_answer.casefold()
+                if is_case_purpose_query(intent_query) and any(
+                    marker in normalized_fallback for marker in ("idor", "bola")
+                ):
+                    return AnswerResult(
+                        answer=self.NO_EVIDENCE_MESSAGES.get(language, self.NO_EVIDENCE_MESSAGES["uz"]),
+                        confidence=0.0,
+                        abstained=True,
+                        citations=extractive_citations,
+                        generation_mode="fallback_refused_unmatched_case_context",
+                        provider_status=provider_status,
+                    )
+                if is_fraud_graph_definition_query(intent_query) and "fraud graph: [" in normalized_fallback:
+                    return AnswerResult(
+                        answer=self.NO_EVIDENCE_MESSAGES.get(language, self.NO_EVIDENCE_MESSAGES["uz"]),
+                        confidence=0.0,
+                        abstained=True,
+                        citations=extractive_citations,
+                        generation_mode="fallback_refused_graph_alias_list",
+                        provider_status=provider_status,
+                    )
+                if is_c_model_query(intent_query) and (
+                    "atmos" in normalized_fallback
+                    or not any(marker in normalized_fallback for marker in (
+                        "c model", "c-model", "banklararo", "banklar o'rtasida",
+                        "markaziy signal", "minimal ma'lumot",
+                    ))
+                ):
+                    return AnswerResult(
+                        answer=self.NO_EVIDENCE_MESSAGES.get(language, self.NO_EVIDENCE_MESSAGES["uz"]),
+                        confidence=0.0,
+                        abstained=True,
+                        citations=extractive_citations,
+                        generation_mode="fallback_refused_unmatched_c_model",
+                        provider_status=provider_status,
+                    )
+                if is_sixteen_layer_query(intent_query) and not (
+                    ("16" in normalized_fallback or "o'n olti" in normalized_fallback)
+                    and ("qatlam" in normalized_fallback or "layer" in normalized_fallback)
+                ):
+                    return AnswerResult(
+                        answer=self.NO_EVIDENCE_MESSAGES.get(language, self.NO_EVIDENCE_MESSAGES["uz"]),
+                        confidence=0.0,
+                        abstained=True,
+                        citations=extractive_citations,
+                        generation_mode="fallback_refused_unmatched_architecture",
+                        provider_status=provider_status,
+                    )
                 return AnswerResult(
                     answer=extractive_answer,
                     confidence=confidence,
