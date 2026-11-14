@@ -205,7 +205,7 @@ def main() -> int:
         "corpus_version": benchmark["corpus_version"],
         "case_count": len(cases),
         "subquestion_count": sum(len(case["subquestions"]) for case in cases),
-        "candidate_retrieval_top_n": top_k * 4,
+        "candidate_retrieval_top_n": args.top_k * 4,
         "domain_route_matches": 0,
         "domain_route_mismatches": [],
         "task_type_classifier_status": "baseline_implemented_for_diagnostic",
