@@ -1,0 +1,38 @@
+name: question-decomposition-diagnostic
+
+on:
+  push:
+    branches: [feat/question-decomposition-diagnostic-v1]
+    paths:
+      - "benchmarks/question_decomposition_diagnostic_v1.json"
+      - "scripts/run_question_decomposition_diagnostic.py"
+      - "data/canonical_knowledge_v0.6.json"
+      - "src/finzanjir_ai/**"
+      - ".github/workflows/question-decomposition-diagnostic.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  diagnostic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+      - name: Install project test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[test]"
+      - name: Run read-only canonical corpus diagnostic
+        run: |
+          PYTHONPATH=src python scripts/run_question_decomposition_diagnostic.py --output question-decomposition-diagnostic.json
+      - name: Upload diagnostic report
+        uses: actions/upload-artifact@v4
+        with:
+          name: finzanjir-question-decomposition-diagnostic
+          path: question-decomposition-diagnostic.json
+          if-no-files-found: error
+          retention-days: 14
