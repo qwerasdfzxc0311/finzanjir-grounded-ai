@@ -1,0 +1,363 @@
+{
+  "benchmark_id": "finzanjir_live_ai_answer_qa_v1",
+  "version": 1,
+  "purpose": "Repeatable synthetic end-to-end QA benchmark for the public FINZANJIR AI answer endpoint. This dataset is for transport, routing, grounding, localization, abstention, and manual answer-quality review; it does not automatically score factual correctness.",
+  "data_policy": {
+    "synthetic_queries_only": true,
+    "contains_real_customer_or_bank_data": false,
+    "does_not_trigger_prototype_or_detector_actions": true
+  },
+  "corpus_version": "canonical_knowledge_v0.6",
+  "questions": [
+    {
+      "id": "01",
+      "language": "uz",
+      "topic": "overview",
+      "question": "FINZANJIR nima?",
+      "review_focus": "Project identity and concise purpose"
+    },
+    {
+      "id": "02",
+      "language": "uz",
+      "topic": "purpose",
+      "question": "FINZANJIRning asosiy maqsadi nima?",
+      "review_focus": "Mission and citizen protection"
+    },
+    {
+      "id": "03",
+      "language": "uz",
+      "topic": "problem",
+      "question": "FINZANJIR qaysi muammoni hal qilish uchun ishlab chiqilgan?",
+      "review_focus": "Problem framing; avoid fragmentary answer"
+    },
+    {
+      "id": "04",
+      "language": "uz",
+      "topic": "bank_neutrality",
+      "question": "FINZANJIR banklarga qarshimi?",
+      "review_focus": "Bank-neutral framing; do not invent accusations"
+    },
+    {
+      "id": "05",
+      "language": "uz",
+      "topic": "bank_authority",
+      "question": "FINZANJIR bank kartasini o‘zi bloklay oladimi?",
+      "review_focus": "No autonomous blocking; bank authority"
+    },
+    {
+      "id": "06",
+      "language": "uz",
+      "topic": "signal_meaning",
+      "question": "Shubhali signal nimani anglatadi?",
+      "review_focus": "Signal is not proof; localized answer"
+    },
+    {
+      "id": "07",
+      "language": "uz",
+      "topic": "signal_guilt",
+      "question": "Signal fuqaroning aybdorligini isbotlaydimi?",
+      "review_focus": "Signal is not guilt"
+    },
+    {
+      "id": "08",
+      "language": "uz",
+      "topic": "risk_score",
+      "question": "Risk Score nima va u nimaga kerak?",
+      "review_focus": "Explain score without table artifacts"
+    },
+    {
+      "id": "09",
+      "language": "uz",
+      "topic": "case",
+      "question": "Case nima uchun ochiladi?",
+      "review_focus": "Case purpose; exclude unrelated IDOR/table fragments"
+    },
+    {
+      "id": "10",
+      "language": "uz",
+      "topic": "signal_process",
+      "question": "FINZANJIR shubhali signalni aniqlagandan keyin qanday jarayon bo‘ladi?",
+      "review_focus": "Evidence, case, authorized human review"
+    },
+    {
+      "id": "11",
+      "language": "uz",
+      "topic": "fraud_chain",
+      "question": "Firibgarlik zanjiri qanday aniqlanadi?",
+      "review_focus": "Transaction context and linked signals"
+    },
+    {
+      "id": "12",
+      "language": "uz",
+      "topic": "multi_card",
+      "question": "Firibgar pulni bir nechta karta orqali o‘tkazsa, tizim buni qanday tahlil qiladi?",
+      "review_focus": "Fraud-chain and graph context"
+    },
+    {
+      "id": "13",
+      "language": "uz",
+      "topic": "cross_match",
+      "question": "Cross-Match nima?",
+      "review_focus": "Clear definition and purpose"
+    },
+    {
+      "id": "14",
+      "language": "uz",
+      "topic": "fraud_graph",
+      "question": "Fraud Graph nima?",
+      "review_focus": "Explain graph; not a list of multilingual query aliases"
+    },
+    {
+      "id": "15",
+      "language": "uz",
+      "topic": "device_signals",
+      "question": "Telefon, qurilma va IP manzili signallari nima uchun kerak?",
+      "review_focus": "Device/network signals with privacy boundary"
+    },
+    {
+      "id": "16",
+      "language": "uz",
+      "topic": "credentials",
+      "question": "FINZANJIR OTP yoki parolni so‘raydimi?",
+      "review_focus": "Never request OTP/password/CVV"
+    },
+    {
+      "id": "17",
+      "language": "uz",
+      "topic": "phishing",
+      "question": "Phishing nima va FINZANJIR unga qarshi qanday yordam beradi?",
+      "review_focus": "Define phishing and project role"
+    },
+    {
+      "id": "18",
+      "language": "uz",
+      "topic": "anti_phishing",
+      "question": "Anti-Phishing moduli nima qiladi?",
+      "review_focus": "Module scope and status"
+    },
+    {
+      "id": "19",
+      "language": "uz",
+      "topic": "recovery",
+      "question": "FIN-RECOVERY nima vazifani bajaradi?",
+      "review_focus": "Recovery purpose; avoid unrelated biology"
+    },
+    {
+      "id": "20",
+      "language": "uz",
+      "topic": "citizen_protection",
+      "question": "FINZANJIR fuqaroning mablag‘ini qanday himoya qilishga yordam beradi?",
+      "review_focus": "Citizen funds and lawful transactions"
+    },
+    {
+      "id": "21",
+      "language": "uz",
+      "topic": "false_positive",
+      "question": "False positive nima?",
+      "review_focus": "Correct definition; localized answer"
+    },
+    {
+      "id": "22",
+      "language": "uz",
+      "topic": "false_negative",
+      "question": "False negative nima?",
+      "review_focus": "Correct definition; localized answer"
+    },
+    {
+      "id": "23",
+      "language": "uz",
+      "topic": "fp_fn_balance",
+      "question": "Nega false positive va false negative birgalikda baholanishi kerak?",
+      "review_focus": "Balance both error types"
+    },
+    {
+      "id": "24",
+      "language": "uz",
+      "topic": "wrong_alert",
+      "question": "Qonuniy tranzaksiya xato shubhali deb belgilansa nima qilish kerak?",
+      "review_focus": "Fair review and appeal"
+    },
+    {
+      "id": "25",
+      "language": "uz",
+      "topic": "citizen_appeal",
+      "question": "Fuqaro noto‘g‘ri signal yoki cheklov yuzasidan qanday murojaat qilishi mumkin?",
+      "review_focus": "Complaint, review, evidence, tracking"
+    },
+    {
+      "id": "26",
+      "language": "uz",
+      "topic": "appeal_audit",
+      "question": "Fuqaro murojaatini ko‘rib chiqishda nimalar qayd etilishi kerak?",
+      "review_focus": "Traceability and prompt review"
+    },
+    {
+      "id": "27",
+      "language": "uz",
+      "topic": "human_review",
+      "question": "Bankning inson tomonidan tekshiruvi nima uchun saqlanishi kerak?",
+      "review_focus": "Human/authorized review"
+    },
+    {
+      "id": "28",
+      "language": "uz",
+      "topic": "bank_decision",
+      "question": "FINZANJIR bank qarorini almashtiradimi?",
+      "review_focus": "Bank authority boundary"
+    },
+    {
+      "id": "29",
+      "language": "uz",
+      "topic": "data_minimization",
+      "question": "Ma’lumotlarni minimallashtirish nima?",
+      "review_focus": "Purpose limitation and least data"
+    },
+    {
+      "id": "30",
+      "language": "uz",
+      "topic": "interbank_data",
+      "question": "Banklar o‘rtasida qanday ma’lumot almashish xavfsiz bo‘lishi mumkin?",
+      "review_focus": "Minimal lawful indicators; no raw data leakage"
+    },
+    {
+      "id": "31",
+      "language": "uz",
+      "topic": "c_model",
+      "question": "FINZANJIRning C modeli qanday ishlaydi?",
+      "review_focus": "C model; avoid unrelated business model"
+    },
+    {
+      "id": "32",
+      "language": "uz",
+      "topic": "sixteen_layers",
+      "question": "FINZANJIRning 16 qatlamli arxitekturasi nimani anglatadi?",
+      "review_focus": "Sixteen-layer architecture, not unrelated fragments"
+    },
+    {
+      "id": "33",
+      "language": "uz",
+      "topic": "knowledge_tree",
+      "question": "“Bilim daraxti” nima?",
+      "review_focus": "Knowledge structure"
+    },
+    {
+      "id": "34",
+      "language": "uz",
+      "topic": "ai_knowledge",
+      "question": "FINZANJIR AI bilimni qanday manbalardan olishi kerak?",
+      "review_focus": "Authoritative sources and provenance"
+    },
+    {
+      "id": "35",
+      "language": "uz",
+      "topic": "project_origin",
+      "question": "FINZANJIR qanday paydo bo‘lgan?",
+      "review_focus": "Project origin from source documents"
+    },
+    {
+      "id": "36",
+      "language": "uz",
+      "topic": "kiber_qalqon",
+      "question": "Dastlabki “Kiber Qalqon” g‘oyasi nima edi?",
+      "review_focus": "Early concept vs later project"
+    },
+    {
+      "id": "37",
+      "language": "uz",
+      "topic": "atmos_sinbad",
+      "question": "ATMOS va SINBAD kuzatuvlari FINZANJIR bilan qanday bog‘liq?",
+      "review_focus": "Distinguish historical observations from allegations"
+    },
+    {
+      "id": "38",
+      "language": "uz",
+      "topic": "capability_status",
+      "question": "Qaysi imkoniyatlar prototipda bor, qaysilari faqat reja?",
+      "review_focus": "Separate prototype, plan, production"
+    },
+    {
+      "id": "39",
+      "language": "uz",
+      "topic": "pilot_requirements",
+      "question": "FINZANJIRni bankda pilot qilish uchun nimalar tekshirilishi kerak?",
+      "review_focus": "Legal, security, integration, KPI, acceptance"
+    },
+    {
+      "id": "40",
+      "language": "uz",
+      "topic": "no_guarantee",
+      "question": "FINZANJIR firibgarlikni 100 foiz to‘xtatishni kafolatlay oladimi?",
+      "review_focus": "No absolute guarantee"
+    },
+    {
+      "id": "41",
+      "language": "uz",
+      "topic": "assistant_identity",
+      "question": "Sening maqsading nima?",
+      "review_focus": "Assistant identity, direct answer"
+    },
+    {
+      "id": "42",
+      "language": "uz",
+      "topic": "general_knowledge_typo",
+      "question": "toshvaqa qansha yil umir koradi",
+      "review_focus": "Typo normalization and general-knowledge routing"
+    },
+    {
+      "id": "43",
+      "language": "uz",
+      "topic": "source_provenance",
+      "question": "FINZANJIR haqidagi javobingni qaysi hujjat bilan tasdiqlaysan?",
+      "review_focus": "Source provenance and citations"
+    },
+    {
+      "id": "44",
+      "language": "uz",
+      "topic": "abstention_policy",
+      "question": "Manbada javob bo‘lmasa, qanday yo‘l tutasan?",
+      "review_focus": "Abstain; do not guess"
+    },
+    {
+      "id": "45",
+      "language": "ru",
+      "topic": "bank_authority",
+      "question": "Почему FINZANJIR не должен автоматически блокировать карту?",
+      "review_focus": "Russian localization and bank authority"
+    },
+    {
+      "id": "46",
+      "language": "ru",
+      "topic": "author_motivation",
+      "question": "Почему автор создал FINZANJIR?",
+      "review_focus": "Source-grounded author motivation"
+    },
+    {
+      "id": "47",
+      "language": "en",
+      "topic": "signal_guilt",
+      "question": "What does a suspicious signal prove about a citizen?",
+      "review_focus": "English answer; signal is not proof"
+    },
+    {
+      "id": "48",
+      "language": "en",
+      "topic": "multi_card",
+      "question": "How can FINZANJIR analyze fraud across multiple cards?",
+      "review_focus": "English answer and graph explanation"
+    },
+    {
+      "id": "49",
+      "language": "kk",
+      "topic": "external_comparison",
+      "question": "FINZANJIR басқа елдерден несімен ерекшеленеді?",
+      "review_focus": "Kazakh query; no unrelated cell definition; abstain if evidence absent"
+    },
+    {
+      "id": "50",
+      "language": "kaa",
+      "topic": "lawful_transfer_safety",
+      "question": "FINZANJIR puqaranıń nızamlı pul awdarımlarına qáte signal menen zıyan jetkizbew ushın nege itibar beriwi kerek?",
+      "review_focus": "Karakalpak localization and lawful-transfer protection"
+    }
+  ]
+}
