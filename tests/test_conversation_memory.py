@@ -196,3 +196,10 @@ def test_standalone_project_motivation_question_is_neutral_and_source_grounded()
     assert result.answer.citations == ("author_0004",)
     assert "mustaqil tekshirilmagan" in result.answer.answer
     assert "bank xatosining isbotlangan fakti" in result.answer.answer
+
+
+def test_author_mother_facet_is_not_swallowed_by_broad_author_overview():
+    from finzanjir_ai.orchestration.intent import is_author_overview_query
+
+    assert is_author_overview_query("Muallif haqida aytib ber") is True
+    assert is_author_overview_query("Muallifning onasi haqida aytib ber") is False
