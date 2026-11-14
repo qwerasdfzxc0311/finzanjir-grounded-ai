@@ -476,7 +476,7 @@ def test_comparison_fallback_does_not_turn_irrelevant_context_into_an_answer():
     assert "Ob-havo" not in result.answer
 
 
-def test_provider_failure_rejects_unrelated_short_kazakh_record():
+def test_provider_failure_rejects_unrelated_short_kazakh_record_for_comparison():
     unrelated = (
         "Жасуша — тірі ағзалардың негізгі құрылымдық және функционалдық бірлігі. "
         "Әртүрлі ағзаларда жасушалар құрылысы мен қызметі бойынша ерекшеленеді."
@@ -495,28 +495,36 @@ def test_provider_failure_rejects_unrelated_short_kazakh_record():
     )
 
     assert result.abstained is True
-    assert result.generation_mode == "fallback_refused_unmatched_short_source"
-    assert result.citations == ("ck_001693",)
+    assert result.generation_mode == "comparison_no_relevant_evidence"
+    assert result.citations == ()
     assert "Жасуша" not in result.answer
-    assert "Табылған дерек сұраққа тікелей сәйкес келмейді" in result.answer
+    assert "тікелей қатысты расталған дерек" in result.answer
 
 
-def test_provider_failure_still_returns_a_relevant_short_extractive_answer_in_query_language():
-    context = GroundedContext(items=(GroundedContextItem(
-        record_id="ck-short-evidence",
-        concept_id="evidence-requirement",
-        statement="Fraud signal requires supporting evidence.",
-        score=0.9,
+def test_provider_failure_comparison_uses_project_definition_and_localizes_kazakh():
+    unrelated = GroundedContextItem(
+        record_id="ck_001693",
+        concept_id="cell_biology",
+        statement="Жасуша — тірі ағзалардың негізгі құрылымдық және функционалдық бірлігі.",
+        score=0.99,
         provenance=({"source": "canonical-v0.6"},),
         evidence={"status": "supported"},
-    ),))
-
-    result = GroundedAnswerGenerator(FailedProvider()).generate(
-        "Why is evidence required?", context
     )
-
+    relevant = GroundedContextItem(
+        record_id="project-purpose",
+        concept_id="finzanjir-purpose",
+        statement="FINZANJIR қаржылық алаяқтық тәуекелдерін анықтау мен талдауға бағытталған жоба.",
+        score=0.91,
+        provenance=({"source": "canonical-v0.6"},),
+        evidence={"status": "supported"},
+    )
+    result = GroundedAnswerGenerator(FailedProvider()).generate(
+        "FINZANJIR басқа елдерден несімен ерекшеленеді?",
+        GroundedContext(items=(unrelated, relevant)),
+    )
     assert result.abstained is False
-    assert result.generation_mode == "extractive_grounded_fallback"
-    assert result.citations == ("ck-short-evidence",)
-    assert result.answer.startswith("Verified information found in the sources:")
-    assert "Fraud signal requires supporting evidence." in result.answer
+    assert result.generation_mode == "comparison_partial_grounded_fallback"
+    assert result.citations == ("project-purpose",)
+    assert "Жасуша" not in result.answer
+    assert "Салыстыру шегі" in result.answer
+    assert result.answer.startswith("Жоба дереккөздерінде FINZANJIR туралы расталған мәліметтер:")
