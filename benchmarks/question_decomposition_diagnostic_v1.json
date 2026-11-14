@@ -396,6 +396,49 @@
         "Dáliyilsiz salıstırıw jasalmawı kerek",
         "Belgili bólimine juwap beriliwi kerek"
       ]
+    },
+    {
+      "id": "CMP-UZC-001",
+      "language": "uz-Cyrl",
+      "query": "ФИНЗАНЖИРнинг Ўзбекистондаги ва бошқа давлатлардаги ўхшаш лойиҳалардан фарқи нимада?",
+      "expected_intent": "project_comparison",
+      "task_type": "comparison",
+      "subquestions": [
+        {
+          "id": "a",
+          "question": "ФИНЗАНЖИРнинг ҳужжатларда тасдиқланган мақсади, архитектураси ва ишлаш механизмлари қандай?",
+          "knowledge_status": "known_in_corpus",
+          "evidence_ids": [],
+          "required_action": "retrieve_and_explain"
+        },
+        {
+          "id": "b",
+          "question": "Ўзбекистондаги таққосланадиган тизимлар қайсилар ва улар қандай ишлайди?",
+          "knowledge_status": "unknown_external",
+          "evidence_ids": [],
+          "required_action": "external_research_required"
+        },
+        {
+          "id": "c",
+          "question": "Бошқа давлатлардаги таққосланадиган тизимлар қайсилар ва уларнинг архитектураси қандай?",
+          "knowledge_status": "unknown_external",
+          "evidence_ids": [],
+          "required_action": "external_research_required"
+        }
+      ],
+      "answer_policy": {
+        "answer_supported_parts": true,
+        "withhold_unsupported_parts": true,
+        "explain_comparison_limit": true,
+        "never_invent_external_systems": true,
+        "respond_in_query_language": true
+      },
+      "acceptance": [
+        "ФИНЗАНЖИР ҳақидаги тасдиқланган маълумотлар баён қилинади",
+        "Ташқи тизимлар ҳақида далилсиз фарқ ёки устунлик даъво қилинмайди",
+        "Билим етишмаслиги бутун жавобни тўхтатмайди",
+        "Жавоб ўзбек кирилл ёзувида берилади"
+      ]
     }
   ]
 }
