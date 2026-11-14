@@ -199,6 +199,45 @@
         "status": "author_confirmed",
         "scope": "author_mother_story"
       }
+    },
+    {
+      "id": "author_0006",
+      "entity_id": "person:salamat_smaylov",
+      "facet": "project_origin_contribution",
+      "concept_id": "project_origin_contribution_salamat_smaylov",
+      "canonical_concept_id": "project_origin_contribution_salamat_smaylov",
+      "statement": "Muallifning FINZANJIR_Tarixiy_Ishchi_Hujjat! hujjatidagi bayoniga ko‘ra, dastlabki prototipni yaratishda u g‘oyani tushuntirib, vazifalarni belgilab va jarayonga yo‘nalish bergan; otasi Termuxni topish va o‘rnatish, ishchi papkalarni tayyorlash, kod bilan ishlash hamda ilovani telefonda ishga tushirish kabi amaliy texnik ishlarni bajargan. Keyinchalik ikkinchi onasi va singlisi ham jarayonda yordam bergan. Muallif dasturlashni bilmaganini va Termuxdagi amaliy ishlarni o‘zi bajarmaganini hujjatda ochiq aytadi. Shuning uchun dastlabki prototipni muallif yakka o‘zi kodlagan deb ko‘rsatish to‘g‘ri emas; tarixiy hujjat uni oilaviy yordam, muallifning g‘oyaviy yo‘nalishi va birgalikda o‘rganish jarayoni sifatida tasvirlaydi.",
+      "aliases": [
+        "FINZANJIR prototipini kim yaratgan",
+        "FINZANJIR prototipini kim kodlagan",
+        "dastlabki prototip qanday yaratilgan",
+        "muallif dasturlashni bilganmi",
+        "otasi Termuxni o'rnatganmi",
+        "otasi kod yozishda yordam berganmi",
+        "ikkinchi onasi loyihaga qanday yordam bergan",
+        "singlisi FINZANJIRga yordam berganmi",
+        "prototipni oilasi bilan yaratganmi",
+        "kim Termuxni topib o'rnatgan",
+        "who built the first prototype",
+        "who wrote the initial code"
+      ],
+      "evidence": {
+        "status": "project_source",
+        "verification": "author_confirmed",
+        "scope": "project_origin_history"
+      },
+      "provenance": [
+        {
+          "source_type": "project_archive_document",
+          "source_id": "FINZANJIR_Tarixiy_Ishchi_Hujjat!.pdf",
+          "authority": "project_author_supplied_archive",
+          "sections": "3. Internetdan foydalanish bo‘yicha huquqiy cheklov va oilaviy yordam; 4. Dastlabki prototip: g‘oyani amalda sinash; pp. 4-5"
+        }
+      ],
+      "reconciliation": {
+        "status": "author_confirmed",
+        "scope": "project_origin_contribution"
+      }
     }
   ]
 }
