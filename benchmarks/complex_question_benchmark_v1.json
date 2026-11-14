@@ -27,7 +27,8 @@
             "ck_000001",
             "ck_000018"
           ],
-          "evidence_gap_reason": null
+          "evidence_gap_reason": null,
+          "retrieval_query": "FINZANJIR maqsadi banklar bilan qonuniy integratsiya risk signallarini tahlil qilish himoya recovery"
         },
         {
           "id": "b",
@@ -36,7 +37,8 @@
           "knowledge_state": "unknown_until_researched",
           "answer_required": false,
           "expected_evidence_ids": [],
-          "evidence_gap_reason": "Canonical FINZANJIR corpus contains no verified system-by-system comparison evidence; international study is described as future work."
+          "evidence_gap_reason": "Canonical FINZANJIR corpus contains no verified system-by-system comparison evidence; international study is described as future work.",
+          "retrieval_query": ""
         },
         {
           "id": "c",
@@ -45,7 +47,8 @@
           "knowledge_state": "unknown_until_researched",
           "answer_required": false,
           "expected_evidence_ids": [],
-          "evidence_gap_reason": "Canonical FINZANJIR corpus contains no verified system-by-system comparison evidence; international study is described as future work."
+          "evidence_gap_reason": "Canonical FINZANJIR corpus contains no verified system-by-system comparison evidence; international study is described as future work.",
+          "retrieval_query": ""
         }
       ],
       "required_behavior": [
@@ -75,7 +78,8 @@
             "ck_003257",
             "ck_000004"
           ],
-          "evidence_gap_reason": null
+          "evidence_gap_reason": null,
+          "retrieval_query": "FINZANJIR texnik arxitektura API Gateway Identity KYC Risk Engine Cross-Match Device Network Fraud Graph Anti-Phishing Case Management FIN-RECOVERY Audit KPI"
         },
         {
           "id": "b",
@@ -88,7 +92,8 @@
             "ck_000004",
             "ck_003265"
           ],
-          "evidence_gap_reason": null
+          "evidence_gap_reason": null,
+          "retrieval_query": "Bank A Bank B PSP API Gateway Data Exchange Validation Normalization Risk Engine Fraud Graph Risk Score Case Management Human Bank Review Audit feedback"
         }
       ],
       "required_behavior": [
@@ -116,7 +121,8 @@
             "ck_000003",
             "ck_000001"
           ],
-          "evidence_gap_reason": null
+          "evidence_gap_reason": null,
+          "retrieval_query": "FINZANJIR shubhali hodisa bir nechta signal tranzaksiya kanal qurilma identifikatsiya verifikatsiya tranzaksiya konteksti pul harakati Fraud Graph Cross-Match"
         },
         {
           "id": "b",
@@ -128,7 +134,8 @@
             "ck_000021",
             "ck_000003"
           ],
-          "evidence_gap_reason": null
+          "evidence_gap_reason": null,
+          "retrieval_query": "fuqarolar kartalari raqamli mablag'larini firibgarlikdan himoya ogohlantirish bankka xabar recovery vakolatli tashkilot"
         }
       ],
       "required_behavior": [
@@ -159,7 +166,8 @@
             "ck_000260",
             "ck_000552"
           ],
-          "evidence_gap_reason": null
+          "evidence_gap_reason": null,
+          "retrieval_query": "joriy Android APK prototipi sintetik demo interfeys Risk Engine Fraud Graph Case FIN-RECOVERY Alerts History App Scanner FINZANJIR AI"
         },
         {
           "id": "b",
@@ -172,7 +180,8 @@
             "ck_000004",
             "ck_003257"
           ],
-          "evidence_gap_reason": null
+          "evidence_gap_reason": null,
+          "retrieval_query": "kelajakdagi real bank API real-time Data Exchange Production monitoring orchestration MVP Pilot Production huquqiy texnik talablar"
         },
         {
           "id": "c",
@@ -181,7 +190,8 @@
           "knowledge_state": "not_confirmed_in_corpus",
           "answer_required": true,
           "expected_evidence_ids": [],
-          "evidence_gap_reason": "No source record confirms a production deployment or production operation."
+          "evidence_gap_reason": "No source record confirms a production deployment or production operation.",
+          "retrieval_query": ""
         }
       ],
       "required_behavior": [
@@ -210,7 +220,8 @@
             "ck_000004",
             "ck_003265"
           ],
-          "evidence_gap_reason": null
+          "evidence_gap_reason": null,
+          "retrieval_query": "FINZANJIR bank PSP hamkorlik qonuniy API ruxsat etilgan ma'lumot almashinuvi legal basis allowed fields API schema audit retention"
         },
         {
           "id": "b",
@@ -219,7 +230,8 @@
           "knowledge_state": "unknown_until_researched",
           "answer_required": false,
           "expected_evidence_ids": [],
-          "evidence_gap_reason": "Canonical FINZANJIR corpus contains no verified system-by-system comparison evidence; international study is described as future work."
+          "evidence_gap_reason": "Canonical FINZANJIR corpus contains no verified system-by-system comparison evidence; international study is described as future work.",
+          "retrieval_query": ""
         }
       ],
       "required_behavior": [
@@ -246,7 +258,8 @@
             "ck_003257",
             "ck_000004"
           ],
-          "evidence_gap_reason": null
+          "evidence_gap_reason": null,
+          "retrieval_query": "архитектура FINZANJIR API Gateway Risk Engine Cross-Match Fraud Graph Case Management Audit KPI"
         },
         {
           "id": "b",
@@ -259,7 +272,8 @@
             "ck_000004",
             "ck_003265"
           ],
-          "evidence_gap_reason": null
+          "evidence_gap_reason": null,
+          "retrieval_query": "поток данных банк PSP API Gateway Data Exchange Risk Engine Fraud Graph Case Management проверка решение аудит"
         }
       ],
       "required_behavior": [
@@ -286,7 +300,8 @@
             "ck_000001",
             "ck_000018"
           ],
-          "evidence_gap_reason": null
+          "evidence_gap_reason": null,
+          "retrieval_query": "FINZANJIR purpose bank PSP lawful API agreed data exchange fraud risk signal case review protection recovery audit"
         },
         {
           "id": "b",
@@ -295,7 +310,8 @@
           "knowledge_state": "unknown_until_researched",
           "answer_required": false,
           "expected_evidence_ids": [],
-          "evidence_gap_reason": "Canonical FINZANJIR corpus contains no verified system-by-system comparison evidence; international study is described as future work."
+          "evidence_gap_reason": "Canonical FINZANJIR corpus contains no verified system-by-system comparison evidence; international study is described as future work.",
+          "retrieval_query": ""
         }
       ],
       "required_behavior": [
@@ -323,7 +339,8 @@
             "ck_000001",
             "ck_000018"
           ],
-          "evidence_gap_reason": null
+          "evidence_gap_reason": null,
+          "retrieval_query": "FINZANJIR o'ziga xos xususiyat maqsad arxitektura risk signallari qonuniy integratsiya boshqa loyihalar farqi"
         },
         {
           "id": "b",
@@ -332,7 +349,8 @@
           "knowledge_state": "unknown_until_researched",
           "answer_required": false,
           "expected_evidence_ids": [],
-          "evidence_gap_reason": "Canonical FINZANJIR corpus contains no verified system-by-system comparison evidence; international study is described as future work."
+          "evidence_gap_reason": "Canonical FINZANJIR corpus contains no verified system-by-system comparison evidence; international study is described as future work.",
+          "retrieval_query": ""
         }
       ],
       "required_behavior": [
