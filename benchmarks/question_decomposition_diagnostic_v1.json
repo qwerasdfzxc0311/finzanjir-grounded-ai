@@ -22,7 +22,11 @@
           "id": "a",
           "question": "FINZANJIRning hujjatlarda tasdiqlangan maqsadi, arxitekturasi va ishlash mexanizmlari qanday?",
           "knowledge_status": "known_in_corpus",
-          "evidence_ids": [],
+          "evidence_ids": [
+            "ck_003252",
+            "ck_003254",
+            "ck_003257"
+          ],
           "required_action": "retrieve_and_explain"
         },
         {
@@ -64,21 +68,30 @@
           "id": "a",
           "question": "FINZANJIR arxitekturasining hujjatlashtirilgan asosiy qatlamlari va komponentlari qaysilar?",
           "knowledge_status": "known_in_corpus",
-          "evidence_ids": [],
+          "evidence_ids": [
+            "ck_003257",
+            "ck_003258"
+          ],
           "required_action": "retrieve_and_explain"
         },
         {
           "id": "b",
           "question": "Ma’lumot manbalari va ular bilan ishlash chegaralari qanday belgilangan?",
           "knowledge_status": "known_or_partial_in_corpus",
-          "evidence_ids": [],
+          "evidence_ids": [
+            "ck_003257",
+            "ck_003264"
+          ],
           "required_action": "retrieve_and_label_status"
         },
         {
           "id": "c",
           "question": "FINZANJIR signalidan keyingi yakuniy qaror vakolati kimda?",
           "knowledge_status": "known_in_corpus",
-          "evidence_ids": [],
+          "evidence_ids": [
+            "ck_003252",
+            "ck_003254"
+          ],
           "required_action": "retrieve_and_explain"
         }
       ],
@@ -105,7 +118,10 @@
           "id": "a",
           "question": "FINZANJIRning hujjatlarda tasdiqlangan asosiy funksiyalari nimalar?",
           "knowledge_status": "known_in_corpus",
-          "evidence_ids": [],
+          "evidence_ids": [
+            "ck_003252",
+            "ck_003254"
+          ],
           "required_action": "retrieve_and_explain"
         },
         {
@@ -139,14 +155,22 @@
           "id": "a",
           "question": "Firibgarlik zanjiri yoki bog‘liq tranzaksiyalarni aniqlash uchun qanday hujjatlashtirilgan belgilar va mexanizmlar ishlatiladi?",
           "knowledge_status": "known_or_partial_in_corpus",
-          "evidence_ids": [],
+          "evidence_ids": [
+            "ck_003254",
+            "ck_003256",
+            "ck_003257"
+          ],
           "required_action": "retrieve_and_label_status"
         },
         {
           "id": "b",
           "question": "Signal, dalil, risk, threshold, case va vakolatli ko‘rib chiqish bosqichlari qanday ketma-ketlikda?",
           "knowledge_status": "known_or_partial_in_corpus",
-          "evidence_ids": [],
+          "evidence_ids": [
+            "ck_003252",
+            "ck_003254",
+            "ck_003256"
+          ],
           "required_action": "retrieve_and_explain"
         }
       ],
@@ -171,15 +195,19 @@
         {
           "id": "a",
           "question": "Prototipda amalda mavjudligi sinov yoki kod bilan tasdiqlangan imkoniyatlar qaysilar?",
-          "knowledge_status": "known_or_partial_in_corpus",
+          "knowledge_status": "unknown_until_implementation_evidence",
           "evidence_ids": [],
-          "required_action": "retrieve_and_require_implementation_evidence"
+          "required_action": "inspect_current_code_and_test_artifacts"
         },
         {
           "id": "b",
           "question": "Muallif tasdiqlagan talab, taklif yoki kelajak rejalar qaysilar?",
           "knowledge_status": "known_or_partial_in_corpus",
-          "evidence_ids": [],
+          "evidence_ids": [
+            "ck_003257",
+            "ck_003274",
+            "ck_003275"
+          ],
           "required_action": "retrieve_and_label_as_plan"
         },
         {
@@ -213,7 +241,12 @@
           "id": "a",
           "question": "FINZANJIRning tasdiqlangan kuchli jihatlari va cheklovlari nimalar?",
           "knowledge_status": "known_or_partial_in_corpus",
-          "evidence_ids": [],
+          "evidence_ids": [
+            "ck_003252",
+            "ck_003254",
+            "ck_003256",
+            "ck_003257"
+          ],
           "required_action": "retrieve_balanced_evidence"
         },
         {
@@ -253,7 +286,11 @@
           "id": "a",
           "question": "Oldingi kontekstdagi tizim FINZANJIR bo‘lsa, uning tasdiqlangan ishlash mexanizmi qanday?",
           "knowledge_status": "known_in_corpus",
-          "evidence_ids": [],
+          "evidence_ids": [
+            "ck_003252",
+            "ck_003254",
+            "ck_003257"
+          ],
           "required_action": "resolve_context_then_retrieve"
         },
         {
@@ -286,7 +323,11 @@
           "id": "a",
           "question": "Какие особенности FINZANJIR подтверждены проектными документами?",
           "knowledge_status": "known_in_corpus",
-          "evidence_ids": [],
+          "evidence_ids": [
+            "ck_003252",
+            "ck_003254",
+            "ck_003257"
+          ],
           "required_action": "retrieve_and_explain"
         },
         {
@@ -319,7 +360,11 @@
           "id": "a",
           "question": "Which FINZANJIR capabilities and design principles are documented?",
           "knowledge_status": "known_in_corpus",
-          "evidence_ids": [],
+          "evidence_ids": [
+            "ck_003252",
+            "ck_003254",
+            "ck_003257"
+          ],
           "required_action": "retrieve_and_explain"
         },
         {
@@ -352,7 +397,11 @@
           "id": "a",
           "question": "FINZANJIR туралы құжаттарда расталған мәліметтер қандай?",
           "knowledge_status": "known_in_corpus",
-          "evidence_ids": [],
+          "evidence_ids": [
+            "ck_003252",
+            "ck_003254",
+            "ck_003257"
+          ],
           "required_action": "retrieve_and_explain"
         },
         {
@@ -385,7 +434,11 @@
           "id": "a",
           "question": "FINZANJIR haqqında tastıyıqlanǵan joybar maǵlıwmatları qanday?",
           "knowledge_status": "known_in_corpus",
-          "evidence_ids": [],
+          "evidence_ids": [
+            "ck_003252",
+            "ck_003254",
+            "ck_003257"
+          ],
           "required_action": "retrieve_and_explain"
         },
         {
@@ -418,7 +471,11 @@
           "id": "a",
           "question": "ФИНЗАНЖИРнинг ҳужжатларда тасдиқланган мақсади, архитектураси ва ишлаш механизмлари қандай?",
           "knowledge_status": "known_in_corpus",
-          "evidence_ids": [],
+          "evidence_ids": [
+            "ck_003252",
+            "ck_003254",
+            "ck_003257"
+          ],
           "required_action": "retrieve_and_explain"
         },
         {
