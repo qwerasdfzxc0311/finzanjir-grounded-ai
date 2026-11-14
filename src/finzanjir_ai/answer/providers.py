@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import re
 from typing import Any
 
 import httpx
+
+
+logger = logging.getLogger(__name__)
 
 
 class LLMGateway:
@@ -36,6 +40,15 @@ class LLMGateway:
             providers.append("openrouter")
         return tuple(providers)
 
+    def _record_failure(self, provider: str, category: str) -> None:
+        """Record a sanitized provider failure without logging prompts or exception details."""
+        self.last_provider_failures.append({"provider": provider, "status": category})
+        logger.warning(
+            "LLM provider attempt failed: provider=%s category=%s",
+            provider,
+            category,
+        )
+
     def generate_json(self, *, system: str, prompt: str, max_output_tokens: int = 1800) -> dict[str, Any] | None:
         providers = self.configured_providers()
         if not providers:
@@ -51,10 +64,7 @@ class LLMGateway:
                 if isinstance(parsed, dict):
                     self.last_status = "ready"
                     return parsed
-                self.last_provider_failures.append({
-                    "provider": provider,
-                    "status": "invalid_response",
-                })
+                self._record_failure(provider, "invalid_response")
             except httpx.HTTPStatusError as exc:
                 code = exc.response.status_code
                 if code in (401, 403):
@@ -65,16 +75,16 @@ class LLMGateway:
                     category = "provider_unavailable"
                 else:
                     category = "request_rejected"
-                self.last_provider_failures.append({"provider": provider, "status": category})
+                self._record_failure(provider, category)
             except httpx.TimeoutException:
-                self.last_provider_failures.append({"provider": provider, "status": "timeout"})
+                self._record_failure(provider, "timeout")
             except httpx.NetworkError:
-                self.last_provider_failures.append({"provider": provider, "status": "network_error"})
+                self._record_failure(provider, "network_error")
             except httpx.HTTPError:
-                self.last_provider_failures.append({"provider": provider, "status": "network_error"})
+                self._record_failure(provider, "network_error")
             except (ValueError, KeyError, IndexError, TypeError):
                 # Never expose provider response bodies, exception text, or keys.
-                self.last_provider_failures.append({"provider": provider, "status": "invalid_response"})
+                self._record_failure(provider, "invalid_response")
         return None
 
     def _generate_with(self, provider: str, system: str, prompt: str, max_output_tokens: int) -> str:
