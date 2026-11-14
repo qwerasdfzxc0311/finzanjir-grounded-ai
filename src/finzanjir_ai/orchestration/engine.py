@@ -18,6 +18,53 @@ from finzanjir_ai.memory.conversation import build_conversation_context
 from finzanjir_ai.orchestration.intent import classify_query_intent, is_author_overview_query
 
 
+PROJECT_KNOWLEDGE_DOMAINS = frozenset({
+    "finzanjir_project",
+    "finzanjir",
+    "finzanjir_architecture",
+})
+_PROJECT_SOURCE_FILE_MARKERS = (
+    "finzanjir_konsepsiya_final.html",
+    "knowledge/source_knowledge.json",
+    "knowledge/knowledge_corpus.json",
+)
+
+
+def _is_project_knowledge_record(record: Any) -> bool:
+    """Keep project Q&A inside FINZANJIR source domains, not general knowledge."""
+    if record is None:
+        return False
+    if record.record_id.startswith("project_"):
+        return True
+
+    domain = getattr(record, "domain", None)
+    # Synthetic fixtures and legacy in-memory records may omit domain metadata.
+    # Canonical v0.6 records all carry a domain, so production records are gated.
+    if domain is None:
+        return True
+    if domain in PROJECT_KNOWLEDGE_DOMAINS:
+        return True
+    if domain != "unclassified":
+        return False
+
+    searchable = record.searchable_text.casefold()
+    if "finzanjir" in searchable:
+        return True
+    for source in record.provenance:
+        if not isinstance(source, dict):
+            continue
+        source_files = source.get("source_files") or ()
+        if isinstance(source_files, str):
+            source_files = (source_files,)
+        if any(
+            marker in str(path).casefold()
+            for path in source_files
+            for marker in _PROJECT_SOURCE_FILE_MARKERS
+        ):
+            return True
+    return False
+
+
 def _is_author_layer_record(record: Any) -> bool:
     """Identify author biography/motivation evidence by metadata, not ID prefix alone."""
     if record is None:
@@ -257,7 +304,10 @@ class FINZANJIRAI:
             # IDs. Isolate by entity, facet and provenance as well as ID.
             ranked = tuple(
                 item for item in ranked
-                if not _is_author_layer_record(self.index.get_record(item.record_id))
+                if (
+                    not _is_author_layer_record(self.index.get_record(item.record_id))
+                    and _is_project_knowledge_record(self.index.get_record(item.record_id))
+                )
             )
         grounded = self.grounder.assemble(
             ranked,
