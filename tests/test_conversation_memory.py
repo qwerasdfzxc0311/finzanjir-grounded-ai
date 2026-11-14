@@ -141,3 +141,20 @@ def test_frontend_sends_only_bounded_previous_turns_and_can_clear_chat():
     assert ".slice(-12)" in source
     assert "Suhbatni tozalash" in source
     assert "aiConversation.length = 0" in source
+
+
+def test_explicit_first_question_reference_restores_the_earliest_pair():
+    history = [
+        {"role": "user", "content": "FINZANJIR muallifi kim?"},
+        {"role": "assistant", "content": "Muallif Salamat Smaylov."},
+        {"role": "user", "content": "U nima sababdan yaratgan?"},
+        {"role": "assistant", "content": "Muallifning loyiha motivatsiyasi haqida."},
+        {"role": "user", "content": "FINZANJIR banklarga qarshimi?"},
+        {"role": "assistant", "content": "Yo‘q, bank vakolatini almashtirmaydi."},
+        {"role": "user", "content": "Qaysi modullar bor?"},
+        {"role": "assistant", "content": "Prototip oynalari haqida."},
+    ]
+    context = build_conversation_context("Birinchi savolga qaytsak, u kim edi?", history)
+    assert context.is_follow_up is True
+    assert "FINZANJIR muallifi kim?" in context.context_text
+    assert "FINZANJIR banklarga qarshimi?" not in context.context_text
