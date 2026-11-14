@@ -453,7 +453,7 @@ class GroundedAnswerGenerator:
             normalized_author_query = intent_query.casefold().replace("’", "'").replace("ʻ", "'")
             motivation_markers = (
                 "nima uchun", "nega", "sabab", "motivatsiya", "maqsad", "g'oya",
-                "why", "reason", "motivation", "почему", "причин", "не үшін", "не себеп",
+                "why", "reason", "motivation", "почему", "причин", "не үшін", "не себеп", "ne ushin", "ne ushın", "jaratqan", "sebep", "maqset",
                 "неге", "себеп", "мақсат", "ushın", "ne ushın", "sebep", "turtki",
                 "ta'sir", "oilaviy davra",
             )
