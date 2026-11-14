@@ -181,7 +181,7 @@ class FINZANJIRAI:
                 runtime_refs=runtime_refs,
                 working_memory_scope=working_memory_scope,
             )
-            answer = self.answer_generator.generate(query, overview_context)
+            answer = self.answer_generator.generate(query, overview_context, context_query=contextual_query, conversation_context=conversation.context_text)
             return OrchestrationResult(
                 answer=answer,
                 grounded_context=overview_context,
@@ -200,9 +200,9 @@ class FINZANJIRAI:
         # can refer to the same concepts. These are lower-weight search hints,
         # never evidence; the original query remains highest-weight and is used
         # by the final reranker.
-        script_queries = query_script_variants(query)
+        script_queries = query_script_variants(contextual_query)
         query_specs.extend((value, 0.9) for value in script_queries[1:])
-        cross_lingual_queries = cross_lingual_query_variants(query)
+        cross_lingual_queries = cross_lingual_query_variants(contextual_query)
         query_specs.extend(
             (value, 0.65) for value in cross_lingual_queries[len(script_queries):]
         )
