@@ -118,3 +118,76 @@ def test_project_question_excludes_legacy_author_record_using_entity_and_provena
     refs = tuple(item.record_id for item in result.grounded_context.items)
     assert "ck-legacy-author" not in refs
     assert "ck-project-protection" in refs
+
+
+def _domain_record(record_id, statement, aliases, domain, source_files=()):
+    return {
+        "id": record_id,
+        "concept_id": record_id,
+        "canonical_concept_id": record_id,
+        "domain": domain,
+        "statement": statement,
+        "aliases": aliases,
+        "evidence": {"status": "supported", "verification": "confirmed"},
+        "provenance": [{"source_files": list(source_files)}],
+        "reconciliation": {},
+    }
+
+
+def test_project_question_excludes_general_biology_record_even_with_exact_query_alias():
+    query = "FINZANJIR boshqa елдерден несімен ерекшеленеді?"
+    biology = _domain_record(
+        "ck_001693",
+        "Жасуша — тірі ағзалардың негізгі құрылымдық және функционалдық бірлігі. "
+        "Әртүрлі ағзаларда жасушалар құрылысы мен қызметі бойынша ерекшеленеді.",
+        [query],
+        "biology",
+        ("knowledge/specific_learning_cards.json",),
+    )
+    index = build_knowledge_index([biology])
+
+    result = FINZANJIRAI(index).answer(
+        query,
+        runtime_refs=(),
+        working_memory_scope="project-domain-isolation",
+    )
+
+    assert result.grounded_context.items == ()
+    assert result.answer.abstained is True
+    assert result.answer.citations == ()
+
+
+def test_project_question_keeps_finZanjir_project_domain_and_project_source_unclassified_records():
+    query = "FINZANJIR boshqa davlatlardan farqi nimada?"
+    project = _domain_record(
+        "ck-project-purpose",
+        "FINZANJIR moliyaviy firibgarlik xavflarini aniqlash va tahlil qilishga yo'naltirilgan loyiha.",
+        [query, "FINZANJIR moliyaviy xavfsizlik"],
+        "finzanjir_project",
+        ("Finzanjir konsepsiyasi va qoshimsha malumotlar hujjatlar/FINZANJIR_KONSEPSIYA_V14.pdf",),
+    )
+    unclassified_project = _domain_record(
+        "ck-project-legacy",
+        "FINZANJIR fuqarolarning qonuniy mablag'larini himoya qilishga qaratilgan loyiha.",
+        ["fuqarolar mablag'ini himoya qilish"],
+        "unclassified",
+        ("FINZANJIR_KONSEPSIYA_FINAL.html",),
+    )
+    biology = _domain_record(
+        "ck-unrelated-biology",
+        "Жасуша — тірі ағзалардың негізгі құрылымдық бірлігі.",
+        [query],
+        "biology",
+        ("knowledge/specific_learning_cards.json",),
+    )
+    result = FINZANJIRAI(build_knowledge_index([biology, project, unclassified_project])).answer(
+        query,
+        runtime_refs=(),
+        working_memory_scope="project-domain-allowlist",
+    )
+
+    refs = {item.record_id for item in result.grounded_context.items}
+    assert "ck-project-purpose" in refs
+    assert "ck-project-legacy" in refs
+    assert "ck-unrelated-biology" not in refs
+    assert result.answer.abstained is False
