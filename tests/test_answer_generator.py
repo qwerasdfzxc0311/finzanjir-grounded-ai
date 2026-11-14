@@ -360,3 +360,45 @@ def test_signal_process_fallback_orders_only_source_supported_process_stages():
     positions = [result.answer.index(value) for value in expected]
     assert positions == sorted(positions)
     assert "avtomatik aybdorlik isboti" not in result.answer
+
+
+def test_comparison_question_answers_supported_finzanjir_part_and_withholds_unknown_external_part():
+    context = GroundedContext(items=(GroundedContextItem(
+        record_id="ck-finzanjir-purpose",
+        concept_id="finzanjir-purpose",
+        statement=(
+            "FINZANJIR moliyaviy firibgarlik xavflari va shubhali pul oqimlarini "
+            "aniqlash hamda tahlil qilishga yo'naltirilgan loyiha."
+        ),
+        score=0.92,
+        provenance=({"source": "synthetic-project-evidence"},),
+        evidence={"status": "supported", "verification": "verified"},
+    ),))
+    result = GroundedAnswerGenerator().generate(
+        "FINZANJIRning boshqa davlatlardagi o'xshash tizimlardan farqi nimada?",
+        context,
+    )
+    assert result.abstained is False
+    assert result.generation_mode == "comparison_partial_grounded_fallback"
+    assert "moliyaviy firibgarlik" in result.answer
+    assert "yetarli, tekshirilgan qiyosiy ma'lumot yo'q" in result.answer
+    assert "ustun-kamligini taxmin qilib aytmayman" in result.answer
+    assert result.citations == ("ck-finzanjir-purpose",)
+
+
+def test_task_specific_guidance_sets_separate_evidence_boundaries():
+    from finzanjir_ai.answer.generator import _task_specific_guidance
+
+    comparison = _task_specific_guidance("comparison")
+    assert "boshqa davlatlar" in comparison
+    assert "ustunligini" in comparison
+    assert "tasdiqlangan qismni javobsiz qoldirishga sabab bo'lmasin" in comparison
+
+    status = _task_specific_guidance("status_audit")
+    assert "amaldagi prototip" in status
+    assert "reja" in status
+    assert "ishlayotganini isbotlamaydi" in status
+
+    architecture = _task_specific_guidance("architecture")
+    assert "konseptual arxitekturani" in architecture
+    assert "production tizimi" in architecture
