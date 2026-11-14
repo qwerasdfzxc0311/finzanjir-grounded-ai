@@ -12,6 +12,7 @@ When a configured provider attempt fails, the gateway writes one warning contain
 
 - provider name from the fixed allowlist (`gemini` or `openrouter`)
 - sanitized failure category from the gateway's fixed categories
+- numeric HTTP status code for HTTP-status failures (for example, 401, 402, 429, or 5xx)
 
 It does **not** log:
 
