@@ -448,8 +448,9 @@ class GroundedAnswerGenerator:
             normalized_author_query = intent_query.casefold().replace("’", "'").replace("ʻ", "'")
             motivation_markers = (
                 "nima uchun", "nega", "sabab", "motivatsiya", "maqsad", "g'oya",
-                "why", "reason", "motivation", "почему", "причин", "неге", "себеп",
-                "ne ushın", "sebep", "turtki", "ta'sir", "oilaviy davra",
+                "why", "reason", "motivation", "почему", "причин", "не үшін", "не себеп",
+                "неге", "себеп", "мақсат", "ushın", "ne ushın", "sebep", "turtki",
+                "ta'sir", "oilaviy davra",
             )
             if any(marker in normalized_author_query for marker in motivation_markers):
                 return AnswerResult(
