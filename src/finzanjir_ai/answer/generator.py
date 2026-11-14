@@ -421,6 +421,8 @@ class GroundedAnswerGenerator:
                 preferred_ids = {"author_0005"}
             elif any(term in current_query for term in motivation_terms) or any(term in normalized_query for term in motivation_terms):
                 preferred_ids = {"author_0004"}
+            elif any(term in current_query or term in normalized_query for term in ("qanday yaralgan", "qanday boshlangan", "kiber qalqon", "atmos", "sinbad", "yetti sahifalik", "loyiha tarixi")):
+                preferred_ids = {"author_0007"}
             elif any(term in current_query or term in normalized_query for term in ("prototip", "otasi", "singlisi", "termux", "kodlagan", "dasturlash", "ikkinchi onasi")):
                 preferred_ids = {"author_0006"}
             elif any(term in normalized_query for term in ("qiziq", "bolalik", "astronom", "kimyo")):
