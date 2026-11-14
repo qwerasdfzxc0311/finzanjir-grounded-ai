@@ -45,6 +45,10 @@ _CYRILLIC_TO_LATIN = {
     "я": "ya",
 }
 _CENTRAL_ASIAN_CYRILLIC_MARKERS = frozenset("әіңғқөұүһўҳ")
+_CENTRAL_ASIAN_CYRILLIC_WORDS = frozenset({
+    "нима", "сенинг", "вазифанг", "мақсадинг", "ҳақида", "лойиҳа",
+    "учун", "керак", "фуқаро", "молиявий", "қандай", "қанча",
+})
 
 
 def tokenize(value: str) -> tuple[str, ...]:
@@ -71,7 +75,9 @@ def cyrillic_to_latin_search_variant(value: str) -> str | None:
     Russian-only text is deliberately left alone to reduce noisy transliteration.
     """
     source = str(value).casefold()
-    if not any(char in _CENTRAL_ASIAN_CYRILLIC_MARKERS for char in source):
+    has_marker = any(char in _CENTRAL_ASIAN_CYRILLIC_MARKERS for char in source)
+    has_known_word = bool(set(re.findall(r"[^\\W\\d_]+", source, flags=re.UNICODE)) & _CENTRAL_ASIAN_CYRILLIC_WORDS)
+    if not (has_marker or has_known_word):
         return None
     converted = "".join(_CYRILLIC_TO_LATIN.get(char, char) for char in source)
     converted = re.sub(r"\s+", " ", converted).strip()
