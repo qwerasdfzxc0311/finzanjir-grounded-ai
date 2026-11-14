@@ -471,11 +471,39 @@ class GroundedAnswerGenerator:
         if classify_task_type(query) == "comparison" and language == "uz":
             # Preserve the answerable FINZANJIR side of a comparison even when
             # the corpus has no verified evidence about the external systems.
-            short_facts = [
-                item for item in grounded_items
-                if item.statement.strip()
-                and len(item.statement.strip()) <= self.MAX_RAW_FALLBACK_STATEMENT_CHARS
-            ][:4]
+            comparison_terms = set(meaningful_tokens(query)) - {
+                "finzanjir", "farq", "farqi", "taqqoslash", "qiyoslash",
+                "boshqa", "davlat", "davlatlar", "davlatlardagi", "tizim",
+                "tizimlar", "tizimlardan", "o'xshash", "nimasi", "bilan",
+                "difference", "different", "compare", "comparison", "similar",
+                "systems", "system", "countries", "country", "versus",
+            }
+            short_facts = []
+            for item in grounded_items:
+                statement = item.statement.strip()
+                if not statement or len(statement) > self.MAX_RAW_FALLBACK_STATEMENT_CHARS:
+                    continue
+                statement_terms = set(meaningful_tokens(statement))
+                # A broad "how is FINZANJIR different?" question can use a
+                # verified project-definition record as the FINZANJIR baseline.
+                is_project_definition = (
+                    "finzanjir" in statement_terms
+                    and bool({"loyiha", "project", "joybar"} & statement_terms)
+                    and any(marker in statement.casefold() for marker in (
+                        "yo'naltiril", "qaratil", "maqsad", "designed", "aimed",
+                    ))
+                )
+                if comparison_terms:
+                    if not (comparison_terms & statement_terms):
+                        query_groups = _semantic_groups(query)
+                        statement_groups = _semantic_groups(statement)
+                        if not (query_groups & statement_groups):
+                            continue
+                elif not is_project_definition:
+                    continue
+                short_facts.append(item)
+                if len(short_facts) >= 4:
+                    break
             if short_facts:
                 answer = (
                     "FINZANJIR bo'yicha loyiha manbalarida tasdiqlangan ma'lumotlar:\n\n"
