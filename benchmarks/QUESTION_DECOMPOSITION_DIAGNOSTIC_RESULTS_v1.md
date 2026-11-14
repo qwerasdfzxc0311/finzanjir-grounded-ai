@@ -14,7 +14,7 @@ PR: https://github.com/qwerasdfzxc0311/finzanjir-grounded-ai/pull/139
 - Manual-review candidates for evidence-review-only subquestions: 20.
 - Internal corpus collision candidates for unknown external or production scope: 225. These are not answer evidence.
 
-The task-type score is a development-set result, not a held-out generalization score. The task classifier is not yet connected to the production answer path.
+The task-type and cross-lingual recall scores are development-fixture results, not held-out generalization scores. The task classifier and cross-lingual bridge are not yet connected to the production answer path.
 
 ## Findings
 
@@ -29,7 +29,7 @@ The task-type score is a development-set result, not a held-out generalization s
 
 1. Manually review the 44 eligible and 20 review-only candidate records; curate expected evidence IDs only where source relevance and status are confirmed.
 2. Expand a held-out test set with paraphrases, colloquial Uzbek, spelling variants, mixed-language queries, multi-intent questions, and negative examples.
-3. Improve multilingual retrieval using a controlled cross-lingual concept/alias bridge and measure it against the lexical baseline. Do not introduce a large embedding model or mandatory API.
+3. Improve multilingual retrieval further: the vocabulary bridge helps Russian/Karakalpak and partially Kazakh, but Uzbek retrieval and Kazakh grounding remain weak. Expand and validate the concept/alias bridge against unseen questions; do not introduce a large embedding model or mandatory API.
 4. Add evidence coverage per subquestion and a grounded partial-answer contract.
 5. Integrate the task classifier only after held-out tests pass; keep domain routing separate.
 6. Browser/live answer testing comes after the retrieval and grounding changes are reviewed.
