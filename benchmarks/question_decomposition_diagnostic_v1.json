@@ -1,0 +1,401 @@
+{
+  "benchmark_id": "FINZANJIR-QUESTION-DECOMPOSITION-v1",
+  "version": "1.0.0",
+  "status": "diagnostic_fixture_pending_runtime_measurement",
+  "purpose": "Evaluate complex question intent, decomposition, per-part evidence coverage, knowledge boundaries, and grounded partial-answer behavior. Test prompts are not canonical knowledge.",
+  "corpus_version": "0.6",
+  "safety": {
+    "canonical_corpus_mutable": false,
+    "external_sources_auto_ingested": false,
+    "real_customer_or_bank_data": false,
+    "missing_evidence_policy": "withhold_only_the_unsupported_claim; answer_supported_parts",
+    "comparison_policy": "Do not claim differences or similarities with external systems unless each external claim has a reliable, attributable source and comparable scope."
+  },
+  "cases": [
+    {
+      "id": "CMP-UZ-001",
+      "language": "uz-Latn",
+      "query": "FINZANJIRning O‘zbekistondagi va boshqa davlatlardagi o‘xshash loyihalardan farqi nimada?",
+      "expected_intent": "project_comparison",
+      "task_type": "comparison",
+      "subquestions": [
+        {
+          "id": "a",
+          "question": "FINZANJIRning hujjatlarda tasdiqlangan maqsadi, arxitekturasi va ishlash mexanizmlari qanday?",
+          "knowledge_status": "known_in_corpus",
+          "evidence_ids": [],
+          "required_action": "retrieve_and_explain"
+        },
+        {
+          "id": "b",
+          "question": "O‘zbekistondagi taqqoslanadigan tizimlar qaysilar va ular qanday ishlaydi?",
+          "knowledge_status": "unknown_external",
+          "evidence_ids": [],
+          "required_action": "external_research_required"
+        },
+        {
+          "id": "c",
+          "question": "Boshqa davlatlardagi taqqoslanadigan tizimlar qaysilar va ularning arxitekturasi qanday?",
+          "knowledge_status": "unknown_external",
+          "evidence_ids": [],
+          "required_action": "external_research_required"
+        }
+      ],
+      "answer_policy": {
+        "answer_supported_parts": true,
+        "withhold_unsupported_parts": true,
+        "explain_comparison_limit": true,
+        "never_invent_external_systems": true
+      },
+      "acceptance": [
+        "FINZANJIR haqidagi tasdiqlangan ma’lumotlar to‘liq bayon qilinadi",
+        "Tashqi tizimlar haqida dalilsiz farq yoki ustunlik da’vo qilinmaydi",
+        "Bilim yetishmasligi butun javobni to‘xtatmaydi"
+      ]
+    },
+    {
+      "id": "ARC-UZ-001",
+      "language": "uz-Latn",
+      "query": "FINZANJIRning arxitekturasi qanday tuzilgan, ma’lumot qayerdan keladi va qaror kim tomonidan qabul qilinadi?",
+      "expected_intent": "project_architecture",
+      "task_type": "architecture",
+      "subquestions": [
+        {
+          "id": "a",
+          "question": "FINZANJIR arxitekturasining hujjatlashtirilgan asosiy qatlamlari va komponentlari qaysilar?",
+          "knowledge_status": "known_in_corpus",
+          "evidence_ids": [],
+          "required_action": "retrieve_and_explain"
+        },
+        {
+          "id": "b",
+          "question": "Ma’lumot manbalari va ular bilan ishlash chegaralari qanday belgilangan?",
+          "knowledge_status": "known_or_partial_in_corpus",
+          "evidence_ids": [],
+          "required_action": "retrieve_and_label_status"
+        },
+        {
+          "id": "c",
+          "question": "FINZANJIR signalidan keyingi yakuniy qaror vakolati kimda?",
+          "knowledge_status": "known_in_corpus",
+          "evidence_ids": [],
+          "required_action": "retrieve_and_explain"
+        }
+      ],
+      "answer_policy": {
+        "answer_supported_parts": true,
+        "withhold_unsupported_parts": true,
+        "distinguish_proposal_from_confirmed": true
+      },
+      "acceptance": [
+        "Arxitektura komponentlari o‘zaro bog‘liqlikda tushuntiriladi",
+        "Signal xavf yoki aybdorlik isboti sifatida talqin qilinmaydi",
+        "Bankning vakolatli qarori FINZANJIRning avtomatik qaroridan ajratiladi"
+      ]
+    },
+    {
+      "id": "CMP-UZ-002",
+      "language": "uz-Latn",
+      "query": "O‘zbekistonda FINZANJIRga o‘xshash tizimlar bormi? Bo‘lsa, qaysi jihatlari bir xil yoki boshqacha?",
+      "expected_intent": "project_comparison",
+      "task_type": "comparison",
+      "subquestions": [
+        {
+          "id": "a",
+          "question": "FINZANJIRning hujjatlarda tasdiqlangan asosiy funksiyalari nimalar?",
+          "knowledge_status": "known_in_corpus",
+          "evidence_ids": [],
+          "required_action": "retrieve_and_explain"
+        },
+        {
+          "id": "b",
+          "question": "O‘zbekistonda shu muammoni hal qiluvchi mavjud tizimlar va ularning vakolati qanday?",
+          "knowledge_status": "unknown_external",
+          "evidence_ids": [],
+          "required_action": "external_research_required"
+        }
+      ],
+      "answer_policy": {
+        "answer_supported_parts": true,
+        "withhold_unsupported_parts": true,
+        "explain_comparison_limit": true,
+        "never_assume_no_existing_systems": true
+      },
+      "acceptance": [
+        "FINZANJIR funksiyalari tushuntiriladi",
+        "Tizimlar mavjud yoki mavjud emasligi dalilsiz aytilmaydi"
+      ]
+    },
+    {
+      "id": "ARC-UZ-002",
+      "language": "uz-Latn",
+      "query": "FINZANJIR firibgarlik zanjirini qanday aniqlaydi va shubhali signal chiqqach keyin nima bo‘ladi?",
+      "expected_intent": "project_process",
+      "task_type": "process",
+      "subquestions": [
+        {
+          "id": "a",
+          "question": "Firibgarlik zanjiri yoki bog‘liq tranzaksiyalarni aniqlash uchun qanday hujjatlashtirilgan belgilar va mexanizmlar ishlatiladi?",
+          "knowledge_status": "known_or_partial_in_corpus",
+          "evidence_ids": [],
+          "required_action": "retrieve_and_label_status"
+        },
+        {
+          "id": "b",
+          "question": "Signal, dalil, risk, threshold, case va vakolatli ko‘rib chiqish bosqichlari qanday ketma-ketlikda?",
+          "knowledge_status": "known_or_partial_in_corpus",
+          "evidence_ids": [],
+          "required_action": "retrieve_and_explain"
+        }
+      ],
+      "answer_policy": {
+        "answer_supported_parts": true,
+        "withhold_unsupported_parts": true,
+        "distinguish_prototype_from_plan": true
+      },
+      "acceptance": [
+        "Faqat hujjatda mavjud bosqichlar ko‘rsatiladi",
+        "Mavjud bo‘lmagan bosqichlar taxmin bilan to‘ldirilmaydi"
+      ]
+    },
+    {
+      "id": "STA-UZ-001",
+      "language": "uz-Latn",
+      "query": "Qaysi FINZANJIR imkoniyatlari hozir prototipda bor, qaysilari faqat reja yoki taklif?",
+      "expected_intent": "project_status",
+      "task_type": "status_audit",
+      "subquestions": [
+        {
+          "id": "a",
+          "question": "Prototipda amalda mavjudligi sinov yoki kod bilan tasdiqlangan imkoniyatlar qaysilar?",
+          "knowledge_status": "known_or_partial_in_corpus",
+          "evidence_ids": [],
+          "required_action": "retrieve_and_require_implementation_evidence"
+        },
+        {
+          "id": "b",
+          "question": "Muallif tasdiqlagan talab, taklif yoki kelajak rejalar qaysilar?",
+          "knowledge_status": "known_or_partial_in_corpus",
+          "evidence_ids": [],
+          "required_action": "retrieve_and_label_as_plan"
+        },
+        {
+          "id": "c",
+          "question": "Ishlab chiqarish muhitida joriy etilgani tasdiqlangan imkoniyatlar bormi?",
+          "knowledge_status": "unknown_until_production_evidence",
+          "evidence_ids": [],
+          "required_action": "do_not_infer_from_prototype"
+        }
+      ],
+      "answer_policy": {
+        "answer_supported_parts": true,
+        "withhold_unsupported_parts": true,
+        "distinguish_prototype_from_plan": true,
+        "distinguish_production": true
+      },
+      "acceptance": [
+        "Reja prototip funksiyasi deb ko‘rsatilmaydi",
+        "Kod mavjudligi ishlayotgan production xizmati borligini anglatmaydi"
+      ]
+    },
+    {
+      "id": "CMP-UZ-003",
+      "language": "uz-Latn",
+      "query": "FINZANJIR boshqa davlatlardagi firibgarlikka qarshi platformalardan kuchliroqmi?",
+      "expected_intent": "project_comparison",
+      "task_type": "comparative_claim",
+      "subquestions": [
+        {
+          "id": "a",
+          "question": "FINZANJIRning tasdiqlangan kuchli jihatlari va cheklovlari nimalar?",
+          "knowledge_status": "known_or_partial_in_corpus",
+          "evidence_ids": [],
+          "required_action": "retrieve_balanced_evidence"
+        },
+        {
+          "id": "b",
+          "question": "Taqqoslanadigan xorijiy platformalarning o‘lchovli natijalari va imkoniyatlari qanday?",
+          "knowledge_status": "unknown_external",
+          "evidence_ids": [],
+          "required_action": "external_research_required"
+        },
+        {
+          "id": "c",
+          "question": "Bir xil mezonlarda qiyoslash uchun yetarli dalillar bormi?",
+          "knowledge_status": "unknown_until_evidence_review",
+          "evidence_ids": [],
+          "required_action": "assess_comparability"
+        }
+      ],
+      "answer_policy": {
+        "answer_supported_parts": true,
+        "withhold_unsupported_parts": true,
+        "never_claim_superiority_without_comparable_evidence": true
+      },
+      "acceptance": [
+        "Dalilsiz ustunlik da’vo qilinmaydi",
+        "FINZANJIRning ma’lum afzalliklari va cheklovlari alohida ko‘rsatiladi"
+      ]
+    },
+    {
+      "id": "PAR-UZ-001",
+      "language": "uz-Latn",
+      "query": "Bu tizimning boshqa davlatlardagilardan farqi-chi, o‘zi qanday ishlaydi?",
+      "expected_intent": "project_comparison",
+      "task_type": "comparison_followup",
+      "subquestions": [
+        {
+          "id": "a",
+          "question": "Oldingi kontekstdagi tizim FINZANJIR bo‘lsa, uning tasdiqlangan ishlash mexanizmi qanday?",
+          "knowledge_status": "known_in_corpus",
+          "evidence_ids": [],
+          "required_action": "resolve_context_then_retrieve"
+        },
+        {
+          "id": "b",
+          "question": "Boshqa davlatlardagi qiyoslanadigan tizimlar haqida qanday dalil mavjud?",
+          "knowledge_status": "unknown_external",
+          "evidence_ids": [],
+          "required_action": "external_research_required"
+        }
+      ],
+      "answer_policy": {
+        "answer_supported_parts": true,
+        "withhold_unsupported_parts": true,
+        "resolve_context_before_retrieval": true
+      },
+      "acceptance": [
+        "Kontekst saqlanadi",
+        "Tashqi taqqoslash dalilsiz to‘qilmaydi"
+      ]
+    },
+    {
+      "id": "CMP-RU-001",
+      "language": "ru",
+      "query": "Чем FINZANJIR отличается от похожих систем в Узбекистане и других странах?",
+      "expected_intent": "project_comparison",
+      "task_type": "comparison",
+      "subquestions": [
+        {
+          "id": "a",
+          "question": "Какие особенности FINZANJIR подтверждены проектными документами?",
+          "knowledge_status": "known_in_corpus",
+          "evidence_ids": [],
+          "required_action": "retrieve_and_explain"
+        },
+        {
+          "id": "b",
+          "question": "Какие сопоставимые системы существуют в Узбекистане и за рубежом?",
+          "knowledge_status": "unknown_external",
+          "evidence_ids": [],
+          "required_action": "external_research_required"
+        }
+      ],
+      "answer_policy": {
+        "answer_supported_parts": true,
+        "withhold_unsupported_parts": true,
+        "respond_in_query_language": true
+      },
+      "acceptance": [
+        "Ответ на русском языке",
+        "Не выдумывать внешние системы и их характеристики"
+      ]
+    },
+    {
+      "id": "CMP-EN-001",
+      "language": "en",
+      "query": "How is FINZANJIR different from similar fraud-prevention systems in other countries?",
+      "expected_intent": "project_comparison",
+      "task_type": "comparison",
+      "subquestions": [
+        {
+          "id": "a",
+          "question": "Which FINZANJIR capabilities and design principles are documented?",
+          "knowledge_status": "known_in_corpus",
+          "evidence_ids": [],
+          "required_action": "retrieve_and_explain"
+        },
+        {
+          "id": "b",
+          "question": "Which foreign systems are comparable, and what reliable evidence describes them?",
+          "knowledge_status": "unknown_external",
+          "evidence_ids": [],
+          "required_action": "external_research_required"
+        }
+      ],
+      "answer_policy": {
+        "answer_supported_parts": true,
+        "withhold_unsupported_parts": true,
+        "respond_in_query_language": true
+      },
+      "acceptance": [
+        "Explain supported FINZANJIR facts",
+        "Do not invent foreign comparators or superiority claims"
+      ]
+    },
+    {
+      "id": "CMP-KK-001",
+      "language": "kk",
+      "query": "FINZANJIR басқа елдердегі ұқсас жүйелерден несімен ерекшеленеді?",
+      "expected_intent": "project_comparison",
+      "task_type": "comparison",
+      "subquestions": [
+        {
+          "id": "a",
+          "question": "FINZANJIR туралы құжаттарда расталған мәліметтер қандай?",
+          "knowledge_status": "known_in_corpus",
+          "evidence_ids": [],
+          "required_action": "retrieve_and_explain"
+        },
+        {
+          "id": "b",
+          "question": "Басқа елдердегі салыстырмалы жүйелер туралы сенімді дерек бар ма?",
+          "knowledge_status": "unknown_external",
+          "evidence_ids": [],
+          "required_action": "external_research_required"
+        }
+      ],
+      "answer_policy": {
+        "answer_supported_parts": true,
+        "withhold_unsupported_parts": true,
+        "respond_in_query_language": true
+      },
+      "acceptance": [
+        "Расталмаған салыстыру жасалмайды",
+        "Белгілі бөлігіне жауап беріледі"
+      ]
+    },
+    {
+      "id": "CMP-KAA-001",
+      "language": "kaa",
+      "query": "FINZANJIR basqa mámleketlerdegi usas joybarlardan neshe menen parıqlanadı?",
+      "expected_intent": "project_comparison",
+      "task_type": "comparison",
+      "subquestions": [
+        {
+          "id": "a",
+          "question": "FINZANJIR haqqında tastıyıqlanǵan joybar maǵlıwmatları qanday?",
+          "knowledge_status": "known_in_corpus",
+          "evidence_ids": [],
+          "required_action": "retrieve_and_explain"
+        },
+        {
+          "id": "b",
+          "question": "Basqa mámleketlerdegi salıstırıwǵa bolatuǵın sistemalar haqqında isenimli derek bar ma?",
+          "knowledge_status": "unknown_external",
+          "evidence_ids": [],
+          "required_action": "external_research_required"
+        }
+      ],
+      "answer_policy": {
+        "answer_supported_parts": true,
+        "withhold_unsupported_parts": true,
+        "respond_in_query_language": true
+      },
+      "acceptance": [
+        "Dáliyilsiz salıstırıw jasalmawı kerek",
+        "Belgili bólimine juwap beriliwi kerek"
+      ]
+    }
+  ]
+}
