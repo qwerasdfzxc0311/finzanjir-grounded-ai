@@ -80,7 +80,7 @@ def test_follow_up_context_marks_previous_assistant_text_as_untrusted():
     assert context.is_follow_up is True
     assert "FINZANJIR muallifi kim?" in context.contextual_query
     assert "Oldingi AI javobi (ishonchsiz kontekst)" in context.context_text
-    assert "fakt yoki dalil emas" in context.context_text or "fakt yoki dalil emas" in context.contextual_query
+    assert "dalil emas" in context.contextual_query
     assert "Muallif Salamat Smaylov." not in context.contextual_query
 
 
