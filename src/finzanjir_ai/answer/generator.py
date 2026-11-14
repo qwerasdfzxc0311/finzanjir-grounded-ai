@@ -477,7 +477,9 @@ class GroundedAnswerGenerator:
                     "finzanjir", "farq", "taqqos", "qiyos", "boshqa",
                     "davlat", "tizim", "o'xshash", "nim", "bilan",
                     "difference", "different", "compar", "similar",
-                    "system", "countr", "versus",
+                    "system", "countr", "versus", "бошқа", "давлат",
+                    "тизим", "ўхшаш", "ним", "фарқ", "таққос", "қиёс",
+                    "билан",
                 ))
             }
             short_facts = []
@@ -490,9 +492,10 @@ class GroundedAnswerGenerator:
                 # verified project-definition record as the FINZANJIR baseline.
                 is_project_definition = (
                     "finzanjir" in statement_terms
-                    and bool({"loyiha", "project", "joybar"} & statement_terms)
+                    and bool({"loyiha", "project", "joybar", "лойиҳа"} & statement_terms)
                     and any(marker in statement.casefold() for marker in (
                         "yo'naltiril", "qaratil", "maqsad", "designed", "aimed",
+                        "йўналтирил", "қаратил", "мақсад",
                     ))
                 )
                 if comparison_terms:
