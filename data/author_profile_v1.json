@@ -161,6 +161,44 @@
         "status": "author_confirmed",
         "scope": "author_motivation"
       }
+    },
+    {
+      "id": "author_0005",
+      "entity_id": "person:salamat_smaylov",
+      "facet": "author_mother_story",
+      "concept_id": "author_mother_story_salamat_smaylov",
+      "canonical_concept_id": "author_mother_story_salamat_smaylov",
+      "statement": "Muallifning FINZANJIR V14 konsepsiyasidagi bayoniga ko‘ra, tug‘ishgan onasi unga to‘g‘ri yo‘ldan yurish, izlanish va bilim olish haqida nasihat qilgan. Muallif onasining hayoti qiyinchiliklar bilan o‘tganini va u yetarlicha rohat ko‘rishga ulgurmaganini yozadi. 2023-yil may oyining oxirida onasidan ayrilgach, muallif chuqur qayg‘u va pushaymonlikni boshdan kechirgan; onasiga bergan va’dalarining mazmunini yo‘qotmay, imkon qadar amalga oshirishga va o‘z tajribasini bilim hamda jamiyatga foydali ishga aylantirishga intilgan.",
+      "aliases": [
+        "Muallifning onasi haqida",
+        "FINZANJIR muallifining onasi",
+        "onasi unga nima deb nasihat qilgan",
+        "onasining hayoti qanday o'tgan",
+        "muallif onasidan qachon ayrilgan",
+        "2023-yil may oyida onasi",
+        "onasi muallifga nimani o'rgatgan",
+        "FINZANJIR g'oyasiga onasining ta'siri",
+        "muallifning hayot yo'li va onasi",
+        "Salamat Smaylovning onasi haqida"
+      ],
+      "evidence": {
+        "status": "project_source",
+        "verification": "author_confirmed",
+        "scope": "author_biography"
+      },
+      "provenance": [
+        {
+          "source_type": "project_archive_document",
+          "source_id": "FINZANJIR_KONSEPSIYA_V14.pdf",
+          "authority": "project_author_supplied_archive",
+          "version": "V14",
+          "sections": "15.11.1 Shaxsiy hayotiy tajriba, xatolardan saboq olish va FINZANJIRning insoniy ildizi; pp. 158-159"
+        }
+      ],
+      "reconciliation": {
+        "status": "author_confirmed",
+        "scope": "author_mother_story"
+      }
     }
   ]
 }
