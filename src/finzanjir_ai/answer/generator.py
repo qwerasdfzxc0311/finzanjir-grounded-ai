@@ -475,7 +475,7 @@ class GroundedAnswerGenerator:
                 token for token in meaningful_tokens(query)
                 if not token.startswith((
                     "finzanjir", "farq", "taqqos", "qiyos", "boshqa",
-                    "davlat", "tizim", "o'xshash", "nim", "bilan",
+                    "davlat", "tizim", "o'xshash", "xshash", "nim", "bilan",
                     "difference", "different", "compar", "similar",
                     "system", "countr", "versus", "бошқа", "давлат",
                     "тизим", "ўхшаш", "ним", "фарқ", "таққос", "қиёс",
