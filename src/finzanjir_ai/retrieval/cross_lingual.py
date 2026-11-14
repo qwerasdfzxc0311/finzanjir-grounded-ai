@@ -68,7 +68,7 @@ _TRANSLATION_PATTERNS: dict[str, tuple[tuple[str, str], ...]] = {
         (r"\breview\b", "ko'rib chiqish"),
     ),
     "kk": (
-        (r"\балаяқтық\w*\b", "firibgarlik"),
+        (r"\bалаяқтық\w*\b", "firibgarlik"),
         (r"\bқарж\w*\b", "moliyaviy"),
         (r"\bқауіпсіз\w*\b", "xavfsizlik"),
         (r"\bқорға\w*\b", "himoya"),
