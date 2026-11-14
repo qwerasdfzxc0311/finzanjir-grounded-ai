@@ -10,10 +10,12 @@ Resolve follow-up questions across recent turns without treating earlier assista
 - Before an AI request, the frontend sends up to 12 previous user/assistant turns.
 - The API validates roles and bounds each turn to 1,200 characters.
 - The backend uses only clear multilingual anaphora/ellipsis markers to decide whether to inject recent context.
-- Recent assistant responses are explicitly labeled untrusted context and are used only to resolve references and topic continuity.
+- Recent assistant responses are explicitly labeled untrusted context and are used only by answer composition to resolve references; previous assistant text is excluded from intent/retrieval query construction.
+- Only previous user questions influence intent and retrieval; prior assistant answers never become search evidence.
 - Retrieval and answer generation still require current canonical or author-confirmed evidence.
 - The backend does not create a persistent conversation-history database in this version.
 - The UI provides a clear-chat control.
+- Explicit references to the first or second question select the corresponding earlier user/assistant pair while it remains inside the bounded history window.
 
 ## Safety and evidence rules
 
