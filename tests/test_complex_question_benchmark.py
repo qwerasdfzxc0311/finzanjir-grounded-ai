@@ -92,6 +92,9 @@ def test_every_case_declares_language_intent_and_answer_safety_rules():
         assert case["forbidden_behavior"]
         for subquestion in case["subquestions"]:
             assert subquestion["target"].strip()
+            assert "retrieval_query" in subquestion
+            if subquestion["answer_required"] and subquestion["expected_evidence_ids"]:
+                assert subquestion["retrieval_query"].strip()
             assert subquestion["evidence_scope"] in {
                 "canonical_project",
                 "external_research",
