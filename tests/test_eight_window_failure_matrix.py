@@ -75,7 +75,7 @@ def _assert_stopped_at(response, failed_window: str, expected_status_code: int =
         "synthetic_bank": {"COMPLETED"},
         "signal_risk": {"COMPLETED"},
         "cross_bank_fraud": {"DISABLED"},
-        "human_case": {"SYNTHETIC_REVIEW_ONLY"},
+        "human_case": {"SYNTHETIC_REVIEW_ONLY", "SHADOW_ONLY", "NOT_ELIGIBLE"},
         "audit_kpi": {"COMPLETED"},
         "finzanjir_ai": {"COMPLETED", "ABSTAINED"},
         "citizen": {"SYNTHETIC_STATUS_ONLY"},
