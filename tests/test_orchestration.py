@@ -77,7 +77,8 @@ def test_runtime_cross_lingual_hint_retrieves_only_grounded_internal_evidence():
     ai = FINZANJIRAI(index)
     # Force a fully offline test: no Gemini/OpenRouter query expansion or generation.
     ai.language_model.expand_question = lambda _query: ()
-    ai.answer_generator.language_model.generate_json = lambda **_kwargs: None
+    ai.language_model.generate_json = lambda **_kwargs: None
+    ai.answer_generator.provider = ai.language_model
 
     result = ai.answer(
         "Чем FINZANJIR отличается от похожих систем для защиты граждан от финансового мошенничества?",
