@@ -425,3 +425,52 @@ def test_uzbek_cyrillic_comparison_uses_the_same_safe_partial_answer_policy():
     assert "FINZANJIR" in result.answer
     assert "Taqqoslash chegarasi" in result.answer
     assert result.citations == ("ck-finzanjir-purpose-cyrl",)
+
+
+def test_comparison_fallback_skips_unrelated_grounded_records_and_keeps_project_definition():
+    unrelated = GroundedContextItem(
+        record_id="ck-unrelated-weather",
+        concept_id="weather",
+        statement="Ob-havo ma'lumotlari har kuni yangilanadi va harorat o'zgaradi.",
+        score=0.99,
+        provenance=({"source": "synthetic-unrelated"},),
+        evidence={"status": "supported", "verification": "verified"},
+    )
+    relevant = GroundedContextItem(
+        record_id="ck-project-definition",
+        concept_id="project-purpose",
+        statement=(
+            "FINZANJIR moliyaviy firibgarlik xavflarini aniqlash va tahlil qilishga "
+            "yo'naltirilgan loyiha."
+        ),
+        score=0.91,
+        provenance=({"source": "synthetic-project-evidence"},),
+        evidence={"status": "supported", "verification": "verified"},
+    )
+    result = GroundedAnswerGenerator().generate(
+        "FINZANJIRning boshqa davlatlardagi o'xshash tizimlardan farqi nimada?",
+        GroundedContext(items=(unrelated, relevant)),
+    )
+    assert result.generation_mode == "comparison_partial_grounded_fallback"
+    assert "moliyaviy firibgarlik" in result.answer
+    assert "Ob-havo" not in result.answer
+    assert result.citations == ("ck-project-definition",)
+
+
+def test_comparison_fallback_does_not_turn_irrelevant_context_into_an_answer():
+    unrelated = GroundedContextItem(
+        record_id="ck-unrelated-weather-only",
+        concept_id="weather",
+        statement="Ob-havo ma'lumotlari har kuni yangilanadi va harorat o'zgaradi.",
+        score=0.99,
+        provenance=({"source": "synthetic-unrelated"},),
+        evidence={"status": "supported", "verification": "verified"},
+    )
+    result = GroundedAnswerGenerator().generate(
+        "FINZANJIRning boshqa davlatlardagi o'xshash tizimlardan farqi nimada?",
+        GroundedContext(items=(unrelated,)),
+    )
+    assert result.abstained is True
+    assert result.generation_mode == "comparison_no_relevant_evidence"
+    assert result.citations == ()
+    assert "Ob-havo" not in result.answer
