@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 
+from finzanjir_ai.orchestration.task_intent import classify_task_type
+
 
 FIXTURE = Path(__file__).parent.parent / "benchmarks" / "question_decomposition_diagnostic_v1.json"
 
@@ -31,7 +33,7 @@ def test_external_comparison_cases_do_not_assume_external_knowledge():
     data = json.loads(FIXTURE.read_text(encoding="utf-8"))
     comparison_cases = [
         case for case in data["cases"]
-        if case["expected_task_type"] in {"project_comparison", "comparative_claim"}
+        if case["expected_task_type"] in {"comparison"}
     ]
     assert comparison_cases
     for case in comparison_cases:
@@ -54,3 +56,23 @@ def test_runtime_task_type_is_not_misrepresented_as_existing_classifier():
     data = json.loads(FIXTURE.read_text(encoding="utf-8"))
     assert all("expected_task_type" in case for case in data["cases"])
     assert all("expected_domain_route" in case for case in data["cases"])
+
+
+
+def test_multilingual_task_intent_baseline_matches_fixture():
+    data = json.loads(FIXTURE.read_text(encoding="utf-8"))
+    for case in data["cases"]:
+        assert classify_task_type(case["query"]) == case["expected_task_type"], case["id"]
+
+
+def test_task_intent_baseline_handles_paraphrases_and_common_typos():
+    examples = {
+        "Nimasi bilan o‘xshash tizimlardan ajralib turadi?": "comparison",
+        "Чем эта система отличается от других?": "comparison",
+        "How does the platform work after a risk signal?": "process",
+        "FINZANJIRning arxitekturasi va qatlamlari qanday?": "architecture",
+        "Qaysi imkoniyatlar hozir prototipda bor, qaysilari reja?": "status_audit",
+        "Неге бұл жоба керек?": "reason",
+    }
+    for query, expected in examples.items():
+        assert classify_task_type(query) == expected, query
