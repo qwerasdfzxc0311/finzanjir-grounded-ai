@@ -40,11 +40,11 @@ _CYRILLIC_TO_LATIN = {
     "й": "y", "к": "k", "қ": "q", "л": "l", "м": "m", "н": "n",
     "ң": "ng", "о": "o", "ө": "o", "п": "p", "р": "r", "с": "s",
     "т": "t", "у": "u", "ұ": "u", "ү": "u", "ў": "o'", "ф": "f",
-    "х": "x", "ҳ": "h", "һ": "h", "ц": "ts", "ч": "ch", "ш": "sh",
+    "х": "x", "ҳ": "h", "һ": "h", "і": "i", "ц": "ts", "ч": "ch", "ш": "sh",
     "щ": "shch", "ъ": "", "ы": "i", "ь": "", "э": "e", "ю": "yu",
     "я": "ya",
 }
-_CENTRAL_ASIAN_CYRILLIC_MARKERS = frozenset("әіңғқөұүһўҳ")
+_CENTRAL_ASIAN_CYRILLIC_MARKERS = frozenset("әіңғқөұүһўҳі")
 _CENTRAL_ASIAN_CYRILLIC_WORDS = frozenset({
     "нима", "сенинг", "вазифанг", "мақсадинг", "ҳақида", "лойиҳа",
     "учун", "керак", "фуқаро", "молиявий", "қандай", "қанча",
@@ -79,7 +79,16 @@ def cyrillic_to_latin_search_variant(value: str) -> str | None:
     has_known_word = bool(set(re.findall(r"[^\W\d_]+", source, flags=re.UNICODE)) & _CENTRAL_ASIAN_CYRILLIC_WORDS)
     if not (has_marker or has_known_word):
         return None
-    converted = "".join(_CYRILLIC_TO_LATIN.get(char, char) for char in source)
+    # Kazakh uses ы as "y" in common Latin spellings (e.g. Қаржы -> qarjy).
+    # Apply this only when Kazakh-specific markers are present.
+    kazakh_markers = frozenset("әіңөұүі")
+    is_kazakh = any(char in kazakh_markers for char in source)
+    mapping = dict(_CYRILLIC_TO_LATIN)
+    if is_kazakh:
+        mapping.update({"ы": "y", "і": "i", "й": "y"})
+    converted = "".join(mapping.get(char, char) for char in source)
+    if is_kazakh:
+        converted = re.sub(r"(?<![^\W\d_])және(?![^\W\d_])", "zhane", converted)
     converted = re.sub(r"\s+", " ", converted).strip()
     return converted if converted and converted != source else None
 
