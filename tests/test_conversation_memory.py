@@ -184,3 +184,15 @@ def test_project_origin_question_uses_historical_timeline_record():
     assert result.answer.citations == ("author_0007",)
     assert "Kiber Qalqon" in result.answer.answer
     assert "ATMOS va SINBAD" in result.answer.answer
+
+
+def test_standalone_project_motivation_question_is_neutral_and_source_grounded():
+    result = _offline_ai().answer(
+        "FINZANJIR nima uchun yaratilgan?",
+        runtime_refs=(),
+        working_memory_scope="conversation-memory-test",
+    )
+    assert result.answer.abstained is False
+    assert result.answer.citations == ("author_0004",)
+    assert "mustaqil tekshirilmagan" in result.answer.answer
+    assert "bank xatosining isbotlangan fakti" in result.answer.answer
