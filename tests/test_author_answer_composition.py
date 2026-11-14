@@ -81,14 +81,14 @@ def test_author_motivation_question_selects_only_motivation_evidence():
     assert result.answer.generation_mode == "author_deterministic_fallback"
     assert result.answer.citations == ("author_0004",)
     assert "bank cheklovlari" in result.answer.answer
-    assert "qonuniy tranzaksiyasi" in result.answer.answer
+    assert "qonuniy tranzaksiyalarni" in result.answer.answer
     assert "false positive" in result.answer.answer
     assert "false negative" in result.answer.answer
     assert "fuqaro murojaati" in result.answer.answer
     assert "Kiber Qalqon" in result.answer.answer
-    assert "mustaqil tekshirilmagan" in result.answer.answer
-    assert "100 foiz xatosizlikni kafolatlashni emas" in result.answer.answer
-    assert "yangi bloklash tizimi" in result.answer.answer
+    assert "mustaqil tekshirmagan" in result.answer.answer
+    assert "100 foiz xatosizlikni va'da qilish emas" in result.answer.answer
+    assert "avtomatik bloklash buyrug'i ham emas" in result.answer.answer
     assert "2003-yil" not in result.answer.answer
 
 
