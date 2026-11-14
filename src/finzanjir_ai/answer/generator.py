@@ -159,7 +159,7 @@ def _is_relevant_extractive_sentence(
     return True
 
 
-def _extractive_grounded_fallback(query: str, items: list[Any], *, max_sentences: int = 6, header: str = "Manbalarda topilgan tasdiqlangan ma'lumotlar:") -> tuple[str, tuple[str, ...]]:
+def _extractive_grounded_fallback(query: str, items: list[Any], *, max_sentences: int = 6) -> tuple[str, tuple[str, ...]]:
     """Build a readable, source-faithful fallback from relevant sentences.
 
     This is deliberately extractive: it may select and order source sentences,
@@ -222,7 +222,7 @@ def _extractive_grounded_fallback(query: str, items: list[Any], *, max_sentences
     if not selected:
         return "", ()
 
-    answer = header + "\n\n" + "\n\n".join(
+    answer = "Manbalarda topilgan tasdiqlangan ma'lumotlar:\n\n" + "\n\n".join(
         f"{index}. {sentence}" for index, (_, _, sentence, _) in enumerate(selected, start=1)
     )
     citations = tuple(dict.fromkeys(record_id for _, _, _, record_id in selected))
@@ -335,20 +335,28 @@ class GroundedAnswerGenerator:
         "kaa": "Joybardıń tiyisli dálili tabıldı, biraq házir isenimli hám túsinikli juwap dúziw ushın AI modeli islempedi. Basqa tildegi yamasa qatısı joq tekstti bermew ushın juwaptı shekledim.",
     }
 
-    UNMATCHED_EVIDENCE_MESSAGES = {
-        "uz": "Topilgan manba savolga bevosita mos kelmadi. Noto'g'ri ma'lumot bermaslik uchun javobni chekladim.",
-        "ru": "Найденный источник не соответствует вопросу напрямую. Чтобы не выдавать неверную информацию, я ограничиваю ответ.",
-        "en": "The retrieved source does not directly match the question. I am limiting the answer rather than returning unrelated information.",
-        "kk": "Табылған дерек сұраққа тікелей сәйкес келмейді. Қате ақпарат бермеу үшін жауапты шектедім.",
-        "kaa": "Tabılǵan derek sorawǵa tikkeley sáykes kelmeydi. Qáte maǵlıwmat bermew ushın juwaptı shekledim.",
+    COMPARISON_INTROS = {
+        "uz": "FINZANJIR bo'yicha loyiha manbalarida tasdiqlangan ma'lumotlar:",
+        "ru": "Подтвержденные сведения о FINZANJIR в источниках проекта:",
+        "en": "Verified information about FINZANJIR in project sources:",
+        "kk": "Жоба дереккөздерінде FINZANJIR туралы расталған мәліметтер:",
+        "kaa": "Joybar dereklerinde FINZANJIR haqqında tastıyıqlanǵan maǵlıwmatlar:",
     }
 
-    EXTRACTIVE_HEADERS = {
-        "uz": "Manbalarda topilgan tasdiqlangan ma'lumotlar:",
-        "ru": "Подтвержденные сведения из источников:",
-        "en": "Verified information found in the sources:",
-        "kk": "Дереккөздерден табылған расталған мәліметтер:",
-        "kaa": "Dereklerden tabılǵan tastıyıqlanǵan maǵlıwmatlar:",
+    COMPARISON_LIMIT_MESSAGES = {
+        "uz": "Taqqoslash chegarasi: boshqa davlatlardagi yoki boshqa tashkilotlarga tegishli o'xshash tizimlar haqida yetarli, tekshirilgan qiyosiy ma'lumot yo'q. Ularning arxitekturasi, natijasi yoki FINZANJIRdan ustun-kamligini taxmin qilmayman.",
+        "ru": "Ограничение сравнения: в имеющихся источниках нет достаточных проверенных данных о подобных системах других стран или организаций. Поэтому я не предполагаю их архитектуру, результаты или превосходство над FINZANJIR.",
+        "en": "Comparison limit: the available sources do not provide enough verified information about similar systems in other countries or organizations. I will not guess their architecture, results, or whether they are better or worse than FINZANJIR.",
+        "kk": "Салыстыру шегі: қолда бар дереккөздерде басқа елдердегі немесе ұйымдардағы ұқсас жүйелер туралы жеткілікті расталған салыстырмалы мәлімет жоқ. Сондықтан олардың архитектурасы, нәтижесі немесе FINZANJIR-ден артық-кемдігі туралы болжам жасамаймын.",
+        "kaa": "Salıstırıw shegarası: bar dereklerde basqa mámleketler yamasa shólkemlerdiń uqsas sistemaları haqqında jetkilikli tastıyıqlanǵan salıstırmalı maǵlıwmat joq. Sonıń ushın olardıń arxitekturası, nátiyjesi yamasa FINZANJIR-den artıq-kemligi haqqında boljam jasamayman.",
+    }
+
+    COMPARISON_NO_EVIDENCE_MESSAGES = {
+        "uz": "Bu taqqoslash savoli uchun FINZANJIR haqidagi bevosita mos, tasdiqlangan dalil ajratilmadi. Boshqa tizimlar bilan farqni yoki FINZANJIR xususiyatlarini taxmin qilib aytmayman.",
+        "ru": "Для этого сравнения не удалось выделить непосредственно относящиеся к FINZANJIR подтвержденные данные. Я не буду предполагать его отличия от других систем или приписывать ему неподтвержденные свойства.",
+        "en": "No directly relevant, verified FINZANJIR evidence was identified for this comparison. I will not guess how it differs from other systems or attribute unsupported features to it.",
+        "kk": "Бұл салыстыру үшін FINZANJIR туралы тікелей қатысты расталған дерек табылмады. Басқа жүйелерден айырмашылығын немесе расталмаған қасиеттерін болжамаймын.",
+        "kaa": "Bul salıstırıw ushın FINZANJIR haqqında tikkeley tiyisli tastıyıqlanǵan dálil tabılmadı. Basqa sistemalardan parqın yamasa tastıyıqlanbaǵan qásiyetlerin boljamlamayman.",
     }
 
 
@@ -599,18 +607,22 @@ class GroundedAnswerGenerator:
                     provider_status=provider_status,
                 )
 
-        if classify_task_type(intent_query) == "comparison" and language == "uz":
-            # Preserve the answerable FINZANJIR side of a comparison even when
-            # the corpus has no verified evidence about the external systems.
+        if classify_task_type(intent_query) == "comparison":
+            # A comparison fallback may describe only FINZANJIR-specific or
+            # explicitly project-scoped evidence. Shared words such as
+            # "different/ерекшеленеді" must not make unrelated records relevant.
             comparison_terms = {
                 token for token in meaningful_tokens(intent_query)
                 if not token.startswith((
                     "finzanjir", "farq", "taqqos", "qiyos", "boshqa",
                     "davlat", "tizim", "o'xshash", "xshash", "nim", "bilan",
-                    "difference", "different", "compar", "similar",
-                    "system", "countr", "versus", "бошқа", "давлат",
-                    "тизим", "ўхшаш", "ним", "фарқ", "таққос", "қиёс",
-                    "билан", "қил",
+                    "difference", "different", "compar", "similar", "system",
+                    "countr", "versus", "other", "бошқа", "давлат", "тизим",
+                    "ўхшаш", "ним", "фарқ", "таққос", "қиёс", "билан", "қил",
+                    "басқа", "ел", "несім", "ерекшел", "айыр", "салыстыр",
+                    "ұқсас", "жүйе", "чем", "отлич", "разниц", "сравн",
+                    "похож", "стран", "друг", "parıql", "pariq", "basqa",
+                    "mámleket", "memleket", "sistem", "uqsas", "salıstır",
                 ))
             }
             short_facts = []
@@ -619,18 +631,23 @@ class GroundedAnswerGenerator:
                 if not statement or len(statement) > self.MAX_RAW_FALLBACK_STATEMENT_CHARS:
                     continue
                 statement_terms = set(meaningful_tokens(statement))
-                # A broad "how is FINZANJIR different?" question can use a
-                # verified project-definition record as the FINZANJIR baseline.
                 is_project_definition = (
                     "finzanjir" in statement_terms
-                    and bool({"loyiha", "project", "joybar", "лойиҳа"} & statement_terms)
+                    and bool({"loyiha", "project", "joybar", "лойиҳа", "жоба"} & statement_terms)
                     and any(marker in statement.casefold() for marker in (
                         "yo'naltiril", "qaratil", "maqsad", "designed", "aimed",
-                        "йўналтирил", "қаратил", "мақсад",
+                        "йўналтирил", "қаратил", "мақсад", "бағыттал",
                     ))
                 )
+                is_project_evidence = (
+                    item.record_id.startswith("project_")
+                    or "finzanjir" in statement_terms
+                    or is_project_definition
+                )
+                if not is_project_evidence:
+                    continue
                 if comparison_terms:
-                    if not (comparison_terms & statement_terms):
+                    if not (comparison_terms & statement_terms) and not is_project_definition:
                         query_groups = _semantic_groups(intent_query)
                         statement_groups = _semantic_groups(statement)
                         if not (query_groups & statement_groups):
@@ -640,18 +657,19 @@ class GroundedAnswerGenerator:
                 short_facts.append(item)
                 if len(short_facts) >= 4:
                     break
+
             if short_facts:
+                intro = self.COMPARISON_INTROS.get(language, self.COMPARISON_INTROS["uz"])
+                limit = self.COMPARISON_LIMIT_MESSAGES.get(
+                    language, self.COMPARISON_LIMIT_MESSAGES["uz"]
+                )
                 answer = (
-                    "FINZANJIR bo'yicha loyiha manbalarida tasdiqlangan ma'lumotlar:\n\n"
-                    + "\n\n".join(
+                    intro + "\\n\\n"
+                    + "\\n\\n".join(
                         f"{index}. {item.statement.strip()}"
                         for index, item in enumerate(short_facts, start=1)
                     )
-                    + "\n\nTaqqoslash chegarasi: boshqa davlatlardagi yoki boshqa tashkilotlarga "
-                    "tegishli o'xshash tizimlar haqida ushbu dalillar orasida yetarli, "
-                    "tekshirilgan qiyosiy ma'lumot yo'q. Shu sababli ularning arxitekturasi, "
-                    "natijasi yoki FINZANJIRdan ustun-kamligini taxmin qilib aytmayman. "
-                    "FINZANJIR haqidagi yuqoridagi ma'lumotlar esa loyiha manbalariga asoslangan."
+                    + "\\n\\n" + limit
                 )
                 return AnswerResult(
                     answer=answer,
@@ -662,10 +680,8 @@ class GroundedAnswerGenerator:
                     provider_status=provider_status,
                 )
             return AnswerResult(
-                answer=(
-                    "Bu taqqoslash savoli uchun FINZANJIR haqidagi bevosita mos, "
-                    "tasdiqlangan dalil ajratilmadi. Boshqa tizimlar bilan farqni "
-                    "yoki FINZANJIR xususiyatlarini taxmin qilib aytmayman."
+                answer=self.COMPARISON_NO_EVIDENCE_MESSAGES.get(
+                    language, self.COMPARISON_NO_EVIDENCE_MESSAGES["uz"]
                 ),
                 confidence=0.0,
                 abstained=True,
@@ -674,41 +690,45 @@ class GroundedAnswerGenerator:
                 provider_status=provider_status,
             )
 
-        # When the model is unavailable, use only sentences that directly match
-        # the query. This applies to short and long records alike: a high-ranked
-        # but unrelated short record must never be returned as an answer.
-        extractive_answer, extractive_citations = _extractive_grounded_fallback(
-            intent_query,
-            grounded_items,
-            header=self.EXTRACTIVE_HEADERS.get(language, self.EXTRACTIVE_HEADERS["uz"]),
-        )
-        if extractive_answer:
+        # When the model is unavailable, extract only query-relevant sentences
+        # from long grounded records. Never expose a raw multi-page source dump.
+        if any(len(item.statement) > self.MAX_RAW_FALLBACK_STATEMENT_CHARS for item in grounded_items):
+            extractive_answer, extractive_citations = _extractive_grounded_fallback(
+                intent_query, grounded_items
+            )
+            if extractive_answer:
+                return AnswerResult(
+                    answer=extractive_answer,
+                    confidence=confidence,
+                    abstained=False,
+                    citations=extractive_citations,
+                    generation_mode="extractive_grounded_fallback",
+                    provider_status=provider_status,
+                )
+            refs = tuple(item.record_id for item in grounded_items)
             return AnswerResult(
-                answer=extractive_answer,
+                answer=(
+                    "Tegishli bo'lishi mumkin bo'lgan manba topildi, ammo undan savolga "
+                    "bevosita javob beradigan jumlalarni ishonchli ajratib bo'lmadi. "
+                    "Noto'g'ri xulosa chiqarmaslik uchun javobni chekladim. "
+                    "Manba ID: " + ", ".join(refs)
+                ),
                 confidence=confidence,
-                abstained=False,
-                citations=extractive_citations,
-                generation_mode="extractive_grounded_fallback",
+                abstained=True,
+                citations=refs,
+                generation_mode="fallback_refused_unmatched_long_source",
                 provider_status=provider_status,
             )
 
-        refs = tuple(item.record_id for item in grounded_items)
-        has_long_source = any(
-            len(item.statement) > self.MAX_RAW_FALLBACK_STATEMENT_CHARS
-            for item in grounded_items
+        answer = "Loyiha bilimlar bazasidagi tasdiqlangan ma'lumotlar:\\n\\n" + "\\n\\n".join(
+            f"{index}. {item.statement}" for index, item in enumerate(grounded_items, start=1)
         )
-        source_ids = " Manba ID: " + ", ".join(refs) if language == "uz" else ""
         return AnswerResult(
-            answer=self.UNMATCHED_EVIDENCE_MESSAGES.get(
-                language, self.UNMATCHED_EVIDENCE_MESSAGES["uz"]
-            ) + source_ids,
-            confidence=0.0,
-            abstained=True,
-            citations=refs,
-            generation_mode=(
-                "fallback_refused_unmatched_long_source"
-                if has_long_source else "fallback_refused_unmatched_short_source"
-            ),
+            answer=answer,
+            confidence=confidence,
+            abstained=False,
+            citations=tuple(item.record_id for item in grounded_items),
+            generation_mode="deterministic_fallback",
             provider_status=provider_status,
         )
 
