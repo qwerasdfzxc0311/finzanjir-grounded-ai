@@ -27,7 +27,7 @@ import sqlite3
 
 
 class AIConversationTurn(BaseModel):
-    role: Literal[\"user\", \"assistant\"]
+    role: Literal["user", "assistant"]
     content: str = Field(min_length=1, max_length=1200)
 
 
