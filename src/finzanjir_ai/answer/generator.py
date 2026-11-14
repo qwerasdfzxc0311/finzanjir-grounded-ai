@@ -270,7 +270,7 @@ class GroundedAnswerGenerator:
     def __init__(self, provider: Any | None = None) -> None:
         self.provider = provider
 
-    def generate_general_knowledge(self, query: str) -> AnswerResult:
+    def generate_general_knowledge(self, query: str, *, conversation_context: str = "") -> AnswerResult:
         """Answer an explicitly general question without pretending it came from FINZANJIR docs."""
         if self.provider is None:
             return AnswerResult(
@@ -280,7 +280,7 @@ class GroundedAnswerGenerator:
                 generation_mode="general_knowledge_unavailable",
                 provider_status="not_configured",
             )
-        if hasattr(self.provider, "can_send_text") and not self.provider.can_send_text(query):
+        if hasattr(self.provider, "can_send_text") and not self.provider.can_send_text(query + "\n" + conversation_context):
             return AnswerResult(
                 answer="Savolda maxfiy yoki shaxsiy ma'lumot bo'lishi mumkin. Uni tashqi AI modeliga yubormadim.",
                 confidence=0.0, abstained=True, citations=(),
@@ -297,7 +297,9 @@ class GroundedAnswerGenerator:
                 "ochiq ayting. Faqat JSON qaytaring."
             ),
             prompt=(
-                "Savol: " + query + "\n\n"
+                "Joriy savol: " + query + "\n\n"
+                + "Suhbat konteksti (faqat referentni aniqlash uchun; fakt emas):\n"
+                + conversation_context + "\n\n"
                 "JSON shakli: {\"answer\":\"tushunarli javob\",\"uncertainty\":\"mavjud bo'lsa izoh\"}"
             ),
             max_output_tokens=1200,
@@ -318,9 +320,10 @@ class GroundedAnswerGenerator:
             provider_status="ready",
         )
 
-    def generate(self, query: str, context: GroundedContext) -> AnswerResult:
+    def generate(self, query: str, context: GroundedContext, *, context_query: str | None = None, conversation_context: str = "") -> AnswerResult:
         from finzanjir_ai.orchestration.intent import classify_query_intent, detect_query_language, is_bank_authority_query
 
+        intent_query = context_query or query
         language = detect_query_language(query)
         if not context.items:
             return AnswerResult(
@@ -346,7 +349,7 @@ class GroundedAnswerGenerator:
                 provider_status="not_attempted",
             )
 
-        if classify_query_intent(query) == "project_overview" and any(item.record_id == "project_0001" for item in grounded_items):
+        if classify_query_intent(intent_query) == "project_overview" and any(item.record_id == "project_0001" for item in grounded_items):
             return AnswerResult(
                 answer=self.PROJECT_OVERVIEW_ANSWERS.get(language, self.PROJECT_OVERVIEW_ANSWERS["uz"]),
                 confidence=confidence,
@@ -356,7 +359,7 @@ class GroundedAnswerGenerator:
                 provider_status="not_attempted",
             )
 
-        if is_bank_authority_query(query) and any(item.record_id == "project_0004" for item in grounded_items):
+        if is_bank_authority_query(intent_query) and any(item.record_id == "project_0004" for item in grounded_items):
             return AnswerResult(
                 answer=self.BANK_AUTHORITY_ANSWERS.get(language, self.BANK_AUTHORITY_ANSWERS["uz"]),
                 confidence=confidence,
@@ -371,10 +374,10 @@ class GroundedAnswerGenerator:
             else getattr(self.provider, "last_status", "not_attempted")
         )
         if self.provider is not None:
-            if hasattr(self.provider, "can_send_text") and not self.provider.can_send_text(query):
+            if hasattr(self.provider, "can_send_text") and not self.provider.can_send_text(query + "\n" + conversation_context):
                 provider_status = "blocked_sensitive"
             else:
-                generated = self._generate_with_model(query, grounded_items)
+                generated = self._generate_with_model(query, grounded_items, context_query=intent_query, conversation_context=conversation_context)
                 provider_status = getattr(self.provider, "last_status", "provider_failed")
                 if generated is not None:
                     return AnswerResult(
@@ -401,13 +404,21 @@ class GroundedAnswerGenerator:
                 provider_status=provider_status,
             )
 
-        if classify_query_intent(query) == "author":
+        if classify_query_intent(intent_query) == "author":
             author_items = [
                 item for item in grounded_items
                 if item.record_id.startswith("author_")
             ]
-            normalized_query = query.casefold().replace("’", "'").replace("ʻ", "'")
-            if any(term in normalized_query for term in ("nima uchun", "nega", "sabab", "motivatsiya", "maqsad", "g'oya")):
+            current_query = query.casefold().replace("’", "'").replace("ʻ", "'")
+            normalized_query = intent_query.casefold().replace("’", "'").replace("ʻ", "'")
+            motivation_terms = ("nima uchun", "nega", "sabab", "motivatsiya", "maqsad", "g'oya")
+            mother_terms = ("onasi", "onasining", "ona haqida", "mother", "mother's", "мать", "анасы")
+            if any(term in current_query for term in mother_terms) or (
+                any(term in normalized_query for term in mother_terms)
+                and not any(term in current_query for term in motivation_terms)
+            ):
+                preferred_ids = {"author_0005"}
+            elif any(term in current_query for term in motivation_terms) or any(term in normalized_query for term in motivation_terms):
                 preferred_ids = {"author_0004"}
             elif any(term in normalized_query for term in ("qiziq", "bolalik", "astronom", "kimyo")):
                 preferred_ids = {"author_0003"}
@@ -431,7 +442,7 @@ class GroundedAnswerGenerator:
                     generation_mode="author_insufficient_evidence",
                     provider_status=provider_status,
                 )
-            if preferred_ids == {"author_0004"} and len(selected) == 1:
+            if preferred_ids in ({"author_0004"}, {"author_0005"}) and len(selected) == 1:
                 answer = selected[0].statement
             else:
                 answer = "Muallif haqidagi tasdiqlangan ma'lumotlar:\n\n" + "\n\n".join(
@@ -468,7 +479,7 @@ class GroundedAnswerGenerator:
                     provider_status=provider_status,
                 )
 
-        if classify_task_type(query) == "comparison" and language == "uz":
+        if classify_task_type(intent_query) == "comparison" and language == "uz":
             # Preserve the answerable FINZANJIR side of a comparison even when
             # the corpus has no verified evidence about the external systems.
             comparison_terms = {
@@ -547,7 +558,7 @@ class GroundedAnswerGenerator:
         # from long grounded records. Never expose a raw multi-page source dump.
         if any(len(item.statement) > self.MAX_RAW_FALLBACK_STATEMENT_CHARS for item in grounded_items):
             extractive_answer, extractive_citations = _extractive_grounded_fallback(
-                query, grounded_items
+                intent_query, grounded_items
             )
             if extractive_answer:
                 return AnswerResult(
@@ -585,8 +596,8 @@ class GroundedAnswerGenerator:
             provider_status=provider_status,
         )
 
-    def _generate_with_model(self, query: str, items: list[Any]) -> tuple[str, tuple[str, ...]] | None:
-        if hasattr(self.provider, "can_send_text") and not self.provider.can_send_text(query):
+    def _generate_with_model(self, query: str, items: list[Any], *, context_query: str | None = None, conversation_context: str = "") -> tuple[str, tuple[str, ...]] | None:
+        if hasattr(self.provider, "can_send_text") and not self.provider.can_send_text(query + "\n" + conversation_context):
             return None
         evidence = []
         for item in items:
@@ -601,7 +612,7 @@ class GroundedAnswerGenerator:
 
         response_language = detect_query_language(query)
         language_names = {"uz": "Uzbek (Latin script)", "ru": "Russian", "en": "English", "kk": "Kazakh", "kaa": "Karakalpak"}
-        author_question = classify_query_intent(query) == "author"
+        author_question = classify_query_intent(context_query or query) == "author"
         author_guidance = (
             " Bu savol muallif haqida: faqat berilgan muallifga oid dalillardan foydalaning. "
             "Muallifning tarjimai holi, shaxsiy qiziqishlari, loyiha yaratish sabablari va "
@@ -612,7 +623,7 @@ class GroundedAnswerGenerator:
             "Yetarli muallif dalili bo'lmasa, qaysi ma'lumot yetishmayotganini ochiq ayting."
             if author_question else ""
         )
-        task_type = classify_task_type(query)
+        task_type = classify_task_type(context_query or query)
         task_guidance = _task_specific_guidance(task_type)
         system = (
             "Siz FINZANJIR loyihasining bilimlarga tayangan yordamchisisiz. "
