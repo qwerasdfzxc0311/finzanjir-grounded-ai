@@ -2,7 +2,7 @@
 
 ## Corpus size
 
-Five synthetic benchmark batches have now been prepared on the draft PR branch:
+Six synthetic benchmark batches have now been prepared on the draft PR branch:
 
 | Batch | Prompts | Focus |
 |---|---:|---|
@@ -13,7 +13,7 @@ Five synthetic benchmark batches have now been prepared on the draft PR branch:
 | 5 | 36 | History contamination, document prompt injection, contradictory sources, ambiguity, language quality, author-critique handling |
 | **Total** | **276** | **Six language/script groups** |
 
-Batch 1–4 contain 10 prompts per language/script each: Uzbek Latin, Uzbek Cyrillic, Russian, English, Kazakh, and Karakalpak. Batch 5 contains 6 per language/script. The corpus has 46 prompts per group overall (276 / 6).
+Batch 1–4 contain 10 prompts per language/script each: Uzbek Latin, Uzbek Cyrillic, Russian, English, Kazakh, and Karakalpak. Batch 5 contains 6 per language/script. The first five batches have 46 prompts per group (276 / 6). Batch 6 adds four prompts per group, bringing the expanded corpus to 50 prompts per group (300 / 6).
 
 ## Answer-mode balance
 
@@ -29,7 +29,7 @@ The previously approved full Uzbek author-motivation answer must remain intact a
 
 Also keep project mission distinct from the author's personal motivation. A question asking what FINZANJIR does is not always asking why its author created it.
 
-## Review and validation status
+## Expert-facing answer candidates (batch 6)\n\nBatch 6 adds two high-priority question families: (1) whether FINZANJIR is legal / can lawfully operate in Uzbekistan, and (2) whether similar initiatives exist internationally and whether FINZANJIR is copied or adapted. Candidate Uzbek answers are documented in `docs/CANDIDATE_PREPARED_ANSWERS_LEGALITY_AND_INTERNATIONAL_COMPARISON_V1.md`. They are deliberately **not** marked as runtime canonical answers: legality depends on current law, actual data flows, actors, permissions, and regulator/bank review; international comparisons require verified source mapping and clear limits. The batch contains 24 synthetic prompts, four per language/script.\n\nThe legal draft distinguishes the author's intention and design requirements from legal authorization or completed compliance. It requires data minimization, purpose limitation, lawful basis, limited retention, access controls, audit, and legally permitted minimal signals, while warning that pseudonymization or a signal label does not automatically remove bank-secrecy or personal-data obligations.\n\nThe international draft cites FATF 2026 examples and carefully distinguishes public-private partnerships, fraud-account information sharing, and anti-scam operations. It does not claim FINZANJIR is unique, identical to another system, or a copy. Claims that an initiative closed because of funding must be individually sourced before use.\n\n## Review and validation status
 
 - Every new prompt is synthetic; no customer or bank data is included.
 - No new canned answers or canonical knowledge facts are introduced by these batches.
@@ -41,12 +41,12 @@ Also keep project mission distinct from the author's personal motivation. A ques
 
 ## Next work after this fixture
 
-1. Review native-language quality for Kazakh and Karakalpak, and check Uzbek Cyrillic/Latin equivalence.
+1. Review native-language quality for Kazakh and Karakalpak, and check Uzbek Cyrillic/Latin equivalence. Batch 6 translations are prompts for routing tests, not approved localized gold answers.
 2. Map every expected evidence requirement to exact canonical source IDs, provenance, and source status. Do not fill IDs based on lexical matches alone.
 3. Add evidence-level diagnostic traces so missing candidate retrieval can be separated from grounding-gate rejection.
 4. Expand the live endpoint benchmark and run the 276 prompts against the actual deployed endpoint in controlled batches, with secrets protected and no sensitive data.
 5. Manually score semantic correctness, answer completeness, source support, language quality, near-miss precision, abstention, and hallucination risk.
-6. Only then decide whether any runtime retrieval or intent-router change is warranted.
+6. Obtain qualified Uzbek legal/compliance review of the legality draft and verify every legal statement against current official law and actual proposed data flows.\n7. Complete primary-source comparison of international examples, including governance, legal basis, scope, funding, outcomes, and any documented closure reasons.\n8. Only then decide whether any runtime retrieval or intent-router change is warranted.
 
 ## Change boundary
 
