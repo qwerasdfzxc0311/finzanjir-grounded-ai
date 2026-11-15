@@ -134,7 +134,7 @@ def classify_query_intent(query: str) -> str:
             "maqsadi nima", "asosiy maqsadi",
             "yaratilish sababi", "yaratilishidan maqsad", "yaratishdan maqsad", "yaratishdan ko zlangan maqsad",
             "nima maqsadda", "why was finzanjir created", "why create finzanjir",
-            "purpose of finzanjir", "почему создан finzanjir", "для чего finzanjir",
+            "purpose of finzanjir", "почему создан finzanjir", "почему был создан finzanjir", "зачем был создан finzanjir", "для чего был создан finzanjir", "для чего finzanjir",
             "зачем создан finzanjir",
         ))
     ):
