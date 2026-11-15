@@ -202,3 +202,18 @@ def test_author_name_or_critique_question_does_not_trigger_motivation_answer():
     assert not is_author_motivation_query("FINZANJIR nima uchun kerak?")
     assert not is_author_motivation_query("Muallif FINZANJIRni haddan tashqari maqtaydimi?")
     assert not is_author_motivation_query("Salamat Smaylov loyihani tanqid qiladimi?")
+
+
+def test_author_motivation_accepts_common_ushun_spelling_and_returns_full_answer():
+    result = _engine_with_author_profile().answer(
+        "Siz Muallif nima ushun yaratgan finzanjirni",
+        runtime_refs=(),
+        working_memory_scope="author-purpose-ushun",
+    )
+    assert result.answer.abstained is False
+    assert result.answer.generation_mode == "author_motivation_grounded"
+    assert result.answer.citations == ("author_0004", "author_0008", "author_0009")
+    assert "hayotiy tajribalari" in result.answer.answer
+    assert "jamiyatga foyda keltirish istagi" in result.answer.answer
+    assert "Firibgarlikni qiyinlashtirish, qonuniy hayotni esa qiyinlashtirmaslik" in result.answer.answer
+    assert "oilaviy davrada eshitilgan" not in result.answer.answer
