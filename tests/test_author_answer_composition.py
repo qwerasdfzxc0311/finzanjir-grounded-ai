@@ -80,23 +80,16 @@ def test_author_motivation_question_selects_only_motivation_evidence():
     assert result.answer.abstained is False
     assert result.answer.generation_mode == "author_motivation_grounded"
     assert result.answer.citations == ("author_0004", "author_0008", "author_0009")
-    assert "bank cheklovlari" in result.answer.answer
-    assert "to'lov tizimlari, raqamli xizmatlar" in result.answer.answer
-    assert "jamiyatga foydali inson bo'lish istagi" in result.answer.answer
-    assert "fuqarolar o'z pullaridan doimiy qo'rqib yashamasligini" in result.answer.answer
-    assert "amalda joriy qilingan degani emas" in result.answer.answer
-    assert "mustaqil texnik yoki yuridik ekspert xulosasi emas" in result.answer.answer
-    assert "bank/to'lov tizimlariga ishonch" in result.answer.answer
-    assert "qonuniy tranzaksiyalarni" in result.answer.answer
-    assert "false positive" in result.answer.answer.casefold()
-    assert "false negative" in result.answer.answer.casefold()
-    assert "fuqaro murojaatlarini" in result.answer.answer
+    assert "hayotiy tajribalari" in result.answer.answer
+    assert "to'lov tizimlari" in result.answer.answer
+    assert "jamiyatga foyda keltirish istagini" in result.answer.answer
+    assert "insoniylik va adolat" in result.answer.answer
+    assert "moliyaviy va kiberxavfsizlik bo'yicha bilim" in result.answer.answer
     assert "Kiber Qalqon" in result.answer.answer
-    assert "mustaqil tekshirmagan" in result.answer.answer
-    assert "100 foiz xatosizlikni va'da qilish emas" in result.answer.answer
-    assert "avtomatik bloklash buyrug'i ham emas" in result.answer.answer
+    assert "100 foiz hal qilishga va'da bermaydi" in result.answer.answer
+    assert "Firibgarlikni qiyinlashtirish, qonuniy hayotni esa qiyinlashtirmaslik" in result.answer.answer
+    assert "oilaviy davrada eshitilgan" not in result.answer.answer
     assert "2003-yil" not in result.answer.answer
-
 
 class ExplodingProvider:
     last_status = "ready"
@@ -114,7 +107,7 @@ class ExplodingProvider:
         raise AssertionError("Author motivation must use its source-grounded answer, not free-form generation")
 
 
-def test_author_motivation_answer_preserves_exact_family_story_and_unknown_cause():
+def test_author_motivation_answer_uses_full_summary_without_overweighting_anecdote():
     ai = _engine_with_author_profile()
     ai.language_model = ExplodingProvider()
     ai.answer_generator.provider = ExplodingProvider()
@@ -129,20 +122,14 @@ def test_author_motivation_answer_preserves_exact_family_story_and_unknown_cause
     assert result.answer.generation_mode == "author_motivation_grounded"
     assert result.answer.provider_status == "not_attempted"
     assert result.answer.citations == ("author_0004", "author_0008", "author_0009")
-    assert "oilaviy davrada eshitilgan" in result.answer.answer.casefold()
-    assert "FINZANJIRni yaratish sababi bitta voqea" in result.answer.answer
-    assert "jamiyatga foydali inson bo'lish istagi" in result.answer.answer
-    assert "mustaqil tekshirmagan" in result.answer.answer
-    assert "nima sababdan bloklanganini bilmaydi" in result.answer.answer
-    assert "bank xatosi yoki noqonuniy harakat isboti emas" in result.answer.answer
-    assert "qonuniy tranzaksiyalarni asossiz to'xtatmaslik" in result.answer.answer
-    assert "false positive va false negative" in result.answer.answer.casefold()
-    assert "fuqaro murojaatlarini tez, adolatli qayta ko'rib chiqishga" in result.answer.answer
-    assert "banklarni ayblash" in result.answer.answer
-    assert "100 foiz xatosizlikni va'da qilish emas" in result.answer.answer
+    assert "hayotiy tajribalari" in result.answer.answer
+    assert "jamiyatga foyda keltirish istagini" in result.answer.answer
+    assert "Kiber Qalqon" in result.answer.answer
+    assert "insoniylik va adolat" in result.answer.answer
+    assert "100 foiz hal qilishga va'da bermaydi" in result.answer.answer
+    assert "oilaviy davrada eshitilgan" not in result.answer.answer
 
-
-def test_project_origin_question_does_not_misstate_family_story_as_bank_fault():
+def test_project_origin_question_uses_broad_motivation_summary():
     result = _engine_with_author_profile().answer(
         "FINZANJIR nima uchun yaratilgan?",
         runtime_refs=(),
@@ -152,9 +139,9 @@ def test_project_origin_question_does_not_misstate_family_story_as_bank_fault():
     assert result.answer.abstained is False
     assert result.answer.generation_mode == "author_motivation_grounded"
     assert result.answer.citations == ("author_0004", "author_0008", "author_0009")
-    assert "karta nima sababdan bloklanganini bilmaydi" in result.answer.answer
-    assert "bank xatosi yoki noqonuniy harakat isboti emas" in result.answer.answer
-
+    assert "hayotiy tajribalari" in result.answer.answer
+    assert "Firibgarlikni qiyinlashtirish, qonuniy hayotni esa qiyinlashtirmaslik" in result.answer.answer
+    assert "oilaviy davrada eshitilgan" not in result.answer.answer
 
 def test_author_motivation_answer_is_localized_for_supported_languages():
     ai = _engine_with_author_profile()
