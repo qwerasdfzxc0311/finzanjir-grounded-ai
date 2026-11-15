@@ -293,6 +293,82 @@
         "status": "author_confirmed",
         "scope": "project_origin_timeline"
       }
+    },
+    {
+      "id": "author_0008",
+      "entity_id": "person:salamat_smaylov",
+      "facet": "project_purpose_and_author_perspective",
+      "concept_id": "author_project_purpose_finzanjir",
+      "canonical_concept_id": "author_project_purpose_finzanjir",
+      "statement": "Muallifning FINZANJIR V14 konsepsiyasining 15-bobidagi bayoniga ko‘ra, loyihaning ma’nosi faqat dastur yoki texnik platforma yaratishda emas, balki rivojlanayotgan moliyaviy va kiber muhit bilan birga xavfsizlikni ham rivojlantirishga urinishdadir. To‘lov tizimlari, raqamli xizmatlar, internet va kiber ekotizim odamlarga qulaylik hamda yangi imkoniyatlar beradi, biroq ulardan noto‘g‘ri foydalanish xavfi ham ortadi; shu sabab xavfsizlik mexanizmlari muntazam takomillashishi kerak. Muallif fuqarolar o‘z pullaridan doimiy qo‘rqib yashamasligini, muammo yuz berganda qayerga murojaat qilishini bilishini va banklar xavfsizlik jarayonlarini tizimliroq hamda ishonchliroq tashkil eta olishini istaydi. FINZANJIRning ko‘zlangan yo‘nalishi — xavflarni yaxshiroq anglash, zarar ehtimolini kamaytirish, hodisalardan o‘rganish va kelajakdagi xavflarga tayyorlanish. Muallif barcha firibgarliklar yo‘qolishini yoki 100 foizlik natijani va’da qilmaydi. FINZANJIR uning uchun tajriba va bilim to‘plash, kelajakdagi foydali ishlanmalar uchun poydevor bo‘lishi mumkin; bu maqsadlarning barchasi allaqachon amalda joriy etilgan degani emas.",
+      "aliases": [
+        "FINZANJIRning asosiy maqsadi nima",
+        "FINZANJIR nima uchun kerak",
+        "FINZANJIRni nima maqsadda yaratgan",
+        "FINZANJIR yaratilishidan ko‘zlangan maqsad",
+        "loyihani yaratishdan maqsad",
+        "muallifning loyiha haqidagi keng qarashi",
+        "moliyaviy va kiber muhitda xavfsizlikni rivojlantirish",
+        "fuqarolar pulidan doimiy qo‘rqib yashamasligi",
+        "FINZANJIR faqat dasturmi",
+        "Why was FINZANJIR created",
+        "What is the purpose of FINZANJIR",
+        "Почему был создан FINZANJIR",
+        "FINZANJIR жобасының негізгі мақсаты",
+        "FINZANJIR diń tiykarǵı maqseti"
+      ],
+      "evidence": {
+        "status": "project_source",
+        "verification": "author_confirmed"
+      },
+      "provenance": [
+        {
+          "source_type": "project_archive_document",
+          "source_id": "FINZANJIR_KONSEPSIYA_V14.pdf",
+          "authority": "project_author_supplied_archive",
+          "version": "V14",
+          "sections": "15.1 Nima uchun bunday loyihalar bugun kerak; 15.2 100 foizlik va’da emas; 15.5 Fuqaro uchun ehtimoliy ahamiyat; 15.9 FINZANJIR — yakuniy nuqta emas, poydevor; 15.12 Muallifning yakuniy qarashi"
+        }
+      ],
+      "reconciliation": {
+        "status": "author_confirmed",
+        "scope": "author_project_purpose"
+      }
+    },
+    {
+      "id": "author_0009",
+      "entity_id": "person:salamat_smaylov",
+      "facet": "human_motivation_and_personal_development",
+      "concept_id": "author_human_motivation_finzanjir",
+      "canonical_concept_id": "author_human_motivation_finzanjir",
+      "statement": "FINZANJIR V14 konsepsiyasining 15.11.1-bo‘limida muallif loyiha g‘oyasi faqat texnologik yoki moliyaviy ehtiyojdan kelib chiqmaganini bayon qiladi. Uning shakllanishida muallifning shaxsiy hayotiy tajribasi, boshidan kechirgan qiyinchiliklari, o‘z yo‘lini qayta izlash jarayoni, bilim olish va o‘zini rivojlantirishga intilishi hamda jamiyatga foydali inson bo‘lish istagi muhim o‘rin tutgan. Bu ma’lumot muallifning umumiy insoniy motivatsiyasini tushuntiradi; alohida shaxsiy yoki oilaviy tafsilotlarni so‘ralmagan holda ochib berish uchun asos emas.",
+      "aliases": [
+        "muallifning insoniy motivatsiyasi",
+        "muallifning hayotiy tajribasi FINZANJIRga qanday ta’sir qilgan",
+        "jamiyatga foydali inson bo‘lish istagi",
+        "muallif nega foydali loyiha yaratmoqchi",
+        "muallifning qiyinchiliklari va o‘zini rivojlantirishi",
+        "personal motivation behind FINZANJIR",
+        "личная мотивация автора FINZANJIR"
+      ],
+      "evidence": {
+        "status": "project_source",
+        "verification": "author_confirmed",
+        "scope": "author_motivation"
+      },
+      "provenance": [
+        {
+          "source_type": "project_archive_document",
+          "source_id": "FINZANJIR_KONSEPSIYA_V14.pdf",
+          "authority": "project_author_supplied_archive",
+          "version": "V14",
+          "sections": "15.11.1 Shaxsiy hayotiy tajriba, xatolardan saboq olish va FINZANJIRning insoniy ildizi; pp. 158–159"
+        }
+      ],
+      "reconciliation": {
+        "status": "author_confirmed",
+        "scope": "author_human_motivation"
+      }
     }
   ]
 }
