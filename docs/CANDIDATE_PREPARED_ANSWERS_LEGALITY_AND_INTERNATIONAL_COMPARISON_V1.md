@@ -54,13 +54,13 @@ Shu ma'noda FINZANJIR turli muammolarni bitta “sehrli” vosita bilan hal qili
    - Reports at least 84 public-private partnerships globally and discusses legal basis, governance, safeguards, data protection, and examples including Singapore's Project FRONTIER+.
 2. FATF, *Combating End-to-End Illicit Financial Flows Linked to Scam Compounds* (2026): https://www.fatf-gafi.org/
    - Search within the report for FNC-RF (France) and ASAP (Korea); verify the exact current operational scope before using detailed claims.
-3. UK Government, *Guidance on the information sharing measures in the Economic Crime and Corporate Transparency Act 2023*, updated 3 October 2025: https://www.gov.uk/government/publications/information-sharing-measures-in-the-economic-crime-and-corporate-transparency-act/guidance-on-the-information-sharing-measures-in-the-economic-crime-and-corporate-transparency-act-2023
+3. UK National Crime Agency, *National Economic Crime Centre / JMLIT+*: https://www.nationalcrimeagency.gov.uk/what-we-do/national-economic-crime-centre\n   - Describes JMLIT+ as a public-private partnership with 200+ members and reports outcomes as of 31 December 2024. It also explains the Data Fusion capability and its targeted data-sharing model.\n4. UK Government, *Guidance on the information sharing measures in the Economic Crime and Corporate Transparency Act 2023*, updated 3 October 2025: https://www.gov.uk/government/publications/information-sharing-measures-in-the-economic-crime-and-corporate-transparency-act/guidance-on-the-information-sharing-measures-in-the-economic-crime-and-corporate-transparency-act-2023
    - Describes voluntary direct or intermediary information sharing by eligible AML-regulated firms, with conditions and UK GDPR/complaints considerations.
-4. FATF, *Private Sector Information Sharing* guidance: https://www.fatf-gafi.org/en/publications/fatfgeneral/documents/guidance-information-sharing.html
+5. FATF, *Private Sector Information Sharing* guidance: https://www.fatf-gafi.org/en/publications/fatfgeneral/documents/guidance-information-sharing.html
    - Explains that information sharing can help, but legal and operational constraints remain and safeguards are required.
-5. Central Bank of Uzbekistan, AML/CFT/CPF supervision overview: https://cbu.uz/en/combating-money-laundering/aml-cft/about/
+6. Central Bank of Uzbekistan, AML/CFT/CPF supervision overview: https://cbu.uz/en/combating-money-laundering/aml-cft/about/
    - Confirms the Central Bank's supervisory role in AML/CFT/CPF for relevant licensed entities. This is not, by itself, a legal basis for FINZANJIR to access or exchange bank/customer data.
-6. Central Bank of Uzbekistan FAQ on bank secrecy: https://cbu.uz/en/press_center/question_answer/3808/
+7. Central Bank of Uzbekistan FAQ on bank secrecy: https://cbu.uz/en/press_center/question_answer/3808/
    - Explains that client transaction, account, and deposit information is protected as bank secrecy and disclosure follows the law's specified procedures.
 
 ## Approval requirements before runtime activation
