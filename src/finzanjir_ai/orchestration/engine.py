@@ -18,6 +18,7 @@ from finzanjir_ai.memory.conversation import build_conversation_context
 from finzanjir_ai.orchestration.intent import (
     classify_query_intent,
     is_author_motivation_query,
+    is_author_motivation_follow_up,
     is_author_overview_query,
 )
 
@@ -208,7 +209,11 @@ class FINZANJIRAI:
         # the answer composer select and organize its verified biography facets.
         # Motivation questions need the complete, source-separated author profile.
         # Do not answer from the family anecdote alone or from a name match.
-        if query_intent == "author" and is_author_motivation_query(query):
+        motivation_route = is_author_motivation_query(query) or (
+            is_author_motivation_follow_up(query)
+            and is_author_motivation_query(contextual_query)
+        )
+        if query_intent == "author" and motivation_route:
             profile = self.grounder.assemble_entity("person:salamat_smaylov", max_items=16)
             if profile.items:
                 runtime = RuntimeContext.from_refs(
