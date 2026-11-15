@@ -100,9 +100,27 @@ class SystemFlow:
             emit("cross_bank_fraud", "RUNNING", "Cross-Bank ruxsat chegarasi tekshirilmoqda.")
             shadow_cross_bank = CrossBankMatcher().match([], scope="cross_bank", authorized_exchange=True)
             emit("cross_bank_fraud", "DISABLED", "Banklararo almashinuv o‘chiq; bu moslik topilmadi degani emas.")
-            emit("human_case", "RUNNING", "Case ochish mezonlari va Shadow Mode tekshirilmoqda.", input_refs=(pipeline.risk["id"],) if pipeline.risk else ())
+            shadow_case_refs = tuple(
+                ref
+                for ref in (
+                    transaction_id,
+                    pipeline.risk.get("id") if pipeline.risk else None,
+                )
+                if ref
+            )
+            emit(
+                "human_case",
+                "RUNNING",
+                "Case ochish mezonlari va Shadow Mode tekshirilmoqda.",
+                input_refs=shadow_case_refs,
+            )
             human_status = "SHADOW_ONLY" if pipeline.risk and pipeline.risk.get("shadow_mode") else "NOT_ELIGIBLE"
-            emit("human_case", human_status, "Shadow Mode yoki Case mezonlari sabab Case ochilmadi.")
+            emit(
+                "human_case",
+                human_status,
+                "Shadow Mode yoki Case mezonlari sabab Case ochilmadi.",
+                input_refs=shadow_case_refs,
+            )
             shadow_runtime_refs = tuple(
                 value
                 for value in (
@@ -184,7 +202,21 @@ class SystemFlow:
                 input_refs=shadow_runtime_refs,
                 output_refs=tuple(getattr(ai_answer, "citations", ()) or ()),
             )
-            emit("citizen", "RUNNING", "Sintetik fuqaro statusi tayyorlanmoqda.")
+            shadow_citizen_refs = tuple(
+                ref
+                for ref in (
+                    transaction_id,
+                    pipeline.risk.get("id") if pipeline.risk else None,
+                    pipeline.risk.get("threshold_id") if pipeline.risk else None,
+                )
+                if ref
+            )
+            emit(
+                "citizen",
+                "RUNNING",
+                "Sintetik fuqaro statusi tayyorlanmoqda.",
+                input_refs=shadow_citizen_refs,
+            )
             shadow_citizen_status = {
                 "case_id": None,
                 "status": "SHADOW_ONLY" if pipeline.risk and pipeline.risk.get("shadow_mode") else "NO_CASE",
@@ -193,7 +225,12 @@ class SystemFlow:
                 "risk_level": pipeline.risk.get("level") if pipeline.risk else None,
                 "case_eligible": pipeline.risk.get("case_eligible", False) if pipeline.risk else False,
             }
-            emit("citizen", "SYNTHETIC_STATUS_ONLY", "Faqaro statusi faqat sintetik namuna.")
+            emit(
+                "citizen",
+                "SYNTHETIC_STATUS_ONLY",
+                "Fuqaro statusi faqat sintetik namuna.",
+                input_refs=shadow_citizen_refs,
+            )
             emit("layers_16", "RUNNING", "16 qatlam izi shakllantirilmoqda.", input_refs=(transaction_id,))
             shadow_layers = self._layer_trace(transaction_id=transaction_id)
             emit("layers_16", "PARTIAL", "16 qatlam izi tayyor; statuslar qisman/rejalashtirilgan.", input_refs=(transaction_id,), output_refs=tuple(item["layer_id"] for item in shadow_layers))
