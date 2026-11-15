@@ -263,25 +263,32 @@ def is_author_motivation_query(query: str) -> bool:
         "author", "автор", "avtor", "avtordıń",
     })
     project_ref = any(token.startswith("finzanjir") for token in tokens) or bool(tokens & {"loyiha", "project"})
-    author_creation_markers = (
-        "nima uchun yarat", "nega yarat", "nima sababdan yarat",
-        "qanday sabab bilan yarat", "yaratilish sababi",
-        "yaratilishidan maqsad", "yaratishdan maqsad", "yaratishdan maqsadi",
-        "nima maqsadda yarat", "ne ushin jarat", "ne ushın jarat",
-        "maqset", "jaratqan", "why did", "why was finzanjir created",
-        "почему был создан", "почему создан", "зачем был создан",
-        "для чего был создан", "не үшін жасады", "не себептен құрды",
+    has_creation_verb = any(token.startswith((
+        "yarat", "jarat", "create", "creat", "созда", "жаса",
+    )) for token in tokens)
+    reason_markers = (
+        "nima uchun", "nega", "nima sabab", "qanday sabab",
+        "maqsad", "maqset", "sebep", "why", "reason", "purpose",
+        "почему", "зачем", "для чего", "причина", "цель",
+        "не үшін", "не себеп", "мақсат", "себеп",
     )
-    if author_ref and any(marker in normalized for marker in author_creation_markers):
-        return True
-    if project_ref and any(marker in normalized for marker in (
+    explicit_purpose_markers = (
         "maqsadi nima", "asosiy maqsadi",
-        "nima uchun yaratil", "nima sababdan yaratil", "nima maqsadda yaratil",
-        "yaratilish sababi", "yaratilishidan maqsad", "yaratishdan maqsad", "yaratishdan ko zlangan maqsad",
+        "yaratilish sababi", "yaratilishidan maqsad",
+        "yaratishdan maqsad", "yaratishdan maqsadi",
+        "yaratishdan ko zlangan maqsad",
         "why was finzanjir created", "why create finzanjir",
         "purpose of finzanjir", "почему создан finzanjir",
-        "для чего finzanjir", "зачем создан finzanjir",
-    )):
+        "почему был создан finzanjir", "зачем был создан finzanjir",
+        "для чего был создан finzanjir", "для чего finzanjir",
+        "зачем создан finzanjir",
+    )
+    if author_ref and has_creation_verb and any(marker in normalized for marker in reason_markers):
+        return True
+    if project_ref and (
+        any(marker in normalized for marker in explicit_purpose_markers)
+        or (has_creation_verb and any(marker in normalized for marker in reason_markers))
+    ):
         return True
     return False
 
