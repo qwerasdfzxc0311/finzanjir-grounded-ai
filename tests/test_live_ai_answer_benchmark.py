@@ -142,6 +142,9 @@ def test_live_benchmark_writes_json_and_csv_without_extra_api_fields(tmp_path, m
     assert report["summary"]["nonempty_answers"] == 2
     assert len(report["results"]) == 2
     assert report["results"][0]["knowledge_refs"] == ["project_0001"]
+    assert report["results"][0]["review_focus"] == "overview"
     assert "api_key" not in report["results"][0]
     with csv_path.open(encoding="utf-8-sig", newline="") as handle:
-        assert len(list(csv.DictReader(handle))) == 2
+        rows = list(csv.DictReader(handle))
+        assert len(rows) == 2
+        assert rows[0]["review_focus"] == "overview"
