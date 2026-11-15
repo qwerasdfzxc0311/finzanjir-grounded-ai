@@ -71,6 +71,7 @@ def _result_from_response(
         "question": question["question"],
         "expected_language": question["language"],
         "topic": question["topic"],
+        "review_focus": question.get("review_focus", ""),
         "http_status": status_code,
         "json_returned": isinstance(payload, dict),
         "answer_nonempty": bool(answer_text.strip()),
@@ -119,6 +120,7 @@ def run_benchmark(
                     "question": question["question"],
                     "expected_language": question["language"],
                     "topic": question["topic"],
+                    "review_focus": question.get("review_focus", ""),
                     "http_status": None,
                     "json_returned": False,
                     "answer_nonempty": False,
@@ -156,7 +158,7 @@ def run_benchmark(
     json_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
     columns = [
-        "id", "question", "expected_language", "topic", "http_status",
+        "id", "question", "expected_language", "topic", "review_focus", "http_status",
         "json_returned", "answer_nonempty", "abstained", "generation_mode",
         "provider_status", "provider_diagnostics", "confidence", "knowledge_refs",
         "provenance", "error_type", "answer",
