@@ -300,7 +300,7 @@
       "facet": "project_purpose_and_author_perspective",
       "concept_id": "author_project_purpose_finzanjir",
       "canonical_concept_id": "author_project_purpose_finzanjir",
-      "statement": "Muallifning FINZANJIR V14 konsepsiyasining 15-bobidagi bayoniga ko‘ra, loyihaning ma’nosi faqat dastur yoki texnik platforma yaratishda emas, balki rivojlanayotgan moliyaviy va kiber muhit bilan birga xavfsizlikni ham rivojlantirishga urinishdadir. To‘lov tizimlari, raqamli xizmatlar, internet va kiber ekotizim odamlarga qulaylik hamda yangi imkoniyatlar beradi, biroq ulardan noto‘g‘ri foydalanish xavfi ham ortadi; shu sabab xavfsizlik mexanizmlari muntazam takomillashishi kerak. Muallif fuqarolar o‘z pullaridan doimiy qo‘rqib yashamasligini, muammo yuz berganda qayerga murojaat qilishini bilishini va banklar xavfsizlik jarayonlarini tizimliroq hamda ishonchliroq tashkil eta olishini istaydi. FINZANJIRning ko‘zlangan yo‘nalishi — xavflarni yaxshiroq anglash, zarar ehtimolini kamaytirish, hodisalardan o‘rganish va kelajakdagi xavflarga tayyorlanish. Muallif barcha firibgarliklar yo‘qolishini yoki 100 foizlik natijani va’da qilmaydi. FINZANJIR uning uchun tajriba va bilim to‘plash, kelajakdagi foydali ishlanmalar uchun poydevor bo‘lishi mumkin; bu maqsadlarning barchasi allaqachon amalda joriy etilgan degani emas.",
+      "statement": "FINZANJIR V14 konsepsiyasining 15-bobi muallifning shaxsiy qarashi va kelajak tasavvuri sifatida berilgan; u texnik talab, tijoriy taklif, mustaqil ekspert xulosasi yoki kafolatlangan natija emas. Muallif loyihaning ma’nosini faqat dastur yoki bugungi muammoni hal qiluvchi mahsulot yaratishda emas, rivojlanayotgan moliyaviy va kiber muhit bilan birga xavfsizlikni ham doimiy rivojlantirishga urinishda ko‘radi. To‘lov tizimlari, raqamli xizmatlar, internet va kiber ekotizim qulaylik hamda yangi imkoniyatlar beradi, biroq xavflar ham o‘zgaradi; shu sabab himoya mexanizmlari muntazam takomillashishi kerak. Maqsad — fuqarolar o‘z pullaridan doimiy qo‘rqib yashamasligi, muammo yuz berganda qayerga murojaat qilishini bilishi, bank va to‘lov tizimlariga ishonch hamda qulaylik oshishi, xavfsizlik esa keraksiz to‘siq yaratmasligidir. Moliyaviy zarar insonning kundalik hayoti va oilaviy sharoitiga ta’sir qilishi mumkin; xavfni oldindan kamaytirish va hodisadan keyin zararni cheklash bunga yordam berishi mumkin, ammo natija kafolatlanmaydi. Ko‘zlangan yo‘nalish — xavfni erta anglash, shubhali holatlarni tegishli bank yoki vakolatli jarayonga yetkazish, mavjud dalillarni saqlash va imkon bo‘lsa mablag‘ni qaytarish yoki tiklash jarayonini tezlashtirishga ko‘maklashish; qaytarish konkret holat va huquqiy shartlarga bog‘liq. Texnik signal insonning aybdorligini avtomatik isbotlamaydi va uni “firibgar” deb belgilamaydi; harakatni baholash bilan shaxsga tamg‘a qo‘yish farqlanadi. Hodisalardan saboq olish, takroriy sxemalarni kamaytirish va yangi xavflarga moslashish muhim. Xalqaro tajribani o‘rganish va mahalliy sharoitga moslashtirish kelajak yo‘nalishidir, tayyor tizimni ko‘chirib olish yoki hozirgi hamkorlik borligini anglatmaydi. Moliyaviy resurs muallif qarashida maqsad emas, loyihani sifatli va xavfsiz davom ettirish vositasidir. FINZANJIR yakuniy nuqta emas, bilim va kelajakdagi foydali ishlanmalar uchun poydevor bo‘lishi mumkin; konsepsiyada bayon qilingan maqsadlarning barchasi allaqachon amalda joriy qilingan degani emas.",
       "aliases": [
         "FINZANJIRning asosiy maqsadi nima",
         "FINZANJIR nima uchun kerak",
@@ -315,7 +315,13 @@
         "What is the purpose of FINZANJIR",
         "Почему был создан FINZANJIR",
         "FINZANJIR жобасының негізгі мақсаты",
-        "FINZANJIR diń tiykarǵı maqseti"
+        "FINZANJIR diń tiykarǵı maqseti",
+        "zararni kamaytirish va hodisadan keyingi yordam",
+        "shubhali signal firibgar degani emas",
+        "fuqaro va bankka qulaylik va ishonch",
+        "xalqaro tajriba va kelajakdagi hamkorlik",
+        "moliyaviy resurs maqsad emas",
+        "muallifning shaxsiy qarashi ekspert xulosasi emas"
       ],
       "evidence": {
         "status": "project_source",
@@ -327,7 +333,7 @@
           "source_id": "FINZANJIR_KONSEPSIYA_V14.pdf",
           "authority": "project_author_supplied_archive",
           "version": "V14",
-          "sections": "15.1 Nima uchun bunday loyihalar bugun kerak; 15.2 100 foizlik va’da emas; 15.5 Fuqaro uchun ehtimoliy ahamiyat; 15.9 FINZANJIR — yakuniy nuqta emas, poydevor; 15.12 Muallifning yakuniy qarashi"
+          "sections": "15-bobning umumiy muallif qarashi; 15.1 Nima uchun bunday loyihalar bugun kerak; 15.2 100 foizlik va’da emas; 15.3 Zararni kamaytirish va hodisadan keyingi yordam; 15.4 Insonni tamg‘alamaslik; 15.5 Fuqaro va uning oilasi uchun ehtimoliy ahamiyat; 15.6 Bankka bo‘lgan ishonch va fuqaroga qulaylik; 15.7 Yangi xavflar paydo bo‘lsa, tizim ham rivojlanishi kerak; 15.8 Xalqaro tajriba va kelajakdagi hamkorlik; 15.9 FINZANJIR — yakuniy nuqta emas, poydevor; 15.10 Moliyaviy resurs — maqsad emas, rivojlanish vositasi; 15.12 Muallifning yakuniy qarashi"
         }
       ],
       "reconciliation": {
