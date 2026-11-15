@@ -593,8 +593,8 @@ class GroundedAnswerGenerator:
                 provider_status="not_attempted",
             )
 
-        if classify_query_intent(query) == "author" and (
-            is_author_motivation_query(query)
+        if (
+            (classify_query_intent(query) == "author" and is_author_motivation_query(query))
             or (is_author_motivation_follow_up(query) and is_author_motivation_query(intent_query))
         ):
             motivation_evidence = {
