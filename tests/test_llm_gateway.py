@@ -49,6 +49,9 @@ def test_gateway_keeps_common_personal_and_payment_identifiers_out_of_provider_c
     assert not LLMGateway.can_send_text("Karta raqami 8600 1234 5678 9012")
     assert not LLMGateway.can_send_text("Telefon +998 90 123 45 67")
     assert not LLMGateway.can_send_text("Email user@example.com")
+    assert not LLMGateway.can_send_text("Telefon +7 999 123-45-67")
+    assert not LLMGateway.can_send_text("Pasport AA1234567")
+    assert not LLMGateway.can_send_text("IBAN GB82 WEST 1234 5698 7654 32")
     assert LLMGateway.can_send_text("FINZANJIR firibgarlik zanjirini qanday aniqlaydi?")
 
 
