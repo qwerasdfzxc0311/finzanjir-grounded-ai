@@ -132,10 +132,13 @@ def classify_query_intent(query: str) -> str:
         any(token.startswith("finzanjir") for token in tokens)
         and any(phrase in normalized for phrase in (
             "maqsadi nima", "asosiy maqsadi",
-            "yaratilish sababi", "yaratilishidan maqsad", "yaratishdan maqsad", "yaratishdan ko zlangan maqsad",
-            "nima maqsadda", "why was finzanjir created", "why create finzanjir",
-            "purpose of finzanjir", "почему создан finzanjir", "почему был создан finzanjir", "зачем был создан finzanjir", "для чего был создан finzanjir", "для чего finzanjir",
-            "зачем создан finzanjir",
+            "nima uchun yarat", "nima sababdan yarat", "nima maqsadda yarat",
+            "yaratilish sababi", "yaratilishidan maqsad", "yaratishdan maqsad",
+            "yaratishdan ko zlangan maqsad", "ne ushin jaratqan", "ne ushın jaratqan",
+            "why was finzanjir created", "why create finzanjir",
+            "purpose of finzanjir", "почему создан finzanjir", "почему был создан finzanjir",
+            "зачем был создан finzanjir", "для чего был создан finzanjir",
+            "для чего finzanjir", "зачем создан finzanjir",
         ))
     ):
         return "author"
@@ -270,7 +273,7 @@ def is_author_motivation_query(query: str) -> bool:
         "nima uchun", "nega", "nima sabab", "qanday sabab",
         "maqsad", "maqset", "sebep", "why", "reason", "purpose",
         "почему", "зачем", "для чего", "причина", "цель",
-        "не үшін", "не себеп", "мақсат", "себеп",
+        "не үшін", "не себеп", "мақсат", "себеп", "ne ushin", "ne ushın",
     )
     explicit_purpose_markers = (
         "maqsadi nima", "asosiy maqsadi",
