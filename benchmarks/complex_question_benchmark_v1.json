@@ -1,0 +1,375 @@
+{
+  "benchmark_id": "finzanjir_complex_question_diagnostics_v1",
+  "version": 1,
+  "purpose": "Measure whether FINZANJIR understands complex questions, separates answerable subquestions, retrieves evidence for each part, and abstains only where evidence is missing.",
+  "corpus_version": "canonical_knowledge_v0.6",
+  "corpus_mutable": false,
+  "data_policy": {
+    "synthetic_queries_only": true,
+    "contains_real_customer_or_bank_data": false,
+    "external_sources_enter_canonical_corpus": false
+  },
+  "evidence_id_mapping": "mapped_to_canonical_v0.6_record_ids_pending_runtime_validation",
+  "cases": [
+    {
+      "id": "cmp_uz_001",
+      "query": "FINZANJIRning O'zbekistondagi va boshqa davlatlardagi o'xshash loyihalardan farqi nimada?",
+      "language": "uz",
+      "expected_intent": "comparison",
+      "subquestions": [
+        {
+          "id": "a",
+          "target": "FINZANJIRning hujjatlarda tasdiqlangan maqsadi va ishlash tamoyillari",
+          "evidence_scope": "canonical_project",
+          "knowledge_state": "must_be_resolved_from_corpus",
+          "answer_required": true,
+          "expected_evidence_ids": [
+            "ck_000001",
+            "ck_000018"
+          ],
+          "evidence_gap_reason": null,
+          "retrieval_query": "FINZANJIR maqsadi banklar bilan qonuniy integratsiya risk signallarini tahlil qilish himoya recovery"
+        },
+        {
+          "id": "b",
+          "target": "O'zbekistondagi taqqoslanadigan tizimlar va ularning hujjatlashtirilgan xususiyatlari",
+          "evidence_scope": "external_research",
+          "knowledge_state": "unknown_until_researched",
+          "answer_required": false,
+          "expected_evidence_ids": [],
+          "evidence_gap_reason": "Canonical FINZANJIR corpus contains no verified system-by-system comparison evidence; international study is described as future work.",
+          "retrieval_query": ""
+        },
+        {
+          "id": "c",
+          "target": "Boshqa davlatlardagi taqqoslanadigan tizimlar va ularning hujjatlashtirilgan xususiyatlari",
+          "evidence_scope": "external_research",
+          "knowledge_state": "unknown_until_researched",
+          "answer_required": false,
+          "expected_evidence_ids": [],
+          "evidence_gap_reason": "Canonical FINZANJIR corpus contains no verified system-by-system comparison evidence; international study is described as future work.",
+          "retrieval_query": ""
+        }
+      ],
+      "required_behavior": [
+        "Explain all supported FINZANJIR facts even if comparison evidence is missing",
+        "State that a reliable comparison cannot yet be made for systems without verified source material",
+        "Keep documented facts separate from proposals and assumptions"
+      ],
+      "forbidden_behavior": [
+        "Invent foreign or domestic systems",
+        "Claim FINZANJIR is unique or superior without comparable evidence",
+        "Refuse to explain FINZANJIR merely because external comparison evidence is missing"
+      ]
+    },
+    {
+      "id": "arch_uz_001",
+      "query": "FINZANJIR arxitekturasi qanday tuzilgan, qismlari bir-biriga qanday bog'langan?",
+      "language": "uz",
+      "expected_intent": "architecture",
+      "subquestions": [
+        {
+          "id": "a",
+          "target": "Hujjatlarda ko'rsatilgan asosiy arxitektura qismlari",
+          "evidence_scope": "canonical_project",
+          "knowledge_state": "must_be_resolved_from_corpus",
+          "answer_required": true,
+          "expected_evidence_ids": [
+            "ck_003257",
+            "ck_000004"
+          ],
+          "evidence_gap_reason": null,
+          "retrieval_query": "FINZANJIR texnik arxitektura API Gateway Identity KYC Risk Engine Cross-Match Device Network Fraud Graph Anti-Phishing Case Management FIN-RECOVERY Audit KPI"
+        },
+        {
+          "id": "b",
+          "target": "Qismlar o'rtasidagi tasdiqlangan bog'liqlik va ma'lumot oqimi",
+          "evidence_scope": "canonical_project",
+          "knowledge_state": "must_be_resolved_from_corpus",
+          "answer_required": true,
+          "expected_evidence_ids": [
+            "ck_003257",
+            "ck_000004",
+            "ck_003265"
+          ],
+          "evidence_gap_reason": null,
+          "retrieval_query": "Bank A Bank B PSP API Gateway Data Exchange Validation Normalization Risk Engine Fraud Graph Risk Score Case Management Human Bank Review Audit feedback"
+        }
+      ],
+      "required_behavior": [
+        "Describe only relationships supported by source evidence",
+        "Mark any missing architectural detail as unknown rather than filling it by assumption"
+      ],
+      "forbidden_behavior": [
+        "Present a proposed component as already implemented",
+        "Invent data flows or integrations"
+      ]
+    },
+    {
+      "id": "fraud_uz_001",
+      "query": "FINZANJIR firibgarlik zanjirini qanday aniqlaydi va fuqaro pulini qanday himoya qilishga yordam beradi?",
+      "language": "uz",
+      "expected_intent": "mechanism_and_benefit",
+      "subquestions": [
+        {
+          "id": "a",
+          "target": "Firibgarlik alomatlari va zanjirini aniqlashga oid hujjatlashtirilgan mexanizmlar",
+          "evidence_scope": "canonical_project",
+          "knowledge_state": "must_be_resolved_from_corpus",
+          "answer_required": true,
+          "expected_evidence_ids": [
+            "ck_000003",
+            "ck_000001"
+          ],
+          "evidence_gap_reason": null,
+          "retrieval_query": "FINZANJIR shubhali hodisa bir nechta signal tranzaksiya kanal qurilma identifikatsiya verifikatsiya tranzaksiya konteksti pul harakati Fraud Graph Cross-Match"
+        },
+        {
+          "id": "b",
+          "target": "Fuqaro mablag'ini himoya qilishga qaratilgan hujjatlashtirilgan choralar",
+          "evidence_scope": "canonical_project",
+          "knowledge_state": "must_be_resolved_from_corpus",
+          "answer_required": true,
+          "expected_evidence_ids": [
+            "ck_000021",
+            "ck_000003"
+          ],
+          "evidence_gap_reason": null,
+          "retrieval_query": "fuqarolar kartalari raqamli mablag'larini firibgarlikdan himoya ogohlantirish bankka xabar recovery vakolatli tashkilot"
+        }
+      ],
+      "required_behavior": [
+        "Cover both detection and citizen-protection parts",
+        "Explain that a signal or risk indication is not proof of guilt",
+        "Avoid implying guaranteed prevention or automatic blocking"
+      ],
+      "forbidden_behavior": [
+        "Answer only with a generic mission statement",
+        "Treat an alert as proof of fraud or guilt",
+        "Promise 100 percent prevention"
+      ]
+    },
+    {
+      "id": "status_uz_001",
+      "query": "Qaysi imkoniyatlari hozir mavjud, qaysilari hali reja yoki taklif?",
+      "language": "uz",
+      "expected_intent": "capability_status",
+      "subquestions": [
+        {
+          "id": "a",
+          "target": "Prototipda amalda tasdiqlangan imkoniyatlar",
+          "evidence_scope": "canonical_project",
+          "knowledge_state": "must_be_resolved_from_corpus",
+          "answer_required": true,
+          "expected_evidence_ids": [
+            "ck_003255",
+            "ck_000260",
+            "ck_000552"
+          ],
+          "evidence_gap_reason": null,
+          "retrieval_query": "joriy Android APK prototipi sintetik demo interfeys Risk Engine Fraud Graph Case FIN-RECOVERY Alerts History App Scanner FINZANJIR AI"
+        },
+        {
+          "id": "b",
+          "target": "Reja, taklif yoki hali amalga oshirilmagan imkoniyatlar",
+          "evidence_scope": "canonical_project",
+          "knowledge_state": "must_be_resolved_from_corpus",
+          "answer_required": true,
+          "expected_evidence_ids": [
+            "ck_000018",
+            "ck_000004",
+            "ck_003257"
+          ],
+          "evidence_gap_reason": null,
+          "retrieval_query": "kelajakdagi real bank API real-time Data Exchange Production monitoring orchestration MVP Pilot Production huquqiy texnik talablar"
+        },
+        {
+          "id": "c",
+          "target": "Ishlab chiqarish muhitida tasdiqlangan imkoniyatlar",
+          "evidence_scope": "canonical_project",
+          "knowledge_state": "not_confirmed_in_corpus",
+          "answer_required": true,
+          "expected_evidence_ids": [],
+          "evidence_gap_reason": "No source record confirms a production deployment or production operation.",
+          "retrieval_query": ""
+        }
+      ],
+      "required_behavior": [
+        "Separate prototype-confirmed, proposed, and production-confirmed status",
+        "Say when production status is not evidenced"
+      ],
+      "forbidden_behavior": [
+        "Treat a plan as an existing feature",
+        "Treat a prototype as a deployed production system"
+      ]
+    },
+    {
+      "id": "partial_uz_001",
+      "query": "FINZANJIR banklar bilan qanday ishlaydi va boshqa davlatlarda shunga o'xshash tizimlar bormi?",
+      "language": "uz",
+      "expected_intent": "mixed_internal_external",
+      "subquestions": [
+        {
+          "id": "a",
+          "target": "FINZANJIR va banklar o'rtasidagi hujjatlashtirilgan hamkorlik modeli",
+          "evidence_scope": "canonical_project",
+          "knowledge_state": "must_be_resolved_from_corpus",
+          "answer_required": true,
+          "expected_evidence_ids": [
+            "ck_000001",
+            "ck_000004",
+            "ck_003265"
+          ],
+          "evidence_gap_reason": null,
+          "retrieval_query": "FINZANJIR bank PSP hamkorlik qonuniy API ruxsat etilgan ma'lumot almashinuvi legal basis allowed fields API schema audit retention"
+        },
+        {
+          "id": "b",
+          "target": "Boshqa davlatlardagi o'xshash tizimlar",
+          "evidence_scope": "external_research",
+          "knowledge_state": "unknown_until_researched",
+          "answer_required": false,
+          "expected_evidence_ids": [],
+          "evidence_gap_reason": "Canonical FINZANJIR corpus contains no verified system-by-system comparison evidence; international study is described as future work.",
+          "retrieval_query": ""
+        }
+      ],
+      "required_behavior": [
+        "Answer the internal FINZANJIR part if evidence exists",
+        "Abstain only from unsupported external comparison"
+      ],
+      "forbidden_behavior": [
+        "Let the unknown external part suppress the answerable internal part"
+      ]
+    },
+    {
+      "id": "arch_ru_001",
+      "query": "Как устроена архитектура FINZANJIR и какие связи между её компонентами подтверждены документами?",
+      "language": "ru",
+      "expected_intent": "architecture",
+      "subquestions": [
+        {
+          "id": "a",
+          "target": "Подтверждённые документами компоненты архитектуры",
+          "evidence_scope": "canonical_project",
+          "knowledge_state": "must_be_resolved_from_corpus",
+          "answer_required": true,
+          "expected_evidence_ids": [
+            "ck_003257",
+            "ck_000004"
+          ],
+          "evidence_gap_reason": null,
+          "retrieval_query": "архитектура FINZANJIR API Gateway Risk Engine Cross-Match Fraud Graph Case Management Audit KPI"
+        },
+        {
+          "id": "b",
+          "target": "Подтверждённые связи и потоки данных между компонентами",
+          "evidence_scope": "canonical_project",
+          "knowledge_state": "must_be_resolved_from_corpus",
+          "answer_required": true,
+          "expected_evidence_ids": [
+            "ck_003257",
+            "ck_000004",
+            "ck_003265"
+          ],
+          "evidence_gap_reason": null,
+          "retrieval_query": "поток данных банк PSP API Gateway Data Exchange Risk Engine Fraud Graph Case Management проверка решение аудит"
+        }
+      ],
+      "required_behavior": [
+        "Answer in Russian",
+        "Distinguish documented relations from assumptions"
+      ],
+      "forbidden_behavior": [
+        "Invent undocumented integrations"
+      ]
+    },
+    {
+      "id": "cmp_en_001",
+      "query": "How is FINZANJIR different from similar fraud-prevention systems in other countries?",
+      "language": "en",
+      "expected_intent": "comparison",
+      "subquestions": [
+        {
+          "id": "a",
+          "target": "Documented FINZANJIR goals, architecture, and mechanisms",
+          "evidence_scope": "canonical_project",
+          "knowledge_state": "must_be_resolved_from_corpus",
+          "answer_required": true,
+          "expected_evidence_ids": [
+            "ck_000001",
+            "ck_000018"
+          ],
+          "evidence_gap_reason": null,
+          "retrieval_query": "FINZANJIR purpose bank PSP lawful API agreed data exchange fraud risk signal case review protection recovery audit"
+        },
+        {
+          "id": "b",
+          "target": "Comparable systems in other countries and their verified features",
+          "evidence_scope": "external_research",
+          "knowledge_state": "unknown_until_researched",
+          "answer_required": false,
+          "expected_evidence_ids": [],
+          "evidence_gap_reason": "Canonical FINZANJIR corpus contains no verified system-by-system comparison evidence; international study is described as future work.",
+          "retrieval_query": ""
+        }
+      ],
+      "required_behavior": [
+        "Explain supported FINZANJIR facts in English",
+        "Avoid unsupported superiority or uniqueness claims",
+        "Identify the missing comparison evidence"
+      ],
+      "forbidden_behavior": [
+        "Invent international competitors or capabilities"
+      ]
+    },
+    {
+      "id": "paraphrase_uz_001",
+      "query": "Boshqa joylardagi shunaqa loyihalarga qaraganda FINZANJIRning o'ziga xos tomoni nima?",
+      "language": "uz",
+      "expected_intent": "comparison",
+      "subquestions": [
+        {
+          "id": "a",
+          "target": "Documented FINZANJIR characteristics",
+          "evidence_scope": "canonical_project",
+          "knowledge_state": "must_be_resolved_from_corpus",
+          "answer_required": true,
+          "expected_evidence_ids": [
+            "ck_000001",
+            "ck_000018"
+          ],
+          "evidence_gap_reason": null,
+          "retrieval_query": "FINZANJIR o'ziga xos xususiyat maqsad arxitektura risk signallari qonuniy integratsiya boshqa loyihalar farqi"
+        },
+        {
+          "id": "b",
+          "target": "Verified characteristics of comparable systems",
+          "evidence_scope": "external_research",
+          "knowledge_state": "unknown_until_researched",
+          "answer_required": false,
+          "expected_evidence_ids": [],
+          "evidence_gap_reason": "Canonical FINZANJIR corpus contains no verified system-by-system comparison evidence; international study is described as future work.",
+          "retrieval_query": ""
+        }
+      ],
+      "required_behavior": [
+        "Recognize this as a comparison paraphrase",
+        "Apply the same partial-answer behavior as cmp_uz_001"
+      ],
+      "forbidden_behavior": [
+        "Route only by exact phrase matching",
+        "Invent comparison facts"
+      ]
+    }
+  ],
+  "evidence_id_mapping_notes": [
+    "Evidence IDs were resolved directly from canonical_knowledge_v0.6.json and each record's source-derived statement/provenance.",
+    "ck_000001 and ck_000018 describe the project overview and Master Flow; the Master Flow explicitly distinguishes future full platform architecture from the current prototype.",
+    "ck_003257 and ck_000004 describe conceptual technical architecture and explicitly state that bank-to-bank integration is a future architecture requirement, not current APK integration.",
+    "ck_000003 and ck_000021 support fraud-chain analysis, citizen protection, warning, and lawful recovery; risk context is not an automatic accusation.",
+    "ck_003255, ck_000260, and ck_000552 describe demonstrational prototype capabilities and synthetic/demo boundaries; no production confirmation was found.",
+    "ck_000279 describes international experience as a future research/cooperation direction, not evidence of named comparable systems or measured differences.",
+    "Expected IDs are benchmark targets only; runtime retrieval correctness and ranking still need to be measured."
+  ]
+}
