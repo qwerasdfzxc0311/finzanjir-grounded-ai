@@ -2,7 +2,7 @@ name: Android APK
 
 on:
   push:
-    branches: [main]
+    branches: [main, feat/android-live-server-apk]
     paths:
       - "android/**"
       - ".github/workflows/android-apk.yml"
