@@ -198,6 +198,7 @@ def test_author_name_or_critique_question_does_not_trigger_motivation_answer():
     from finzanjir_ai.orchestration.intent import is_author_motivation_query
 
     assert not is_author_motivation_query("Salamat Smaylov kim?")
+    assert not is_author_motivation_query("Muallif nima uchun bunday deydi?")
     assert not is_author_motivation_query("FINZANJIR nima uchun kerak?")
     assert not is_author_motivation_query("Muallif FINZANJIRni haddan tashqari maqtaydimi?")
     assert not is_author_motivation_query("Salamat Smaylov loyihani tanqid qiladimi?")
