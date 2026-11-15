@@ -130,3 +130,19 @@ The initial legal-source map must be read together with the following later amen
 The legal review must now explicitly classify each proposed field as (a) bank secrecy, (b) personal data, (c) biometric/genetic data, (d) telecom-user data, (e) payment-service confidential information, or (f) non-personal/non-confidential technical indicator. These categories can overlap. For each field, identify the exact controller/operator, legal basis, recipient, domestic and foreign processing locations, statutory cross-border condition (if any), retention/deletion rule, and access/audit controls. Do not assume that a bank can disclose data to FINZANJIR merely because the data is pseudonymized, hashed, or described as a risk indicator. Article 17(8) of the Payments Law and the Bank Secrecy Law must be assessed together with the current Article 27¹ and any sector-specific regulation.
 
 **Review status:** this is a preliminary source map based on official legal texts, not a legal opinion. It does not establish that FINZANJIR itself has authority to collect or exchange bank/payment data. Obtain a dated opinion from qualified Uzbekistan counsel and written positions from participating institutions before pilot design or runtime activation.
+
+
+## Bank Secrecy Law — additional critical finding (15 November 2026)
+
+The current Bank Secrecy Law No. 530-II must be analyzed beyond the general statement that bank-to-bank sharing may occur:
+
+- Article 14 allows banks to exchange information about their customers/representatives for the purposes stated in the law, but only in the procedure and scope established by law. It further states that a bank receiving information about a customer of another bank may not disclose or provide that information to third parties.
+- Article 8 permits provision of bank-secrecy information to the client, authorized representatives, and other persons only under the procedure established by the law; it separately addresses information provided to the specially authorized state body in AML/CFT cases.
+- Articles 3, 6, 7, 8, 14 and 15 should be read together when assessing any proposed data flow. A bank-to-bank exchange permission is not automatically permission for a bank to onward-disclose received bank-secrecy information to an independent central platform or private project.
+- The 2025 amendment O‘RQ-1070 introduced Article 13¹ for specific third-party situations and amended Article 13; it does not create a general-purpose data-sharing permission for fraud-prevention platforms.
+
+Official sources: Law No. 530-II, current Uzbek text and Article 14: https://lex.uz/uz/acts/-41760?ONDATE=25.09.2025+00 ; Central Bank explanation updated 9 April 2026: https://cbu.uz/uz/press_center/articles-and-interviews/bank-sirini-tashkil-etuvchi-ma-lumotlar-uchinchi-shaxslarga-oshkor-etilmaydi/ .
+
+### Architecture consequence — do not assume central onward sharing is lawful
+
+The previously explored central C-model remains a candidate architecture only, not a legally validated design. Article 14 creates a specific issue for the model: even where two banks may lawfully exchange certain customer information, the receiving bank's ability to onward-disclose that information to a third-party central FINZANJIR platform is not established by that provision. Therefore the legal review must test at least these alternatives separately: (1) bank-side analysis with no raw bank-secrecy data leaving each bank; (2) a legally authorized institution-operated intermediary with a defined statutory mandate; (3) exchange of carefully assessed non-bank-secrecy indicators only where counsel confirms the data is genuinely outside protected categories and re-identification risk is addressed; and (4) a formal statutory or regulatory route, if one exists and is confirmed by competent authorities. Do not select or implement the central model until this issue is resolved in writing.
