@@ -29,8 +29,9 @@ Resolve follow-up questions across recent turns without treating earlier assista
 2. An earlier assistant answer cannot become evidence merely because it appears in history.
 3. A current user correction supersedes a stale conversational assumption.
 4. Ambiguous references should not be guessed; ask one focused clarification.
-5. Sensitive payment/identity strings must not be sent to external model providers. Provider calls evaluate the current question together with conversation context.
-6. Context is bounded; the current version does not claim indefinite memory or full cross-session recall.
+5. Before external provider calls, a pattern-based guard blocks common card-like 13–19 digit values, email addresses, Uzbek and international phone numbers, passport-like series/number strings, and IBAN-like values. The guard checks the current question and any injected conversation context.
+6. This is a best-effort deny-list, not full data-loss prevention: it can miss unfamiliar formats and may conservatively block some ordinary text. Do not submit highly sensitive identifiers or full financial records to the prototype.
+7. Context is bounded; the current version does not claim indefinite memory or full cross-session recall.
 7. Canonical corpus and author-confirmed biography remain separate from chat history.
 
 ## Next iteration
