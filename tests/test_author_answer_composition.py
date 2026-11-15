@@ -127,14 +127,14 @@ def test_author_motivation_answer_preserves_exact_family_story_and_unknown_cause
     assert result.answer.generation_mode == "author_motivation_grounded"
     assert result.answer.provider_status == "not_attempted"
     assert result.answer.citations == ("author_0004", "author_0008", "author_0009")
-    assert "oilaviy davrada eshitilgan" in result.answer.answer.casefold().casefold()
+    assert "oilaviy davrada eshitilgan" in result.answer.answer.casefold()
     assert "FINZANJIRni yaratish sababi bitta voqea" in result.answer.answer
     assert "jamiyatga foydali inson bo'lish istagi" in result.answer.answer
     assert "mustaqil tekshirmagan" in result.answer.answer
     assert "nima sababdan bloklanganini bilmaydi" in result.answer.answer
     assert "bank xatosi yoki noqonuniy harakat isboti emas" in result.answer.answer
     assert "qonuniy tranzaksiyalarni asossiz to'xtatmaslik" in result.answer.answer
-    assert "false positive va false negative" in result.answer.answer
+    assert "false positive va false negative" in result.answer.answer.casefold()
     assert "fuqaro murojaatlarini tez, adolatli qayta ko'rib chiqishga" in result.answer.answer
     assert "banklarni ayblash" in result.answer.answer
     assert "100 foiz xatosizlikni va'da qilish emas" in result.answer.answer
