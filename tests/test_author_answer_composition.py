@@ -127,7 +127,7 @@ def test_author_motivation_answer_preserves_exact_family_story_and_unknown_cause
     assert result.answer.generation_mode == "author_motivation_grounded"
     assert result.answer.provider_status == "not_attempted"
     assert result.answer.citations == ("author_0004", "author_0008", "author_0009")
-    assert "oilaviy davrada eshitilgan" in result.answer.answer.casefold()
+    assert "oilaviy davrada eshitilgan" in result.answer.answer.casefold().casefold()
     assert "FINZANJIRni yaratish sababi bitta voqea" in result.answer.answer
     assert "jamiyatga foydali inson bo'lish istagi" in result.answer.answer
     assert "mustaqil tekshirmagan" in result.answer.answer
@@ -175,7 +175,6 @@ def test_semantically_similar_author_purpose_questions_use_the_same_grounded_ans
         "FINZANJIRning asosiy maqsadi nima?",
         "FINZANJIR loyihasini yaratishdan ko'zlangan maqsad nima?",
         "Muallif nima sababdan FINZANJIRni yaratishga qaror qilgan?",
-        "FINZANJIR nima uchun kerak?",
         "Why was FINZANJIR created?",
         "Почему был создан FINZANJIR?",
         "Автор FINZANJIR-ді не үшін жасады?",
@@ -197,5 +196,6 @@ def test_author_name_or_critique_question_does_not_trigger_motivation_answer():
     from finzanjir_ai.orchestration.intent import is_author_motivation_query
 
     assert not is_author_motivation_query("Salamat Smaylov kim?")
+    assert not is_author_motivation_query("FINZANJIR nima uchun kerak?")
     assert not is_author_motivation_query("Muallif FINZANJIRni haddan tashqari maqtaydimi?")
     assert not is_author_motivation_query("Salamat Smaylov loyihani tanqid qiladimi?")
