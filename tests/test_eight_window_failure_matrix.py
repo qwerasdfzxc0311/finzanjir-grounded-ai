@@ -174,6 +174,38 @@ def test_audit_kpi_window_records_complete_runtime_provenance_in_both_modes(monk
         assert audit_trace["output_refs"]
 
 
+def test_shadow_windows_preserve_input_provenance_through_terminal_events():
+    transaction_id = "TX-SHADOW-WINDOW-PROVENANCE-001"
+    response = client.post(
+        "/api/prototype/run/stream",
+        json=_payload(transaction_id, shadow_mode=True),
+    )
+
+    assert response.status_code == 200
+    stages = [data for name, data in _frames(response) if name == "stage"]
+
+    human_events = [item for item in stages if item["window_id"] == "human_case"]
+    citizen_events = [item for item in stages if item["window_id"] == "citizen"]
+    assert [item["status"] for item in human_events] == ["RUNNING", "SHADOW_ONLY"]
+    assert [item["status"] for item in citizen_events] == ["RUNNING", "SYNTHETIC_STATUS_ONLY"]
+
+    def prior_output_refs(sequence):
+        return {
+            ref
+            for item in stages
+            if item["sequence"] < sequence
+            for ref in item["output_refs"]
+        }
+
+    for events in (human_events, citizen_events):
+        running_refs = set(events[0]["input_refs"])
+        terminal_refs = set(events[1]["input_refs"])
+        assert transaction_id in running_refs
+        assert running_refs
+        assert terminal_refs == running_refs
+        assert running_refs <= prior_output_refs(events[0]["sequence"])
+
+
 def test_stream_citizen_window_failure_marks_citizen_failed_and_layers_not_run(monkeypatch):
     original_apply = CaseManager.apply_human_decision
 
