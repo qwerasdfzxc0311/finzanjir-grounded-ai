@@ -112,6 +112,7 @@ def test_fraud_graph_definition_intent_does_not_capture_other_fraud_graph_questi
     assert is_fraud_graph_definition_query("What is Fraud Graph?")
     assert is_fraud_graph_definition_query("Fraud Graph qanday ishlaydi?")
     assert not is_fraud_graph_definition_query("Fraud Graph ma'lumotlari qayerda saqlanadi?")
+    assert not is_fraud_graph_definition_query("Fraud Graph ma'lumotlarida nima xato?")
     assert not is_fraud_graph_definition_query("Fraud Graph bo'yicha kim qaror qabul qiladi?")
 
 
