@@ -263,15 +263,16 @@ def is_author_motivation_query(query: str) -> bool:
         "author", "автор", "avtor", "avtordıń",
     })
     project_ref = any(token.startswith("finzanjir") for token in tokens) or bool(tokens & {"loyiha", "project"})
-    motivation_markers = (
-        "nima uchun", "nega", "nima sabab", "qanday sabab", "maqsad",
-        "yaratilish sababi", "yaratishdan maqsad", "yaratilishidan maqsad",
-        "ne ushin", "ne ushın", "maqset", "sebep", "jaratqan",
-        "why", "reason", "purpose", "motivation", "why was", "why did",
-        "почему", "зачем", "для чего", "причина", "цель",
-        "не үшін", "не себеп", "мақсат", "себеп",
+    author_creation_markers = (
+        "nima uchun yarat", "nega yarat", "nima sababdan yarat",
+        "qanday sabab bilan yarat", "yaratilish sababi",
+        "yaratilishidan maqsad", "yaratishdan maqsad", "yaratishdan maqsadi",
+        "nima maqsadda yarat", "ne ushin jarat", "ne ushın jarat",
+        "maqset", "jaratqan", "why did", "why was finzanjir created",
+        "почему был создан", "почему создан", "зачем был создан",
+        "для чего был создан", "не үшін жасады", "не себептен құрды",
     )
-    if author_ref and any(marker in normalized for marker in motivation_markers):
+    if author_ref and any(marker in normalized for marker in author_creation_markers):
         return True
     if project_ref and any(marker in normalized for marker in (
         "maqsadi nima", "asosiy maqsadi",
