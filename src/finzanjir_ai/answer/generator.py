@@ -498,7 +498,7 @@ class GroundedAnswerGenerator:
         from finzanjir_ai.orchestration.intent import (
             classify_query_intent, detect_query_language, is_bank_authority_query,
             is_signal_guilt_query, is_case_purpose_query, is_fraud_graph_definition_query,
-            is_c_model_query, is_sixteen_layer_query, is_author_motivation_query,
+            is_c_model_query, is_sixteen_layer_query, is_author_motivation_query, is_author_motivation_follow_up,
         )
 
         intent_query = context_query or query
@@ -593,7 +593,10 @@ class GroundedAnswerGenerator:
                 provider_status="not_attempted",
             )
 
-        if classify_query_intent(query) == "author" and is_author_motivation_query(query):
+        if classify_query_intent(query) == "author" and (
+            is_author_motivation_query(query)
+            or (is_author_motivation_follow_up(query) and is_author_motivation_query(intent_query))
+        ):
             motivation_evidence = {
                 item.record_id: item for item in grounded_items
                 if item.record_id in {"author_0004", "author_0008", "author_0009"}
