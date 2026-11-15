@@ -276,31 +276,14 @@ class GroundedAnswerGenerator:
 
     AUTHOR_MOTIVATION_ANSWERS = {
         "uz": (
-            "Muallifning FINZANJIRni yaratish sababi bitta voqea yoki faqat bank kartasi muammosi bilan cheklanmaydi. "
-            "V14 konsepsiyasining 15-bobida kengroq qarash bayon qilingan: to'lov tizimlari, raqamli xizmatlar, internet "
-            "va kiber ekotizim rivojlanar ekan, qulaylik va yangi imkoniyatlar bilan birga xavflar ham murakkablashadi. "
-            "Shu bois xavfsizlik mexanizmlari ham doimiy rivojlanishi kerak. Muallif FINZANJIRni shunchaki dastur yoki "
-            "texnik platforma emas, rivojlanayotgan moliyaviy va kiber muhitda xavfsizlikni ham rivojlantirishga urinish "
-            "sifatida ko'radi.\n\n"
-            "Bu qarashning insoniy ildizida muallifning shaxsiy hayotiy tajribasi, boshidan kechirgan qiyinchiliklari, "
-            "o'z yo'lini qayta izlash jarayoni, bilim olish va o'zini rivojlantirishga intilishi hamda jamiyatga foydali "
-            "inson bo'lish istagi bor. Muallif fuqarolar o'z pullaridan doimiy qo'rqib yashamasligini, muammo yuz berganda "
-            "qayerga murojaat qilishini bilishini va banklar xavfsizlik jarayonlarini tizimliroq hamda ishonchliroq "
-            "tashkil eta olishini istaydi. Ko'zlangan yo'nalish — xavflarni yaxshiroq anglash, zarar ehtimolini kamaytirish, "
-            "hodisalardan o'rganish va kelajakdagi xavflarga moslashish. Zarar yuz berganda dalillarni saqlash, vakolatli bank yoki jarayonga murojaat qilish, imkon bo'lsa mablag'ni qaytarish/tiklash jarayonini tezlashtirishga ko'maklashish ham ko'zda tutilgan, ammo qaytarish kafolatlanmaydi. Shubhali signal insonni firibgar deb belgilamaydi va aybdorlikni avtomatik isbotlamaydi. Xalqaro tajribani o'rganish va mahalliy sharoitga moslashtirish kelajak yo'nalishi; moliyaviy resurs esa maqsad emas, loyihani sifatli davom ettirish vositasidir. FINZANJIR tajriba va bilim to'plash, kelajakdagi "
-            "foydali ishlanmalar uchun poydevor bo'lishi mumkin. Xavfsizlik bilan birga qulaylik va bank/to'lov tizimlariga ishonch ham muhim; fuqaroda keraksiz to'siqlar paydo bo'lmasligi kerak. Moliyaviy zarar insonning kundalik hayoti va oilasiga ta'sir qilishi mumkin. Kengroq moliyaviy fon oiladagi moliyaviy yo'qotishlar, firibgarlik xavfi va bank cheklovlari sabab fuqarolar o'z mablag'idan foydalana olmay qolishi mumkinligi haqidagi tashvishlarni ham qamrab oladi.\n\n"
-            "Dastlabki g'oya torroq «Kiber Qalqon» yo'nalishida bo'lgan va keyingi izlanishlar davomida kengroq moliyaviy "
-            "xavfsizlik konsepsiyasiga aylangan. Oilaviy davrada eshitilgan voqea — Qozog'istonda ishlab topilgan pul "
-            "yuborilgach bir ayolning kartasi bloklangani — shu yo'ldagi muhim turtkilardan biri, ammo yagona sabab emas. "
-            "Muallif bu voqeani mustaqil tekshirmagan va karta nima sababdan bloklanganini bilmaydi. Shu sabab bu hikoya "
-            "bank xatosi yoki noqonuniy harakat isboti emas.\n\n"
-            "Bu tajriba muhim tamoyilni kuchaytirgan: firibgarlikni qiyinlashtirish, qonuniy hayotni esa qiyinlashtirmaslik, ya’ni qonuniy tranzaksiyalarni asossiz to'xtatmaslik. "
-            "False positive va false negative holatlarini birgalikda o'lchash, signalni aybdorlik isboti yoki avtomatik "
-            "bloklash buyrug'i deb qabul qilmaslik; signal aybdorlik isboti ham, avtomatik bloklash buyrug'i ham emas. Bank vakolatidagi inson ko'rigini saqlash, fuqaro murojaatlarini tez, "
-            "adolatli qayta ko'rib chiqishga yordam berish va xatolardan tizimli saboq olish zarur. FINZANJIR banklarni "
-            "ayblash yoki ularning vakolatini almashtirish uchun emas. Maqsad 100 foiz xatosizlikni va'da qilish emas, "
-            "xavf va zarar ehtimolini kamaytirib, tajriba asosida yaxshilanishdir. Konsepsiyada bayon qilingan maqsadlarning "
-            "barchasi amalda joriy qilingan degani emas; ayrimlari loyiha talabi yoki kelajak yo'nalishidir. V14 15-bobi muallifning shaxsiy qarashi va kelajak tasavvuri bo'lib, mustaqil texnik yoki yuridik ekspert xulosasi emas."
+            "FINZANJIR muallifning hayotiy tajribalari, kuzatuvlari, boshidan kechirgan qiyinchiliklari, moliyaviy xavfsizlikka oid tashvishlari va kelajakda insonlarga foydasi tegadigan ish yaratish istagi asosida shakllangan. "
+            "Muallif raqamli dunyo rivojlanishi bilan insonlar uchun yangi imkoniyatlar paydo bo‘lishini, shu bilan birga firibgarlik, shaxsiy ma’lumotlardan noqonuniy foydalanish va boshqa moliyaviy-kiberxavflar ham murakkablashishini anglagan. Uning fikricha, texnologiya rivojlanayotgan ekan, insonlarni himoya qilish mexanizmlari ham rivojlanishi kerak.\n\n"
+            "Shu sababli dastlabki «Kiber Qalqon» g‘oyasi asta-sekin kengroq FINZANJIR konsepsiyasiga aylangan. Uning maqsadi faqat firibgarlikni aniqlash emas, balki xavfni oldindan anglash, fuqarolarni ogohlantirish, shubhali holatlarni dalillar asosida tekshirishga ko‘maklashish, zarar yuz berganda uni kamaytirish, imkon bo‘lsa tiklash jarayoniga yordam berish va kelajakda shu kabi hodisalar takrorlanishining oldini olishdir.\n\n"
+            "Muallif uchun insoniylik va adolat ham juda muhim. Hech bir inson faqat texnik signal yoki bitta xatosi sabab avtomatik ravishda firibgar deb baholanmasligi kerak. FINZANJIR xavfsizlikni kuchaytirishi bilan birga qonuniy fuqarolarning hayotini qiyinlashtirmasligi, ularning bank va moliyaviy tizimlarga bo‘lgan ishonchini mustahkamlashga xizmat qilishi kerak.\n\n"
+            "Muallif FINZANJIR orqali odamlarga moliyaviy va kiberxavfsizlik bo‘yicha bilim berish, ularni xavflardan ehtiyot bo‘lishga o‘rgatish, muammolar yuzaga kelganda qonuniy yordam yo‘llarini tushuntirish va banklar hamda vakolatli tashkilotlar bilan hamkorlik qilish imkoniyatlarini rivojlantirishni istaydi.\n\n"
+            "Bu loyiha muallif uchun shunchaki dastur yoki tijoriy mahsulot emas. U hayotiy tajriba, o‘rganish, xatolarni tan olish, yangi bilimlar va jamiyatga foyda keltirish istagini birlashtirgan uzoq muddatli tashabbusdir. FINZANJIRning o‘zi ham muallifning rivojlanishi, yangi bilimlarni egallashi va kelajakdagi foydali loyihalar uchun tajriba to‘plashi mumkin bo‘lgan poydevordir.\n\n"
+            "Muallif barcha muammolarni 100 foiz hal qilishga va’da bermaydi. Uning maqsadi — mavjud xavflarni kamaytirish, insonlarga yordam berish, xatolardan saboq olish va xavfsizlikni doimiy ravishda yaxshilash.\n\n"
+            "Asosiy falsafa: «Firibgarlikni qiyinlashtirish, qonuniy hayotni esa qiyinlashtirmaslik»."
         ),
         "ru": (
             "Причина создания FINZANJIR не сводится к одному эпизоду или только к проблеме банковской карты. "
@@ -516,7 +499,14 @@ class GroundedAnswerGenerator:
                 provider_status="not_attempted",
             )
 
-        items = context.items[:8]
+        # Motivation needs the complete assembled author profile (including author_0009).
+        # Ordinary retrieval remains bounded to eight records.
+        is_motivation_request = (
+            classify_query_intent(query) == "author" and is_author_motivation_query(query)
+        ) or (
+            is_author_motivation_follow_up(query) and is_author_motivation_query(intent_query)
+        )
+        items = context.items[:16] if is_motivation_request else context.items[:8]
         grounded_items = [item for item in items if is_grounded_evidence(item.evidence)]
         top_score = max(0.0, min(1.0, max(item.score for item in items)))
         confidence = min(1.0, 0.7 * top_score + 0.3 * (len(grounded_items) / len(items)))

@@ -7,6 +7,7 @@ _WORD_FIXES = {
     "qansha": "qancha",
     "umir": "umr",
     "koradi": "ko'radi",
+    "ushun": "uchun",
 }
 _PROJECT_MARKERS = {
     "finzanjir", "loyiha", "bank", "firibgarlik", "moliyaviy", "karta",
