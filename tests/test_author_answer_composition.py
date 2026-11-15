@@ -84,7 +84,7 @@ def test_author_motivation_question_selects_only_motivation_evidence():
     assert "moliyaviy xavfsizlikka oid tashvishlari" in result.answer.answer
     assert "jamiyatga foyda keltirish istagini" in result.answer.answer
     assert "insoniylik va adolat" in result.answer.answer
-    assert "moliyaviy va kiberxavfsizlik bo'yicha bilim" in result.answer.answer
+    assert "moliyaviy va kiberxavfsizlik bo‘yicha bilim berish" in result.answer.answer
     assert "Kiber Qalqon" in result.answer.answer
     assert "100 foiz hal qilishga va’da bermaydi" in result.answer.answer
     assert "Firibgarlikni qiyinlashtirish, qonuniy hayotni esa qiyinlashtirmaslik" in result.answer.answer
@@ -126,7 +126,7 @@ def test_author_motivation_answer_uses_full_summary_without_overweighting_anecdo
     assert "jamiyatga foyda keltirish istagini" in result.answer.answer
     assert "Kiber Qalqon" in result.answer.answer
     assert "insoniylik va adolat" in result.answer.answer
-    assert "100 foiz hal qilishga va'da bermaydi" in result.answer.answer
+    assert "100 foiz hal qilishga va’da bermaydi" in result.answer.answer
     assert "oilaviy davrada eshitilgan" not in result.answer.answer
 
 def test_project_origin_question_uses_broad_motivation_summary():
