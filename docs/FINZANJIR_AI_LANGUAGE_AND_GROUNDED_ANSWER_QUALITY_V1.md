@@ -136,7 +136,7 @@ Questions such as "Muallif nima uchun FINZANJIRni yaratgan?", "FINZANJIRning aso
 
 The answer composes three separate author-profile records:
 - `author_0004`: the narrower project-origin context, including the family anecdote. The author did not independently investigate the reported card block and does not know its cause; it is not evidence of bank error or wrongdoing.
-- `author_0008`: the broader purpose and future-facing perspective from V14 chapter 15 (sections 15.1, 15.2, 15.5, 15.9 and 15.12).
+- `author_0008`: the broader purpose and future-facing perspective from V14 chapter 15 (sections 15.1–15.10 and 15.12, including harm reduction, non-stigmatization, convenience/trust, continuous development, international learning, and financial resources as a means rather than an end).
 - `author_0009`: the human motivation described in V14 section 15.11.1, without disclosing unrelated private family details.
 
 The router loads the complete author profile for clear purpose questions. It does not trigger on a bare author-name match or a critique/opinion question. If any required evidence record is missing, the answer abstains rather than presenting the narrow anecdote as the complete motivation.
