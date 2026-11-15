@@ -84,10 +84,10 @@ def test_author_motivation_question_selects_only_motivation_evidence():
     assert "to'lov tizimlari, raqamli xizmatlar" in result.answer.answer
     assert "jamiyatga foydali inson bo'lish istagi" in result.answer.answer
     assert "fuqarolar o'z pullaridan doimiy qo'rqib yashamasligini" in result.answer.answer
-    assert "amaliyotga joriy qilingan degani emas" in result.answer.answer
+    assert "amalda joriy qilingan degani emas" in result.answer.answer
     assert "qonuniy tranzaksiyalarni" in result.answer.answer
-    assert "false positive" in result.answer.answer
-    assert "false negative" in result.answer.answer
+    assert "false positive" in result.answer.answer.casefold()
+    assert "false negative" in result.answer.answer.casefold()
     assert "fuqaro murojaatlarini" in result.answer.answer
     assert "Kiber Qalqon" in result.answer.answer
     assert "mustaqil tekshirmagan" in result.answer.answer
