@@ -214,3 +214,26 @@ def test_explicit_author_mother_question_retrieves_private_family_record():
     assert result.answer.abstained is False
     assert result.answer.citations == ("author_0005",)
     assert "2023-yil may oyining oxirida" in result.answer.answer
+
+
+def test_sensitive_identifier_in_followup_history_is_blocked_before_provider_call(monkeypatch):
+    from finzanjir_ai.answer.providers import LLMGateway
+
+    context = build_conversation_context(
+        "Bu nima bilan bog'liq?",
+        [
+            {"role": "user", "content": "Kartam 4111 1111 1111 1111 bilan bog'liq holat."},
+            {"role": "assistant", "content": "Oldingi javob."},
+        ],
+    )
+    gateway = LLMGateway(environ={"GEMINI_API_KEY": "synthetic-test-key"})
+
+    def unexpected_provider_call(*_args, **_kwargs):
+        pytest.fail("Sensitive conversation history must not reach a provider")
+
+    monkeypatch.setattr(gateway, "_generate_with", unexpected_provider_call)
+
+    assert context.is_follow_up is True
+    assert gateway.expand_question(context.contextual_query) == ()
+    assert gateway.last_status == "blocked_sensitive"
+    assert gateway.can_send_text(context.context_text) is False
