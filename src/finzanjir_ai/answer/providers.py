@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import re
 from typing import Any
 
 import httpx
+
+
+logger = logging.getLogger(__name__)
 
 
 class LLMGateway:
@@ -36,6 +40,29 @@ class LLMGateway:
             providers.append("openrouter")
         return tuple(providers)
 
+    def _record_failure(
+        self,
+        provider: str,
+        category: str,
+        *,
+        http_status: int | None = None,
+    ) -> None:
+        """Record a sanitized provider failure without logging prompts or exception details."""
+        self.last_provider_failures.append({"provider": provider, "status": category})
+        if http_status is None:
+            logger.warning(
+                "LLM provider attempt failed: provider=%s category=%s",
+                provider,
+                category,
+            )
+            return
+        logger.warning(
+            "LLM provider attempt failed: provider=%s category=%s http_status=%d",
+            provider,
+            category,
+            http_status,
+        )
+
     def generate_json(self, *, system: str, prompt: str, max_output_tokens: int = 1800) -> dict[str, Any] | None:
         providers = self.configured_providers()
         if not providers:
@@ -51,10 +78,7 @@ class LLMGateway:
                 if isinstance(parsed, dict):
                     self.last_status = "ready"
                     return parsed
-                self.last_provider_failures.append({
-                    "provider": provider,
-                    "status": "invalid_response",
-                })
+                self._record_failure(provider, "invalid_response")
             except httpx.HTTPStatusError as exc:
                 code = exc.response.status_code
                 if code in (401, 403):
@@ -65,16 +89,16 @@ class LLMGateway:
                     category = "provider_unavailable"
                 else:
                     category = "request_rejected"
-                self.last_provider_failures.append({"provider": provider, "status": category})
+                self._record_failure(provider, category, http_status=code)
             except httpx.TimeoutException:
-                self.last_provider_failures.append({"provider": provider, "status": "timeout"})
+                self._record_failure(provider, "timeout")
             except httpx.NetworkError:
-                self.last_provider_failures.append({"provider": provider, "status": "network_error"})
+                self._record_failure(provider, "network_error")
             except httpx.HTTPError:
-                self.last_provider_failures.append({"provider": provider, "status": "network_error"})
+                self._record_failure(provider, "network_error")
             except (ValueError, KeyError, IndexError, TypeError):
                 # Never expose provider response bodies, exception text, or keys.
-                self.last_provider_failures.append({"provider": provider, "status": "invalid_response"})
+                self._record_failure(provider, "invalid_response")
         return None
 
     def _generate_with(self, provider: str, system: str, prompt: str, max_output_tokens: int) -> str:
@@ -130,12 +154,19 @@ class LLMGateway:
 
     @staticmethod
     def can_send_text(text: str) -> bool:
-        # Keep common personal/payment identifiers out of third-party model calls.
+        # Conservative guard for common payment and identity identifiers before
+        # any third-party model call. This is a deny-list, not full DLP coverage.
         if re.search(r"(?<!\d)(?:\d[ -]?){13,19}(?!\d)", text):
             return False
         if re.search(r"(?<!\w)[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}(?!\w)", text):
             return False
-        if re.search(r"(?<!\d)\+?998[\s()-]?(?:\d[\s()-]?){9}(?!\d)", text):
+        if re.search(r"(?<!\d)\+?998[\s().-]?(?:\d[\s().-]?){9}(?!\d)", text):
+            return False
+        if re.search(r"(?<!\d)\+\d{1,3}(?:[\s().-]?\d){7,14}(?!\d)", text):
+            return False
+        if re.search(r"(?<![A-Z0-9])[A-Z]{2}[\s-]?\d{7}(?!\d)", text, flags=re.IGNORECASE):
+            return False
+        if re.search(r"(?<![A-Z0-9])[A-Z]{2}\d{2}(?:\s?[A-Z0-9]){11,30}(?![A-Z0-9])", text, flags=re.IGNORECASE):
             return False
         return True
 

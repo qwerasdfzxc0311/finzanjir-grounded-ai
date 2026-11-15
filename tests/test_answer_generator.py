@@ -360,3 +360,171 @@ def test_signal_process_fallback_orders_only_source_supported_process_stages():
     positions = [result.answer.index(value) for value in expected]
     assert positions == sorted(positions)
     assert "avtomatik aybdorlik isboti" not in result.answer
+
+
+def test_comparison_question_answers_supported_finzanjir_part_and_withholds_unknown_external_part():
+    context = GroundedContext(items=(GroundedContextItem(
+        record_id="ck-finzanjir-purpose",
+        concept_id="finzanjir-purpose",
+        statement=(
+            "FINZANJIR moliyaviy firibgarlik xavflari va shubhali pul oqimlarini "
+            "aniqlash hamda tahlil qilishga yo'naltirilgan loyiha."
+        ),
+        score=0.92,
+        provenance=({"source": "synthetic-project-evidence"},),
+        evidence={"status": "supported", "verification": "verified"},
+    ),))
+    result = GroundedAnswerGenerator().generate(
+        "FINZANJIRning boshqa davlatlardagi o'xshash tizimlardan farqi nimada?",
+        context,
+    )
+    assert result.abstained is False
+    assert result.generation_mode == "comparison_partial_grounded_fallback"
+    assert "moliyaviy firibgarlik" in result.answer
+    assert "yetarli, tekshirilgan qiyosiy ma'lumot yo'q" in result.answer
+    assert "ustun-kamligini taxmin qilib aytmayman" in result.answer
+    assert result.citations == ("ck-finzanjir-purpose",)
+
+
+def test_task_specific_guidance_sets_separate_evidence_boundaries():
+    from finzanjir_ai.answer.generator import _task_specific_guidance
+
+    comparison = _task_specific_guidance("comparison")
+    assert "boshqa davlatlar" in comparison
+    assert "ustunligini" in comparison
+    assert "tasdiqlangan qismni javobsiz qoldirishga sabab bo'lmasin" in comparison
+
+    status = _task_specific_guidance("status_audit")
+    assert "amaldagi prototip" in status
+    assert "reja" in status
+    assert "ishlayotganini isbotlamaydi" in status
+
+    architecture = _task_specific_guidance("architecture")
+    assert "konseptual arxitekturani" in architecture.casefold()
+    assert "production tizimi" in architecture.casefold()
+
+
+def test_uzbek_cyrillic_comparison_uses_the_same_safe_partial_answer_policy():
+    context = GroundedContext(items=(GroundedContextItem(
+        record_id="ck-finzanjir-purpose-cyrl",
+        concept_id="finzanjir-purpose",
+        statement=(
+            "FINZANJIR молиявий фирибгарлик хавфлари ва шубҳали пул оқимларини "
+            "аниқлаш ҳамда таҳлил қилишга йўналтирилган лойиҳа."
+        ),
+        score=0.92,
+        provenance=({"source": "synthetic-project-evidence"},),
+        evidence={"status": "supported", "verification": "verified"},
+    ),))
+    result = GroundedAnswerGenerator().generate(
+        "FINZANJIR бошқа давлатлардаги ўхшаш тизимлардан нимаси билан фарқ қилади?",
+        context,
+    )
+    assert result.abstained is False
+    assert result.generation_mode == "comparison_partial_grounded_fallback"
+    assert "FINZANJIR" in result.answer
+    assert "Taqqoslash chegarasi" in result.answer
+    assert result.citations == ("ck-finzanjir-purpose-cyrl",)
+
+
+def test_comparison_fallback_skips_unrelated_grounded_records_and_keeps_project_definition():
+    unrelated = GroundedContextItem(
+        record_id="ck-unrelated-weather",
+        concept_id="weather",
+        statement="Ob-havo ma'lumotlari har kuni yangilanadi va harorat o'zgaradi.",
+        score=0.99,
+        provenance=({"source": "synthetic-unrelated"},),
+        evidence={"status": "supported", "verification": "verified"},
+    )
+    relevant = GroundedContextItem(
+        record_id="ck-project-definition",
+        concept_id="project-purpose",
+        statement=(
+            "FINZANJIR moliyaviy firibgarlik xavflarini aniqlash va tahlil qilishga "
+            "yo'naltirilgan loyiha."
+        ),
+        score=0.91,
+        provenance=({"source": "synthetic-project-evidence"},),
+        evidence={"status": "supported", "verification": "verified"},
+    )
+    result = GroundedAnswerGenerator().generate(
+        "FINZANJIRning boshqa davlatlardagi o'xshash tizimlardan farqi nimada?",
+        GroundedContext(items=(unrelated, relevant)),
+    )
+    assert result.generation_mode == "comparison_partial_grounded_fallback"
+    assert "moliyaviy firibgarlik" in result.answer
+    assert "Ob-havo" not in result.answer
+    assert result.citations == ("ck-project-definition",)
+
+
+def test_comparison_fallback_does_not_turn_irrelevant_context_into_an_answer():
+    unrelated = GroundedContextItem(
+        record_id="ck-unrelated-weather-only",
+        concept_id="weather",
+        statement="Ob-havo ma'lumotlari har kuni yangilanadi va harorat o'zgaradi.",
+        score=0.99,
+        provenance=({"source": "synthetic-unrelated"},),
+        evidence={"status": "supported", "verification": "verified"},
+    )
+    result = GroundedAnswerGenerator().generate(
+        "FINZANJIRning boshqa davlatlardagi o'xshash tizimlardan farqi nimada?",
+        GroundedContext(items=(unrelated,)),
+    )
+    assert result.abstained is True
+    assert result.generation_mode == "comparison_no_relevant_evidence"
+    assert result.citations == ()
+    assert "Ob-havo" not in result.answer
+
+
+def test_provider_failure_rejects_unrelated_short_kazakh_record_for_comparison():
+    unrelated = (
+        "Жасуша — тірі ағзалардың негізгі құрылымдық және функционалдық бірлігі. "
+        "Әртүрлі ағзаларда жасушалар құрылысы мен қызметі бойынша ерекшеленеді."
+    )
+    context = GroundedContext(items=(GroundedContextItem(
+        record_id="ck_001693",
+        concept_id="cell_biology",
+        statement=unrelated,
+        score=0.94,
+        provenance=({"source": "canonical-v0.6"},),
+        evidence={"status": "supported"},
+    ),))
+
+    result = GroundedAnswerGenerator(FailedProvider()).generate(
+        "FINZANJIR басқа елдерден несімен ерекшеленеді?", context
+    )
+
+    assert result.abstained is True
+    assert result.generation_mode == "comparison_no_relevant_evidence"
+    assert result.citations == ()
+    assert "Жасуша" not in result.answer
+    assert "тікелей қатысты расталған дерек" in result.answer
+
+
+def test_provider_failure_comparison_uses_project_definition_and_localizes_kazakh():
+    unrelated = GroundedContextItem(
+        record_id="ck_001693",
+        concept_id="cell_biology",
+        statement="Жасуша — тірі ағзалардың негізгі құрылымдық және функционалдық бірлігі.",
+        score=0.99,
+        provenance=({"source": "canonical-v0.6"},),
+        evidence={"status": "supported"},
+    )
+    relevant = GroundedContextItem(
+        record_id="project-purpose",
+        concept_id="finzanjir-purpose",
+        statement="FINZANJIR қаржылық алаяқтық тәуекелдерін анықтау мен талдауға бағытталған жоба.",
+        score=0.91,
+        provenance=({"source": "canonical-v0.6"},),
+        evidence={"status": "supported"},
+    )
+    result = GroundedAnswerGenerator(FailedProvider()).generate(
+        "FINZANJIR басқа елдерден несімен ерекшеленеді?",
+        GroundedContext(items=(unrelated, relevant)),
+    )
+    assert result.abstained is False
+    assert result.generation_mode == "comparison_partial_grounded_fallback"
+    assert result.citations == ("project-purpose",)
+    assert "Жасуша" not in result.answer
+    assert "Салыстыру шегі" in result.answer
+    assert result.answer.startswith("Жоба дереккөздерінде FINZANJIR туралы расталған мәліметтер:")

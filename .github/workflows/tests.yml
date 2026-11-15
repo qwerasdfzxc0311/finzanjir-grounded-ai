@@ -18,3 +18,13 @@ jobs:
       - name: Validate frontend JavaScript syntax
         run: node --check frontend/app.js
       - run: PYTHONPATH=src python -m pytest -q
+      - name: Run read-only question decomposition diagnostic
+        run: |
+          PYTHONPATH=src python scripts/run_question_decomposition_diagnostic.py --output question-decomposition-diagnostic.json
+      - name: Upload question decomposition diagnostic report
+        uses: actions/upload-artifact@v4
+        with:
+          name: finzanjir-question-decomposition-diagnostic
+          path: question-decomposition-diagnostic.json
+          if-no-files-found: error
+          retention-days: 14

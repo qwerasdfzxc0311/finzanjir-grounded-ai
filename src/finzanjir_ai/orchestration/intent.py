@@ -29,11 +29,11 @@ def normalize_query_for_intent(query: str) -> str:
 
 
 _LANGUAGE_MARKERS = {
-    "uz": {"nima", "haqida", "uchun", "kerak", "loyiha", "moliyaviy", "firibgarlik", "fuqaro", "maqsad", "tahlil", "xavf", "va", "muhim", "bank", "karta", "kartani", "kartasini", "bloklay", "bloklashi", "oladi", "oladimi", "qanday", "qila", "mumkin", "emas", "qonuniy", "ozi", "нима", "лойиҳа", "учун", "керак", "мақсад", "фуқаро", "молиявий"},
+    "uz": {"nima", "haqida", "uchun", "kerak", "loyiha", "moliyaviy", "firibgarlik", "fuqaro", "maqsad", "tahlil", "xavf", "va", "muhim", "bank", "karta", "kartani", "kartasini", "bloklay", "bloklashi", "oladi", "oladimi", "qanday", "qila", "mumkin", "emas", "qonuniy", "ozi", "shubhali", "nimani", "anglatadi", "fuqaroning", "aybdorligini", "isbotlaydimi", "banklarga", "qarshimi", "ochiladi", "qatlamli", "arxitekturasi", "toshvaqa", "qansha", "umir", "koradi", "нима", "лойиҳа", "учун", "керак", "мақсад", "фуқаро", "молиявий", "фарқ", "фарқи", "ўхшаш", "бошқа", "давлат", "нимаси", "қилади", "таққослаш"},
     "ru": {"что", "такое", "проект", "расскажи", "объясни", "зачем", "финансовый", "мошенничество", "граждан"},
     "en": {"what", "is", "about", "tell", "explain", "project", "financial", "fraud", "citizen", "purpose", "the", "and", "why", "how", "does", "can", "card", "bank", "false", "positive", "negative", "important", "mean", "means", "risk", "signal", "case", "escalation", "requires", "evidence", "threshold", "assessment", "supporting", "transaction", "suspicious", "legitimate", "account", "money", "flow", "data", "privacy", "system", "help", "protect", "funds", "decision", "human", "review"},
     "kk": {"жоба", "қаржы", "алаяқтық", "азамат", "туралы", "мақсат", "деген", "не", "zhoba", "qarzhy", "azamat", "turaly", "maqset", "ushin"},
-    "kaa": {"joybar", "qarjı", "puqara", "haqqında", "haqqinda", "maqset", "qáwip", "degen", "ushın", "ushin", "maǵlıwmat", "joybar", "мақсет", "пуқара", "ҳаққында", "қаўип"},
+    "kaa": {"joybar", "qarjı", "puqara", "haqqında", "haqqinda", "maqset", "qáwip", "degen", "ushın", "ushin", "maǵlıwmat", "joybar", "avtor", "avtordıń", "jaratqan", "мақсет", "пуқара", "ҳаққында", "қаўип"},
 }
 
 
@@ -43,7 +43,15 @@ def detect_query_language(query: str) -> str:
     tokens = set(re.findall(r"[^\W\d_]+", value, flags=re.UNICODE))
     kaa_hits = len(tokens & _LANGUAGE_MARKERS["kaa"])
     kk_hits = len(tokens & _LANGUAGE_MARKERS["kk"])
-    if re.search(r"[әіңғқөұүһ]", value):
+    # Several Uzbek-Cyrillic words also contain letters used in Kazakh.
+    # Resolve a strong Uzbek lexical signature before generic script detection.
+    uz_cyrillic_hits = len(tokens & {
+        "бошқа", "давлат", "фарқ", "фарқи", "ўхшаш",
+        "нимаси", "таққослаш", "лойиҳа", "молиявий", "фуқаро",
+    })
+    if uz_cyrillic_hits >= 2:
+        return "uz"
+    if re.search(r"[әіңғқөұүһі]", value):
         return "kaa" if kaa_hits > kk_hits else "kk"
     uzbek_phrases = (
         "bank kartasini", "bank kartani", "kartasini o'zi", "kartani o'zi",
@@ -106,9 +114,25 @@ def classify_query_intent(query: str) -> str:
     author_markers = {
         "muallif", "muallifi", "muallifning", "yaratuvchi", "asoschi",
         "biografiya", "tarjimai", "hayoti", "qiziqishlari", "motivatsiya",
-        "salamat", "smaylov",
+        "salamat", "smaylov", "author", "автор", "avtor", "avtordıń",
     }
     if tokens & author_markers or {"kim", "yaratgan"} <= tokens:
+        return "author"
+    if (
+        "finzanjir" in tokens
+        and any(phrase in normalized for phrase in ("qanday yaralgan", "qanday boshlangan", "qayerdan boshlangan", "kelib chiqishi"))
+    ):
+        return "author"
+    if (
+        "finzanjir" in tokens
+        and any(phrase in normalized for phrase in ("nima uchun yaratilgan", "nima sababdan yaratilgan", "nima maqsadda yaratilgan"))
+    ):
+        return "author"
+    if "kiber qalqon" in normalized and any(
+        marker in normalized for marker in ("qanday", "paydo", "boshlanish", "finzanjir")
+    ):
+        return "author"
+    if any(term in tokens for term in ("atmos", "sinbad")) and "finzanjir" in tokens:
         return "author"
     if is_project_overview_query(query):
         return "project_overview"
@@ -139,6 +163,65 @@ def is_bank_authority_query(query: str) -> bool:
     return has_project and bool(tokens & card_terms) and bool(tokens & action_terms)
 
 
+def is_signal_guilt_query(query: str) -> bool:
+    """Recognize questions asking whether a risk signal proves a person's guilt."""
+    normalized = normalize_query_for_intent(query)
+    tokens = set(normalized.split())
+    signal_terms = {"signal", "сигнал", "qáwip", "belgi"}
+    guilt_terms = {
+        "aybdor", "aybdorligini", "aybdorlik", "isbot", "isbotlaydimi",
+        "guilt", "prove", "proves", "винов", "доказ", "кінә", "айып",
+    }
+    return bool(tokens & signal_terms) and bool(
+        tokens & guilt_terms or any(term in normalized for term in ("aybdorligini isbot", "prove guilt", "доказательство вины"))
+    )
+
+
+def is_case_purpose_query(query: str) -> bool:
+    """Recognize a request for the purpose of opening a Case."""
+    normalized = normalize_query_for_intent(query)
+    tokens = set(normalized.split())
+    return "case" in tokens and any(
+        marker in normalized
+        for marker in ("nima uchun", "nega", "maqsad", "ochil", "why", "для чего", "зачем")
+    )
+
+
+def is_fraud_graph_definition_query(query: str) -> bool:
+    """Recognize direct Fraud Graph explanations without matching unrelated questions."""
+    normalized = normalize_query_for_intent(query)
+    patterns = (
+        r"\b(?:fraud graph|fraudgraph|firibgarlik grafigi)\s+(?:nima\b|nima degani\b|nimani anglatadi\b|qanday ishlaydi\b|ta'rif\b|tarif\b|tushuntir\b|izohla\b)",
+        r"\bwhat is (?:the )?fraud graph\b",
+        r"\bwhat does (?:the )?fraud graph mean\b",
+        r"\b(?:define|explain) (?:the )?fraud graph\b",
+        r"\bhow does (?:the )?fraud graph work\b",
+        r"\bчто такое fraud graph\b",
+        r"\bчто означает fraud graph\b",
+        r"\bобъясни fraud graph\b",
+        r"\bfraud graph (?:не|нені білдіреді|қалай жұмыс істейді|degen ne)\b",
+        r"\bfraud graph qanday isleydi\b",
+    )
+    return any(re.search(pattern, normalized) for pattern in patterns)
+
+
+def is_c_model_query(query: str) -> bool:
+    normalized = normalize_query_for_intent(query)
+    return any(marker in normalized for marker in ("c modeli", "c model", "model c"))
+
+
+def is_sixteen_layer_query(query: str) -> bool:
+    raw = " ".join(str(query).casefold().replace("’", "'").split())
+    normalized = normalize_query_for_intent(query)
+    return (
+        ("16" in raw and ("qatlam" in raw or "layer" in raw or "қабат" in raw))
+        or any(marker in raw for marker in (
+            "o'n olti qatlam", "on olti qatlam", "sixteen layer",
+        ))
+        or any(marker in normalized for marker in ("16 qatlam", "16 layer", "16 қабат", "16 қабатты"))
+    )
+
+
 def is_author_overview_query(query: str) -> bool:
     """Detect a request for a whole person profile, not one biography facet."""
     normalized = normalize_query_for_intent(query)
@@ -146,6 +229,13 @@ def is_author_overview_query(query: str) -> bool:
         "haqida aytib ber", "haqida malumot", "tarjimai hol", "biografiya",
         "batafsil aytib", "tolqroq malumot", "tell me about", "who is",
     )
+    family_facet_markers = (
+        "onasi", "onasining", "ona haqida", "otasi", "singlisi",
+        "mother", "father", "sister", "мать", "отец", "сестра",
+        "анасы", "атасы",
+    )
+    if any(marker in normalized for marker in family_facet_markers):
+        return False
     return classify_query_intent(query) == "author" and any(
         phrase in normalized for phrase in overview_phrases
     )

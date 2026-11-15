@@ -110,7 +110,8 @@ class QueryExpander:
         author_terms = {
             "muallif", "muallifi", "yaratuvchi", "asoschi", "biografiya",
             "tarjimai", "hayoti", "qiziqishlari", "motivatsiya", "yaratgan",
-            "salamat", "smaylov",
+            "salamat", "smaylov", "ona", "onasi", "onasining", "mother", "мать", "анасы",
+            "otasi", "singlisi", "prototip", "termux", "kodlagan", "dasturlash",
         }
         if raw_terms & author_terms:
             expanded.extend(_AUTHOR_QUERY_HINTS)

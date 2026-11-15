@@ -26,10 +26,16 @@ from finzanjir_ai.storage.prototype_history import PrototypeRunStore, default_da
 import sqlite3
 
 
+class AIConversationTurn(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str = Field(min_length=1, max_length=1200)
+
+
 class AIAnswerRequest(BaseModel):
     question: str = Field(min_length=1, max_length=4000)
     runtime_refs: list[str] = Field(default_factory=list, max_length=64)
     working_memory_scope: str | None = Field(default=None, max_length=256)
+    conversation_history: list[AIConversationTurn] = Field(default_factory=list, max_length=12)
 
 
 class ExternalResearchRequest(BaseModel):
@@ -183,6 +189,7 @@ def answer(request: AIAnswerRequest) -> dict[str, Any]:
         question,
         runtime_refs=tuple(request.runtime_refs),
         working_memory_scope=scope,
+        conversation_history=tuple(turn.model_dump() for turn in request.conversation_history),
     )
 
     return {

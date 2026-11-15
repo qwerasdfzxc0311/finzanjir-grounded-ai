@@ -8,11 +8,69 @@ from typing import Any
 from finzanjir_ai.answer.generator import AnswerResult, GroundedAnswerGenerator
 from finzanjir_ai.answer.providers import LLMGateway
 from finzanjir_ai.knowledge.index import KnowledgeIndex
+from finzanjir_ai.retrieval.cross_lingual import cross_lingual_query_variants
 from finzanjir_ai.retrieval.grounding import GroundedContext, GroundedContextAssembler, GroundedContextItem
 from finzanjir_ai.retrieval.hybrid import HybridRetriever, RetrievalResult
 from finzanjir_ai.retrieval.rerank import QueryExpander, Reranker
+from finzanjir_ai.retrieval.text import query_script_variants
 from finzanjir_ai.runtime.context import RuntimeContext
+from finzanjir_ai.memory.conversation import build_conversation_context
 from finzanjir_ai.orchestration.intent import classify_query_intent, is_author_overview_query
+
+
+_NON_EVIDENCE_PROJECT_TITLES = frozenset({
+    "multilingual_query_pattern",
+    "multilingual_domain_alias",
+    "domain_alias",
+})
+
+PROJECT_KNOWLEDGE_DOMAINS = frozenset({
+    "finzanjir_project",
+    "finzanjir",
+    "finzanjir_architecture",
+})
+_PROJECT_SOURCE_FILE_MARKERS = (
+    "finzanjir_konsepsiya_final.html",
+    "knowledge/source_knowledge.json",
+    "knowledge/knowledge_corpus.json",
+)
+
+
+def _is_project_knowledge_record(record: Any) -> bool:
+    """Keep project Q&A inside FINZANJIR source domains, not general knowledge."""
+    if record is None:
+        return False
+    if record.record_id.startswith("project_"):
+        return True
+    if getattr(record, "title", None) in _NON_EVIDENCE_PROJECT_TITLES:
+        return False
+
+    domain = getattr(record, "domain", None)
+    # Synthetic fixtures and legacy in-memory records may omit domain metadata.
+    # Canonical v0.6 records all carry a domain, so production records are gated.
+    if domain is None:
+        return True
+    if domain in PROJECT_KNOWLEDGE_DOMAINS:
+        return True
+    if domain != "unclassified":
+        return False
+
+    searchable = record.searchable_text.casefold()
+    if "finzanjir" in searchable:
+        return True
+    for source in record.provenance:
+        if not isinstance(source, dict):
+            continue
+        source_files = source.get("source_files") or ()
+        if isinstance(source_files, str):
+            source_files = (source_files,)
+        if any(
+            marker in str(path).casefold()
+            for path in source_files
+            for marker in _PROJECT_SOURCE_FILE_MARKERS
+        ):
+            return True
+    return False
 
 
 def _is_author_layer_record(record: Any) -> bool:
@@ -25,7 +83,7 @@ def _is_author_layer_record(record: Any) -> bool:
         return True
     if (record.facet or "").casefold() in {
         "identity", "birth_details", "interests", "project_motivation",
-        "author_biography", "author_profile",
+        "author_biography", "author_profile", "author_mother_story", "project_origin_contribution", "project_origin_timeline",
     }:
         return True
 
@@ -92,11 +150,15 @@ class FINZANJIRAI:
         *,
         runtime_refs: tuple[str, ...],
         working_memory_scope: str,
+        conversation_history: tuple[dict[str, str], ...] = (),
         top_k: int = 8,
     ) -> OrchestrationResult:
+        conversation = build_conversation_context(query, conversation_history)
+        contextual_query = conversation.contextual_query
+
         # Clear general-knowledge questions must not be rejected merely because
         # the closed FINZANJIR project corpus contains no answer for them.
-        query_intent = classify_query_intent(query)
+        query_intent = classify_query_intent(contextual_query)
         if query_intent == "assistant_identity":
             runtime = RuntimeContext.from_refs(
                 knowledge_refs=(),
@@ -130,7 +192,7 @@ class FINZANJIRAI:
                 runtime_refs=runtime_refs,
                 working_memory_scope=working_memory_scope,
             )
-            answer = self.answer_generator.generate_general_knowledge(query)
+            answer = self.answer_generator.generate_general_knowledge(query, conversation_context=conversation.context_text)
             return OrchestrationResult(
                 answer=answer,
                 grounded_context=GroundedContext(items=()),
@@ -140,7 +202,7 @@ class FINZANJIRAI:
         # A broad "tell me about this person" request is an entity lookup,
         # not a keyword-match task. Resolve the canonical entity first, then let
         # the answer composer select and organize its verified biography facets.
-        if query_intent == "author" and is_author_overview_query(query):
+        if query_intent == "author" and is_author_overview_query(contextual_query):
             profile = self.grounder.assemble_entity("person:salamat_smaylov", max_items=top_k)
             if profile.items:
                 runtime = RuntimeContext.from_refs(
@@ -148,7 +210,7 @@ class FINZANJIRAI:
                     runtime_refs=runtime_refs,
                     working_memory_scope=working_memory_scope,
                 )
-                answer = self.answer_generator.generate(query, profile)
+                answer = self.answer_generator.generate(query, profile, context_query=contextual_query, conversation_context=conversation.context_text)
                 return OrchestrationResult(
                     answer=answer,
                     grounded_context=profile,
@@ -174,7 +236,7 @@ class FINZANJIRAI:
                 runtime_refs=runtime_refs,
                 working_memory_scope=working_memory_scope,
             )
-            answer = self.answer_generator.generate(query, overview_context)
+            answer = self.answer_generator.generate(query, overview_context, context_query=contextual_query, conversation_context=conversation.context_text)
             return OrchestrationResult(
                 answer=answer,
                 grounded_context=overview_context,
@@ -186,10 +248,20 @@ class FINZANJIRAI:
         # Reciprocal-rank fusion combines candidate lists without pretending
         # that a rewrite itself is evidence. The final reranker still sees the
         # user's original question.
-        model_queries = self.language_model.expand_question(query)
-        local_queries = self.expander.expand(query)
-        query_specs = [(query, 2.0)]
-        query_specs.extend((value, 1.0) for value in local_queries if value.strip() != query.strip())
+        model_queries = self.language_model.expand_question(contextual_query)
+        local_queries = self.expander.expand(contextual_query)
+        query_specs = [(contextual_query, 2.0)]
+        # Central-Asian Cyrillic/Latin spellings and cross-lingual domain terms
+        # can refer to the same concepts. These are lower-weight search hints,
+        # never evidence; the original query remains highest-weight and is used
+        # by the final reranker.
+        script_queries = query_script_variants(contextual_query)
+        query_specs.extend((value, 0.9) for value in script_queries[1:])
+        cross_lingual_queries = cross_lingual_query_variants(contextual_query)
+        query_specs.extend(
+            (value, 0.65) for value in cross_lingual_queries[len(script_queries):]
+        )
+        query_specs.extend((value, 1.0) for value in local_queries if value.strip() != contextual_query.strip())
         query_specs.extend((value, 0.7) for value in model_queries if value.strip())
         deduplicated = []
         seen_queries = set()
@@ -228,7 +300,7 @@ class FINZANJIRAI:
                 semantic_score=0.0,
             ))
         merged.sort(key=lambda item: (-item.score, item.record_id))
-        ranked = self.reranker.rerank(query, tuple(merged))
+        ranked = self.reranker.rerank(contextual_query, tuple(merged))
         if query_intent == "author":
             # Author questions use the separately confirmed biography layer only.
             ranked = tuple(
@@ -240,11 +312,14 @@ class FINZANJIRAI:
             # IDs. Isolate by entity, facet and provenance as well as ID.
             ranked = tuple(
                 item for item in ranked
-                if not _is_author_layer_record(self.index.get_record(item.record_id))
+                if (
+                    not _is_author_layer_record(self.index.get_record(item.record_id))
+                    and _is_project_knowledge_record(self.index.get_record(item.record_id))
+                )
             )
         grounded = self.grounder.assemble(
             ranked,
-            query=query,
+            query=contextual_query,
             query_alternatives=tuple(value for value, _ in deduplicated[1:]),
             max_items=top_k,
         )
@@ -253,7 +328,7 @@ class FINZANJIRAI:
             runtime_refs=runtime_refs,
             working_memory_scope=working_memory_scope,
         )
-        answer = self.answer_generator.generate(query, grounded)
+        answer = self.answer_generator.generate(query, grounded, context_query=contextual_query, conversation_context=conversation.context_text)
         return OrchestrationResult(
             answer=answer,
             grounded_context=grounded,

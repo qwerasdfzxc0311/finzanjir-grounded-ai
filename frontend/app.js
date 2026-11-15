@@ -835,7 +835,7 @@ function renderWindowInteractive(windowId) {
   target.appendChild(heading);
 
   if (windowId === "finzanjir_ai") {
-    const notice = element("p", "module-warning", "MUHIM: AI javobi xato, eskirgan yoki to‘liq bo‘lmasligi mumkin — uni 100% to‘g‘ri deb qabul qilmang. Muhim ma’lumot va qarorlarni asl hujjatlar hamda ishonchli manbalar bilan tekshiring. FINZANJIR konsepsiyasi, muallifning niyati yoki noaniq masalalar bo‘yicha zarur bo‘lsa muallif bilan aniqlashtiring. AI javoblari loyiha bilimlar bazasidagi dalillarga tayanadi; dalil yetarli bo‘lmasa, tizim buni ochiq aytishi kerak. Hozircha suhbat xotirasi faqat ushbu sahifa ochiq turgan paytda saqlanadi.");
+    const notice = element("p", "module-warning", "MUHIM: AI javobi xato, eskirgan yoki to‘liq bo‘lmasligi mumkin — uni 100% to‘g‘ri deb qabul qilmang. Muhim ma’lumot va qarorlarni asl hujjatlar hamda ishonchli manbalar bilan tekshiring. FINZANJIR konsepsiyasi, muallifning niyati yoki noaniq masalalar bo‘yicha zarur bo‘lsa muallif bilan aniqlashtiring. AI javoblari loyiha bilimlar bazasidagi dalillarga tayanadi; dalil yetarli bo‘lmasa, tizim buni ochiq aytishi kerak. Hozircha suhbat xotirasi ushbu sahifada oxirgi 12 ta xabar bilan cheklangan; serverda alohida doimiy chat tarixi bazasi yaratilmaydi.");
     const chat = element("div", "ai-chat-panel");
     const log = element("div", "ai-chat-log");
     log.id = "aiChatLog";
@@ -863,6 +863,12 @@ function renderWindowInteractive(windowId) {
         log.appendChild(item);
       });
     }
+    const clearChat = element("button", "secondary-button", "Suhbatni tozalash");
+    clearChat.type = "button";
+    clearChat.addEventListener("click", () => {
+      aiConversation.length = 0;
+      renderWindowInteractive("finzanjir_ai");
+    });
     const form = element("form", "ai-chat-form");
     const input = element("textarea", "ai-question");
     input.id = "aiQuestion";
@@ -884,6 +890,7 @@ function renderWindowInteractive(windowId) {
       appendChatMessage("user", question);
       input.value = "";
       submit.disabled = true;
+      clearChat.disabled = true;
       submit.textContent = "Javob tayyorlanmoqda...";
       try {
         const runtimeRefs = Array.isArray(lastExecution?.ai?.runtime_context?.runtime_refs)
@@ -892,7 +899,15 @@ function renderWindowInteractive(windowId) {
         const response = await fetch(apiUrl("/api/ai/answer"), {
           method: "POST",
           headers: {"Content-Type":"application/json"},
-          body: JSON.stringify({question, runtime_refs:runtimeRefs, working_memory_scope:"prototype-ui-session"})
+          body: JSON.stringify({
+            question,
+            runtime_refs:runtimeRefs,
+            working_memory_scope:"prototype-ui-session",
+            conversation_history:aiConversation.slice(0, -1).filter(message =>
+              (message.role === "user" || message.role === "assistant") &&
+              typeof message.content === "string" && !message.content.startsWith("Xatolik:")
+            ).slice(-12).map(message => ({role:message.role, content:message.content.slice(0, 1200)}))
+          })
         });
         const body = await response.json();
         if (!response.ok) throw new Error(body.detail || "AI javobini olish imkoni bo‘lmadi");
@@ -902,18 +917,21 @@ function renderWindowInteractive(windowId) {
         const providerStatus = body.provider_status || "not_attempted";
         const providerDiagnostics = Array.isArray(body.provider_diagnostics) ? body.provider_diagnostics : [];
         aiConversation.push({role:"assistant", content:answer, refs, mode, providerStatus, providerDiagnostics, confidence:body.confidence, abstained:body.abstained});
+        if (aiConversation.length > 12) aiConversation.splice(0, aiConversation.length - 12);
         appendChatMessage("assistant", answer, refs, mode, providerStatus, providerDiagnostics, body.confidence, body.abstained);
         if (body.abstained) appendChatMessage("assistant", "Eslatma: mavjud dalillar yetarli bo‘lmagani uchun javob cheklangan.");
       } catch (error) {
         aiConversation.push({role:"assistant", content:"Xatolik: " + error.message});
+        if (aiConversation.length > 12) aiConversation.splice(0, aiConversation.length - 12);
         appendChatMessage("assistant", "Xatolik: " + error.message);
       } finally {
         submit.disabled = false;
+        clearChat.disabled = false;
         submit.textContent = "Savol yuborish";
         input.focus();
       }
     });
-    chat.append(log, form);
+    chat.append(log, clearChat, form);
     target.append(notice, chat);
     return;
   }

@@ -108,7 +108,7 @@
       "facet": "project_motivation",
       "concept_id": "author_motivation_finzanjir",
       "canonical_concept_id": "author_motivation_finzanjir",
-      "statement": "Muallif FINZANJIR g'oyasini oilasidagi moliyaviy yo'qotishlar, firibgarlik xavfi va fuqarolar bank cheklovlari sabab o'z mablag'laridan foydalana olmay qolishi mumkinligi haqidagi tashvishlar fonida bosqichma-bosqich shakllantirgan. Tarixiy ishchi hujjatda dastlabki g'oya torroq — «Kiber Qalqon» nomi ostida karta xavfsizligi va himoyasi atrofida bo'lgani, keyinchalik esa moliyaviy xavfni erta aniqlash, ogohlantirish, tekshiruv, vakolatli javob va hodisadan keyingi tiklashni qamrab oladigan kengroq FINZANJIR konsepsiyasiga aylangani qayd etiladi. Hujjatda oilaviy suhbatda Qozog'istonda ishlab topilgan pul yuborilgach bir ayolning kartasi bloklangani haqidagi hikoya muallifda muhim savol tug'dirgani aytiladi; bu hikoyaning karta nega bloklangani mustaqil tekshirilmagan, shuning uchun uni bank xatosining isbotlangan fakti deb ko'rsatish mumkin emas. Ammo u muallifni moliyaviy xavfni aniqlashga qaratilgan tizimning o'zi begunoh fuqaroning qonuniy operatsiyasiga zarar yetkazmasligi uchun qanday ishlashi kerakligi haqida o'ylashga undagan. G'oyaning muhim sababi — FINZANJIRning o'zi chiqargan noto'g'ri ijobiy (false positive) signal bank tomonidan ortiqcha ishonch bilan qabul qilinib, fuqaroning qonuniy tranzaksiyasi yoki kartasiga asossiz cheklov qo'yilishi xavfini imkon qadar kamaytirishdir. Bu FINZANJIRdan tashqari yangi bloklash tizimini yaratish maqsadi emas; FINZANJIRning o'z tahlil, signal va Case jarayonlarini fuqaroga zarar yetkazmaydigan qilib loyihalash masalasidir. Shu sababli false positive va false negative holatlarini birgalikda o'lchash, signalni firibgarlik isboti yoki bloklash buyrug'i deb qabul qilmaslik, bank vakolatidagi inson ko'rigini saqlash, fuqaro murojaati va e'tirozini ko'rib chiqish, xato signallar sababini tahlil qilish va tuzatish muhim. Muallif 100 foiz xatosizlikni kafolatlashni emas, bunday xatolar ehtimolini jiddiy kamaytirish va yuz bergan xatolardan tizimli ravishda saboq olishni maqsad qiladi.",
+      "statement": "Muallif FINZANJIR g'oyasini oilasidagi moliyaviy yo'qotishlar, firibgarlik xavfi va fuqarolar bank cheklovlari sabab o'z mablag'laridan foydalana olmay qolishi mumkinligi haqidagi tashvishlar fonida bosqichma-bosqich shakllantirgan. Tarixiy ishchi hujjatda dastlabki g'oya torroq — «Kiber Qalqon» nomi ostida karta xavfsizligi va himoyasi atrofida bo'lgani, keyinchalik esa moliyaviy xavfni erta aniqlash, ogohlantirish, tekshiruv, vakolatli javob va hodisadan keyingi tiklashni qamrab oladigan kengroq FINZANJIR konsepsiyasiga aylangani qayd etiladi. Muallifning aniq izohiga ko'ra, u oilaviy davrada Qozog'istonda ishlab topilgan pul yuborilgach bir ayolning kartasi bloklangani haqida eshitgan; u bu voqeani mustaqil tekshirmagan va karta aynan nima sababdan bloklanganini bilmaydi. Shu sabab bu hikoya bank xatosi yoki noqonuniy harakatning isboti emas. Eshitilgan voqea muallifda muhim savol tug'dirgan: Ammo u muallifni moliyaviy xavfni aniqlashga qaratilgan tizimning o'zi begunoh fuqaroning qonuniy operatsiyasiga zarar yetkazmasligi uchun qanday ishlashi kerakligi haqida o'ylashga undagan. G'oyaning muhim sababi — FINZANJIRning o'zi chiqargan noto'g'ri ijobiy (false positive) signal bank tomonidan ortiqcha ishonch bilan qabul qilinib, fuqaroning qonuniy tranzaksiyasi yoki kartasiga asossiz cheklov qo'yilishi xavfini imkon qadar kamaytirishdir. Bu FINZANJIRdan tashqari yangi bloklash tizimini yaratish maqsadi emas; FINZANJIRning o'z tahlil, signal va Case jarayonlarini fuqaroga zarar yetkazmaydigan qilib loyihalash masalasidir. Shu sababli false positive va false negative holatlarini birgalikda o'lchash, signalni firibgarlik isboti yoki bloklash buyrug'i deb qabul qilmaslik, bank vakolatidagi inson ko'rigini saqlash, fuqaro murojaati va e'tirozini ko'rib chiqish, xato signallar sababini tahlil qilish va tuzatish muhim. Muallif 100 foiz xatosizlikni kafolatlashni emas, bunday xatolar ehtimolini jiddiy kamaytirish va yuz bergan xatolardan tizimli ravishda saboq olishni maqsad qiladi.",
       "aliases": [
         "muallif nima uchun FINZANJIRni yaratgan",
         "FINZANJIR g'oyasi qanday paydo bo'lgan",
@@ -128,7 +128,20 @@
         "muallifning FINZANJIRni yaratishdagi asosiy maqsadi",
         "nega qonuniy tranzaksiyalarni himoya qilish muhim",
         "muallifni false positive haqida o'ylashga nima undagan",
-        "FINZANJIR nima uchun fuqarolarning qonuniy to'lovlarini himoya qilishi kerak"
+        "FINZANJIR nima uchun fuqarolarning qonuniy to'lovlarini himoya qilishi kerak",
+        "Почему автор создал FINZANJIR",
+        "Why did the author create FINZANJIR",
+        "причина создания FINZANJIR",
+        "семейная история о заблокированной карте",
+        "почему карта была заблокирована неизвестно",
+        "Автор FINZANJIR-ді не үшін жасады",
+        "отбасылық әңгімеде карта бұғатталды",
+        "FINZANJIR жобасының мақсаты",
+        "Muallif FINZANJIRdi ne ushın jaratqan",
+        "Avtor FINZANJIR di ne ushin jaratqan",
+        "Avtordıń FINZANJIRdi jaratıw sebebi",
+        "shańaraqta esitilgen bloklanǵan karta waqıyası",
+        "kartanıń ne sebepten bloklanǵanı belgili emes"
       ],
       "evidence": {
         "status": "project_source",
@@ -160,6 +173,125 @@
       "reconciliation": {
         "status": "author_confirmed",
         "scope": "author_motivation"
+      }
+    },
+    {
+      "id": "author_0005",
+      "entity_id": "person:mother_of_salamat_smaylov",
+      "facet": "family_biography",
+      "concept_id": "author_mother_story_salamat_smaylov",
+      "canonical_concept_id": "author_mother_story_salamat_smaylov",
+      "statement": "Muallifning FINZANJIR V14 konsepsiyasidagi bayoniga ko‘ra, tug‘ishgan onasi unga to‘g‘ri yo‘ldan yurish, izlanish va bilim olish haqida nasihat qilgan. Muallif onasining hayoti qiyinchiliklar bilan o‘tganini va u yetarlicha rohat ko‘rishga ulgurmaganini yozadi. 2023-yil may oyining oxirida onasidan ayrilgach, muallif chuqur qayg‘u va pushaymonlikni boshdan kechirgan; onasiga bergan va’dalarining mazmunini yo‘qotmay, imkon qadar amalga oshirishga va o‘z tajribasini bilim hamda jamiyatga foydali ishga aylantirishga intilgan.",
+      "aliases": [
+        "Muallifning onasi haqida",
+        "FINZANJIR muallifining onasi",
+        "onasi unga nima deb nasihat qilgan",
+        "onasining hayoti qanday o'tgan",
+        "muallif onasidan qachon ayrilgan",
+        "2023-yil may oyida onasi",
+        "onasi muallifga nimani o'rgatgan",
+        "FINZANJIR g'oyasiga onasining ta'siri",
+        "muallifning hayot yo'li va onasi",
+        "Salamat Smaylovning onasi haqida"
+      ],
+      "evidence": {
+        "status": "project_source",
+        "verification": "author_confirmed",
+        "scope": "author_biography"
+      },
+      "provenance": [
+        {
+          "source_type": "project_archive_document",
+          "source_id": "FINZANJIR_KONSEPSIYA_V14.pdf",
+          "authority": "project_author_supplied_archive",
+          "version": "V14",
+          "sections": "15.11.1 Shaxsiy hayotiy tajriba, xatolardan saboq olish va FINZANJIRning insoniy ildizi; pp. 158-159"
+        }
+      ],
+      "reconciliation": {
+        "status": "author_confirmed",
+        "scope": "author_mother_story"
+      },
+      "privacy_class": "personal_family_biography",
+      "disclosure_policy": "only_when_explicitly_requested_or_directly_relevant"
+    },
+    {
+      "id": "author_0006",
+      "entity_id": "person:salamat_smaylov",
+      "facet": "project_origin_contribution",
+      "concept_id": "project_origin_contribution_salamat_smaylov",
+      "canonical_concept_id": "project_origin_contribution_salamat_smaylov",
+      "statement": "Muallifning FINZANJIR_Tarixiy_Ishchi_Hujjat! hujjatidagi bayoniga ko‘ra, dastlabki prototipni yaratishda u g‘oyani tushuntirib, vazifalarni belgilab va jarayonga yo‘nalish bergan; otasi Termuxni topish va o‘rnatish, ishchi papkalarni tayyorlash, kod bilan ishlash hamda ilovani telefonda ishga tushirish kabi amaliy texnik ishlarni bajargan. Keyinchalik ikkinchi onasi va singlisi ham jarayonda yordam bergan. Muallif dasturlashni bilmaganini va Termuxdagi amaliy ishlarni o‘zi bajarmaganini hujjatda ochiq aytadi. Shuning uchun dastlabki prototipni muallif yakka o‘zi kodlagan deb ko‘rsatish to‘g‘ri emas; tarixiy hujjat uni oilaviy yordam, muallifning g‘oyaviy yo‘nalishi va birgalikda o‘rganish jarayoni sifatida tasvirlaydi.",
+      "aliases": [
+        "FINZANJIR prototipini kim yaratgan",
+        "FINZANJIR prototipini kim kodlagan",
+        "dastlabki prototip qanday yaratilgan",
+        "muallif dasturlashni bilganmi",
+        "otasi Termuxni o'rnatganmi",
+        "otasi kod yozishda yordam berganmi",
+        "ikkinchi onasi loyihaga qanday yordam bergan",
+        "singlisi FINZANJIRga yordam berganmi",
+        "prototipni oilasi bilan yaratganmi",
+        "kim Termuxni topib o'rnatgan",
+        "who built the first prototype",
+        "who wrote the initial code"
+      ],
+      "evidence": {
+        "status": "project_source",
+        "verification": "author_confirmed",
+        "scope": "project_origin_history"
+      },
+      "provenance": [
+        {
+          "source_type": "project_archive_document",
+          "source_id": "FINZANJIR_Tarixiy_Ishchi_Hujjat!.pdf",
+          "authority": "project_author_supplied_archive",
+          "sections": "3. Internetdan foydalanish bo‘yicha huquqiy cheklov va oilaviy yordam; 4. Dastlabki prototip: g‘oyani amalda sinash; pp. 4-5"
+        }
+      ],
+      "reconciliation": {
+        "status": "author_confirmed",
+        "scope": "project_origin_contribution"
+      }
+    },
+    {
+      "id": "author_0007",
+      "entity_id": "person:salamat_smaylov",
+      "facet": "project_origin_timeline",
+      "concept_id": "project_origin_timeline_finzanjir",
+      "canonical_concept_id": "project_origin_timeline_finzanjir",
+      "statement": "FINZANJIR tarixiy ishchi hujjatidagi muallif bayoniga ko‘ra, loyiha birdaniga tayyor platforma sifatida paydo bo‘lmagan. Muallif avval ATMOS va SINBAD bo‘yicha mustaqil kuzatuvlar olib borgan; bu kuzatuvlar o‘sha paytda FINZANJIR uchun maxsus tadqiqot bo‘lmagan. Keyin taxminan yetti sahifalik dastlabki “Kiber Qalqon” materiali shakllangan: unda kartani ko‘rish va himoya qilish, zarur bank yoki hamkor aloqasi bo‘lgandagina bloklash kabi tor g‘oyalar ko‘rib chiqilgan. Dastlabki prototip oilaviy yordam va amaliy o‘rganish orqali sinab ko‘rilgan. Keyingi takroriy auditlar, yangi savollar va izlanishlar davomida loyiha karta funksiyasidan kengroq moliyaviy xavfsizlik g‘oyasiga o‘sgan; xavf signallari, Case yondashuvi, FINZANJIR nomi va logotipi, keyinchalik “Bilim daraxti” hamda AI yo‘nalishi bosqichma-bosqich shakllangan. Ayrim vaqtlar taxminiy; bu tarixiy rivojlanish ketma-ketligi, har bir bosqich to‘liq ishga tushgan mahsulot degani emas.",
+      "aliases": [
+        "FINZANJIR qanday yaralgan",
+        "FINZANJIR qanday boshlangan",
+        "loyiha qanday paydo bo'lgan",
+        "Kiber Qalqondan FINZANJIRga o'tish",
+        "Kiber Qalqon g'oyasi qayerdan kelgan",
+        "yetti sahifalik Kiber Qalqon hujjati",
+        "ATMOS va SINBAD kuzatuvlari FINZANJIRga qanday bog'langan",
+        "FINZANJIR nomi qanday paydo bo'lgan",
+        "FINZANJIR logotipi qachon shakllangan",
+        "Bilim daraxti g'oyasi qanday paydo bo'lgan",
+        "loyiha bosqichma-bosqich qanday rivojlangan",
+        "FINZANJIR project origin and history"
+      ],
+      "evidence": {
+        "status": "project_source",
+        "verification": "author_confirmed",
+        "scope": "project_origin_timeline"
+      },
+      "provenance": [
+        {
+          "source_type": "project_archive_document",
+          "source_id": "FINZANJIR_Tarixiy_Ishchi_Hujjat!.pdf",
+          "authority": "project_author_supplied_archive",
+          "sections": "1–8: ATMOS/SINBAD observations, initial Kiber Qalqon material, prototype, Case, FINZANJIR name/logo, Bilim daraxti",
+          "note": "Timeline is author-reported; ATMOS/SINBAD observations are explicitly not presented as FINZANJIR-specific research or proof of wrongdoing."
+        }
+      ],
+      "reconciliation": {
+        "status": "author_confirmed",
+        "scope": "project_origin_timeline"
       }
     }
   ]

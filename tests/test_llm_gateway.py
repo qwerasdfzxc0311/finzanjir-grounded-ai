@@ -49,6 +49,9 @@ def test_gateway_keeps_common_personal_and_payment_identifiers_out_of_provider_c
     assert not LLMGateway.can_send_text("Karta raqami 8600 1234 5678 9012")
     assert not LLMGateway.can_send_text("Telefon +998 90 123 45 67")
     assert not LLMGateway.can_send_text("Email user@example.com")
+    assert not LLMGateway.can_send_text("Telefon +7 999 123-45-67")
+    assert not LLMGateway.can_send_text("Pasport AA1234567")
+    assert not LLMGateway.can_send_text("IBAN GB82 WEST 1234 5698 7654 32")
     assert LLMGateway.can_send_text("FINZANJIR firibgarlik zanjirini qanday aniqlaydi?")
 
 
@@ -108,3 +111,53 @@ def test_gateway_reports_timeout_category(monkeypatch):
     assert gateway.last_provider_failures == [
         {"provider": "gemini", "status": "timeout"}
     ]
+
+def test_gateway_logs_only_sanitized_provider_failure_category(caplog, monkeypatch):
+    gateway = LLMGateway(environ={"GEMINI_API_KEY": "not-a-real-test-secret"})
+    request = httpx.Request("POST", "https://example.invalid")
+    response = httpx.Response(401, request=request)
+
+    def fail_request(*_args, **_kwargs):
+        raise httpx.HTTPStatusError(
+            "secret-bearing provider body must never appear in logs",
+            request=request,
+            response=response,
+        )
+
+    monkeypatch.setattr(gateway, "_generate_with", fail_request)
+    with caplog.at_level("WARNING", logger="finzanjir_ai.answer.providers"):
+        assert gateway.generate_json(system="private prompt", prompt="private user text") is None
+
+    assert "provider=gemini" in caplog.text
+    assert "category=authentication_or_permission_failed" in caplog.text
+    assert "http_status=401" in caplog.text
+    assert "secret-bearing" not in caplog.text
+    assert "not-a-real-test-secret" not in caplog.text
+    assert "private prompt" not in caplog.text
+    assert "private user text" not in caplog.text
+
+
+
+def test_gateway_logs_safe_http_status_for_request_rejection(caplog, monkeypatch):
+    gateway = LLMGateway(environ={"OPENROUTER_API_KEY": "not-a-real-test-secret"})
+    request = httpx.Request("POST", "https://example.invalid")
+    response = httpx.Response(402, request=request)
+
+    def fail_request(*_args, **_kwargs):
+        raise httpx.HTTPStatusError(
+            "payment details and private body must not be logged",
+            request=request,
+            response=response,
+        )
+
+    monkeypatch.setattr(gateway, "_generate_with", fail_request)
+    with caplog.at_level("WARNING", logger="finzanjir_ai.answer.providers"):
+        assert gateway.generate_json(system="private prompt", prompt="private user text") is None
+
+    assert "provider=openrouter" in caplog.text
+    assert "category=request_rejected" in caplog.text
+    assert "http_status=402" in caplog.text
+    assert "payment details" not in caplog.text
+    assert "not-a-real-test-secret" not in caplog.text
+    assert "private prompt" not in caplog.text
+    assert "private user text" not in caplog.text
