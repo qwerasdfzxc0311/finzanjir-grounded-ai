@@ -197,7 +197,7 @@ def test_standalone_project_motivation_question_is_neutral_and_source_grounded()
     assert result.answer.citations == ("author_0004", "author_0008", "author_0009")
     assert "jamiyatga foyda keltirish istagi" in result.answer.answer
     assert "oilaviy davrada eshitilgan" not in result.answer.answer
-    assert "bank xatosi yoki noqonuniy harakat isboti emas" in result.answer.answer
+    assert "Firibgarlikni qiyinlashtirish, qonuniy hayotni esa qiyinlashtirmaslik" in result.answer.answer
 
 
 def test_author_mother_facet_is_not_swallowed_by_broad_author_overview():
