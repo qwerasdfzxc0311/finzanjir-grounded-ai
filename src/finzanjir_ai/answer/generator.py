@@ -276,78 +276,126 @@ class GroundedAnswerGenerator:
 
     AUTHOR_MOTIVATION_ANSWERS = {
         "uz": (
-            "Muallifning bayoniga ko'ra, FINZANJIR g'oyasining muhim turtkilaridan biri oilaviy davrada eshitilgan voqea bo'lgan: "
-            "Qozog'istonda ishlab topilgan pul yuborilgach, bir ayolning kartasi bloklangani aytilgan. "
-            "Muallif bu voqeani mustaqil tekshirmagan va karta aynan nima sababdan bloklanganini bilmaydi. "
-            "Shu sabab bu hikoya bank xatosi yoki noqonuniy harakat isboti emas. "
-            "Kengroq fon esa oiladagi moliyaviy yo'qotishlar, firibgarlik xavfi va bank cheklovlari sabab fuqarolar "
-            "o'z mablag'idan foydalana olmay qolishi mumkinligi haqidagi tashvishlar edi. Dastlabki g'oya torroq "
-            "«Kiber Qalqon» yo'nalishida bo'lgan; keyingi izlanishlar va auditlar uni kengroq moliyaviy xavfsizlik "
-            "konsepsiyasiga aylantirgan. Oilaviy hikoya shu rivojlanishdagi muhim turtkilardan biri bo'lgan, "
-            "ammo har bir modulning yagona sababi emas. U muallifda muhim savol uyg'otgan: firibgarlikni aniqlashga "
-            "mo'ljallangan tizimning noto'g'ri signali qonuniy pul o'tkazmasi yoki begunoh fuqaroga zarar yetkazmasligi "
-            "uchun bunday tizim qanday qurilishi kerak?\n\n"
-            "Bu savol FINZANJIR falsafasini kuchaytirgan: firibgarlikni qiyinlashtirish bilan birga qonuniy tranzaksiyalarni "
-            "asossiz to'xtatmaslik; false positive va false negative holatlarini birgalikda o'lchash; har bir xato va "
-            "o'tkazib yuborilgan holat sababini o'rganish; fuqaro murojaatlarini tez, adolatli qayta ko'rib chiqishga "
-            "yordam berish; topilgan xatolarni dalil va sinovlar asosida kamaytirish. Signal aybdorlik isboti ham, "
-            "avtomatik bloklash buyrug'i ham emas — vakolatli bank jarayoni va inson ko'rigi saqlanadi. "
-            "FINZANJIR banklarni ayblash yoki ularning vakolatini almashtirish uchun emas. "
-            "Uning tamoyili: firibgarlikni qiyinlashtirish, qonuniy hayotni esa qiyinlashtirmaslik. "
-            "Maqsad 100 foiz xatosizlikni va'da qilish emas, xatolar ehtimolini kamaytirish va yuz bergan xatolardan tizimli saboq olishdir."
+            "Muallifning FINZANJIRni yaratish sababi bitta voqea yoki faqat bank kartasi muammosi bilan cheklanmaydi. "
+            "V14 konsepsiyasining 15-bobida kengroq qarash bayon qilingan: to'lov tizimlari, raqamli xizmatlar, internet "
+            "va kiber ekotizim rivojlanar ekan, qulaylik va yangi imkoniyatlar bilan birga xavflar ham murakkablashadi. "
+            "Shu bois xavfsizlik mexanizmlari ham doimiy rivojlanishi kerak. Muallif FINZANJIRni shunchaki dastur yoki "
+            "texnik platforma emas, rivojlanayotgan moliyaviy va kiber muhitda xavfsizlikni ham rivojlantirishga urinish "
+            "sifatida ko'radi.\n\n"
+            "Bu qarashning insoniy ildizida muallifning shaxsiy hayotiy tajribasi, boshidan kechirgan qiyinchiliklari, "
+            "o'z yo'lini qayta izlash jarayoni, bilim olish va o'zini rivojlantirishga intilishi hamda jamiyatga foydali "
+            "inson bo'lish istagi bor. Muallif fuqarolar o'z pullaridan doimiy qo'rqib yashamasligini, muammo yuz berganda "
+            "qayerga murojaat qilishini bilishini va banklar xavfsizlik jarayonlarini tizimliroq hamda ishonchliroq "
+            "tashkil eta olishini istaydi. Ko'zlangan yo'nalish — xavflarni yaxshiroq anglash, zarar ehtimolini kamaytirish, "
+            "hodisalardan o'rganish va kelajakdagi xavflarga tayyorlanish. FINZANJIR tajriba va bilim to'plash, kelajakdagi "
+            "foydali ishlanmalar uchun poydevor bo'lishi mumkin.\n\n"
+            "Dastlabki g'oya torroq «Kiber Qalqon» yo'nalishida bo'lgan va keyingi izlanishlar davomida kengroq moliyaviy "
+            "xavfsizlik konsepsiyasiga aylangan. Oilaviy davrada eshitilgan voqea — Qozog'istonda ishlab topilgan pul "
+            "yuborilgach bir ayolning kartasi bloklangani — shu yo'ldagi muhim turtkilardan biri, ammo yagona sabab emas. "
+            "Muallif bu voqeani mustaqil tekshirmagan va karta nima sababdan bloklanganini bilmaydi. Shu sabab bu hikoya "
+            "bank xatosi yoki noqonuniy harakat isboti emas.\n\n"
+            "Bu tajriba muhim tamoyilni kuchaytirgan: firibgarlikni qiyinlashtirish, qonuniy hayotni esa qiyinlashtirmaslik. "
+            "False positive va false negative holatlarini birgalikda o'lchash, signalni aybdorlik isboti yoki avtomatik "
+            "bloklash buyrug'i deb qabul qilmaslik, bank vakolatidagi inson ko'rigini saqlash, fuqaro murojaatlarini tez, "
+            "adolatli qayta ko'rib chiqishga yordam berish va xatolardan tizimli saboq olish zarur. FINZANJIR banklarni "
+            "ayblash yoki ularning vakolatini almashtirish uchun emas. Maqsad 100 foiz xatosizlikni va'da qilish emas, "
+            "xavf va zarar ehtimolini kamaytirib, tajriba asosida yaxshilanishdir. Konsepsiyada bayon qilingan maqsadlarning "
+            "barchasi amalda joriy qilingan degani emas; ayrimlari loyiha talabi yoki kelajak yo'nalishidir."
         ),
         "ru": (
-            "По рассказу автора, одним из важных толчков к идее FINZANJIR стала история, услышанная в семейном кругу: "
-            "говорилось, что после отправки денег, заработанных в Казахстане, банковская карта одной женщины была заблокирована. "
-            "Автор не проверял эту историю и не знает, по какой именно причине карту заблокировали. "
-            "Поэтому она не доказывает ошибку или неправомерные действия банка. Но она побудила автора задуматься: "
-            "как построить систему противодействия мошенничеству так, чтобы ошибочный сигнал не вредил законным переводам и добросовестным гражданам?\n\n"
-            "Этот вопрос усилил философию FINZANJIR: затруднять мошенничество, не создавая необоснованных препятствий законным операциям; "
-            "совместно измерять false positive и false negative; разбирать причины ошибок и пропущенных случаев; "
-            "помогать быстро и справедливо рассматривать обращения граждан; уменьшать ошибки на основе доказательств и тестов. "
-            "Сигнал не является доказательством вины или автоматической командой заблокировать карту. "
-            "Решения остаются в рамках законных полномочий банка и человеческой проверки. FINZANJIR не создаётся для обвинения банков "
-            "или замены их полномочий. Его принцип — затруднять мошенничество, не усложняя законную жизнь. "
-            "Цель — не обещать абсолютную безошибочность, а снижать риск ошибок и системно учиться на них."
+            "Причина создания FINZANJIR не сводится к одному эпизоду или только к проблеме банковской карты. "
+            "В главе 15 концепции V14 автор объясняет более широкий взгляд: по мере развития платёжных систем, "
+            "цифровых услуг, интернета и киберсреды растут не только удобство и возможности, но и риски. Поэтому "
+            "механизмы безопасности также должны постоянно развиваться. Для автора FINZANJIR — не просто программа "
+            "или техническая платформа, а попытка развивать безопасность вместе с финансовой и киберсредой.\n\n"
+            "В человеческой основе этой идеи — личный жизненный опыт автора, пережитые трудности, поиск своего пути, "
+            "стремление учиться и развиваться, а также желание быть полезным обществу. Автор хочет, чтобы люди не жили "
+            "в постоянном страхе за свои деньги, знали, куда обращаться при проблеме, а банки могли выстраивать более "
+            "системные и надёжные процессы безопасности. Предполагаемое направление — лучше понимать риски, уменьшать "
+            "вероятность ущерба, учиться на инцидентах и готовиться к новым угрозам. FINZANJIR также рассматривается "
+            "как основа для накопления опыта и знаний и для будущих полезных разработок.\n\n"
+            "Идея начиналась с более узкого направления «Кибер Қалқан» и постепенно расширилась до концепции финансовой "
+            "безопасности. История, услышанная в семейном кругу, о заблокированной после перевода заработанных в Казахстане "
+            "денег карте одной женщины была одним из важных толчков, но не единственной причиной. Автор не проверял эту "
+            "историю самостоятельно и не знает, почему карту заблокировали; она не доказывает ошибку или неправомерные "
+            "действия банка.\n\n"
+            "Этот опыт укрепил принцип: затруднять мошенничество, не усложняя законную жизнь. Следует совместно измерять "
+            "false positive и false negative, не считать сигнал доказательством вины или автоматическим приказом о блокировке, "
+            "сохранять проверку человеком в пределах полномочий банка, справедливо рассматривать обращения граждан и "
+            "системно учиться на ошибках. FINZANJIR не предназначен для обвинения банков или замены их полномочий. "
+            "Цель — снижать риск и ущерб, а не обещать стопроцентную безошибочность. Не все цели концепции уже реализованы: "
+            "часть из них является требованиями проекта или будущими направлениями."
         ),
         "en": (
-            "According to the author, one important impetus for FINZANJIR was a story heard during a family gathering: "
-            "it was said that a woman's bank card had been blocked after money earned in Kazakhstan was sent. "
-            "The author did not independently investigate the incident and does not know why the card was blocked. "
-            "Therefore, the story is not proof of bank error or wrongdoing. It did, however, raise an important question: "
-            "how can an anti-fraud system be designed so that a false signal does not harm legitimate transfers or innocent people?\n\n"
-            "That question strengthened FINZANJIR's philosophy: make fraud harder without creating unjustified barriers to legitimate transactions; "
-            "measure false positives and false negatives together; investigate both errors and missed cases; help review citizen complaints promptly and fairly; "
-            "and reduce errors through evidence-based changes and testing. A signal is neither proof of guilt nor an automatic instruction to block a card. "
-            "Lawful bank authority and human review remain in place. FINZANJIR is not intended to blame banks or replace their authority. "
-            "Its principle is to make fraud harder without making lawful life harder. The goal is not to promise zero errors, but to reduce them "
-            "and systematically learn from those that occur."
+            "The reason the author created FINZANJIR is broader than one incident or a bank-card problem. "
+            "Chapter 15 of concept V14 describes the wider view: as payment systems, digital services, the internet "
+            "and the cyber ecosystem develop, they bring both convenience and new opportunities as well as more complex "
+            "risks. Security mechanisms therefore need to develop continuously too. The author sees FINZANJIR not merely "
+            "as an app or technical platform, but as an effort to advance security alongside the evolving financial and cyber environment.\n\n"
+            "The human roots of the idea include the author's life experience, difficulties, process of rethinking his path, "
+            "commitment to learning and self-development, and wish to be useful to society. The author wants people not to "
+            "live in constant fear about their money, to know where to turn when a problem occurs, and for banks to organize "
+            "security processes more systematically and reliably. The intended direction is to understand risks better, "
+            "reduce the likelihood of harm, learn from incidents and prepare for future threats. FINZANJIR may also serve "
+            "as a foundation for experience, knowledge and future useful projects.\n\n"
+            "The initial idea was narrower, under the name 'Kiber Qalqon', and gradually developed into a broader financial "
+            "security concept. A story heard at a family gathering about a woman's card being blocked after money earned in "
+            "Kazakhstan was transferred was one important impetus, not the sole reason. The author did not independently "
+            "investigate the story and does not know why the card was blocked; it is not proof of bank error or wrongdoing.\n\n"
+            "That experience reinforced the principle: make fraud harder without making lawful life harder. False positives "
+            "and false negatives should be measured together; a signal must not be treated as proof of guilt or an automatic "
+            "blocking instruction; human review within the bank's authority must remain; citizen complaints should be reviewed "
+            "fairly; and errors should lead to systematic learning. FINZANJIR is not intended to blame banks or replace their "
+            "authority. The goal is to reduce risk and harm, not promise 100% accuracy. Not every concept goal is already "
+            "implemented; some remain project requirements or future directions."
         ),
         "kk": (
-            "Автордың айтуынша, FINZANJIR идеясына түрткі болған маңызды оқиғалардың бірі — отбасылық ортада естіген әңгіме: "
-            "Қазақстанда табылған ақша жіберілгеннен кейін бір әйелдің банк картасы бұғатталғаны айтылған. "
-            "Автор бұл оқиғаны өз бетінше тексермеген және картаның нақты не себепті бұғатталғанын білмейді. "
-            "Сондықтан бұл әңгіме банктің қателігін немесе заңсыз әрекетін дәлелдемейді. Бірақ ол маңызды сұрақ туғызды: "
-            "алаяқтыққа қарсы жүйенің қате сигналы заңды аударымдарға немесе адал азаматтарға зиян келтірмеуі үшін жүйені қалай құру керек?\n\n"
-            "Осы сұрақ FINZANJIR философиясын күшейтті: алаяқтықты қиындату, бірақ заңды операцияларға негізсіз кедергі жасамау; "
-            "false positive пен false negative көрсеткіштерін бірге өлшеу; қателер мен анықталмай қалған жағдайлардың себептерін зерттеу; "
-            "азаматтардың өтініштерін тез әрі әділ қарауға көмектесу; дәлелдер мен сынақтарға сүйеніп қателерді азайту. "
-            "Сигнал кінәнің дәлелі де, картаны автоматты бұғаттау пәрмені де емес. Банктің заңды өкілеттігі мен адамның тексеруі сақталады. "
-            "FINZANJIR банктерді айыптау немесе олардың өкілеттігін алмастыру үшін жасалмайды. Негізгі қағидасы — алаяқтықты қиындату, "
-            "ал заңды өмірді қиындатпау. Мақсат — қателік мүлде болмайды деп уәде беру емес, оларды азайтып, болған қателерден жүйелі үйрену."
+            "Автордың FINZANJIR жасау себебі бір оқиғамен немесе тек банк картасының мәселесімен шектелмейді. "
+            "V14 тұжырымдамасының 15-тарауында кеңірек көзқарас берілген: төлем жүйелері, цифрлық қызметтер, интернет "
+            "және киберорта дамыған сайын ыңғайлылық пен жаңа мүмкіндіктермен бірге қауіптер де күрделене түседі. "
+            "Сондықтан қауіпсіздік тетіктері де үздіксіз дамуы керек. Автор FINZANJIR-ді жай бағдарлама немесе техникалық "
+            "платформа емес, қаржылық және киберортамен бірге қауіпсіздікті дамытуға бағытталған талпыныс деп қарайды.\n\n"
+            "Бұл идеяның адамдық негізінде автордың өмірлік тәжірибесі, бастан өткерген қиындықтары, өз жолын қайта іздеуі, "
+            "білім алуға және өзін дамытуға ұмтылысы, қоғамға пайдалы болу ниеті бар. Автор адамдар өз ақшасы үшін үнемі "
+            "қорықпай өмір сүргенін, мәселе туындаса қайда жүгіну керегін білгенін және банктер қауіпсіздік үдерістерін "
+            "жүйелі әрі сенімді ұйымдастырғанын қалайды. Мақсат — қауіптерді жақсырақ түсіну, зиян ықтималдығын азайту, "
+            "оқиғалардан үйрену және болашақ қатерлерге дайындалу. FINZANJIR тәжірибе мен білім жинауға, болашақ пайдалы "
+            "жобаларға негіз болуға да бағытталған.\n\n"
+            "Алғашқы идея «Кибер Қалқан» деген тар бағыттан басталып, біртіндеп кең қаржылық қауіпсіздік тұжырымдамасына "
+            "айналды. Қазақстанда табылған ақша аударылғаннан кейін бір әйелдің картасы бұғатталғаны туралы отбасылық "
+            "әңгіме осы жолдағы маңызды түрткілердің бірі болды, бірақ жалғыз себеп емес. Автор бұл оқиғаны өз бетінше "
+            "тексермеген және картаның не себепті бұғатталғанын білмейді; бұл банктің қатесін немесе заңсыз әрекетін дәлелдемейді.\n\n"
+            "Осы тәжірибе негізгі қағиданы күшейтті: алаяқтықты қиындату, заңды өмірді қиындатпау. False positive пен "
+            "false negative бірге өлшенуі керек; сигнал кінәнің дәлелі немесе автоматты бұғаттау бұйрығы ретінде қабылданбауы "
+            "керек; банктің өкілеттігі шегінде адам тексеруі сақталуы, азаматтардың өтініштері әділ қаралуы және қателерден "
+            "жүйелі сабақ алынуы тиіс. FINZANJIR банктерді айыптау немесе олардың өкілеттігін алмастыру үшін жасалмаған. "
+            "Мақсат — тәуекел мен зиянды азайту, 100 пайыз қатесіздікке уәде беру емес. Тұжырымдамадағы барлық мақсат "
+            "қазірдің өзінде іске асқан жоқ; кейбірі жоба талабы немесе болашақ бағыты болып қалады."
         ),
         "kaa": (
-            "Avtordıń aytıwına qaraǵanda, FINZANJIR ideyasına túrtki bolǵan áhmiyetli waqıyalardıń biri — shańaraqta esitilgen gúrriń: "
-            "Qazaqstanda islep tabılǵan pul jiberilgennen keyin bir hayaldıń bank kartası bloklanǵanı aytılǵan. "
-            "Avtor bul waqıyanı óz aldına teksermegen hám kartanıń dál ne sebepten bloklanǵanın bilmeydi. "
-            "Sonlıqtan bul gúrriń bank qáteligi yamasa nızamsız hárekettiń dálili emes. Biraq ol áhmiyetli soraw tuwdırǵan: "
-            "aldawshılıqqa qarsı sistema qáte signal berip, nızamlı awdarımlarǵa yamasa jazıqsız puqaralarǵa zıyan jetkizbewi ushın qalay qurılıwı kerek?\n\n"
-            "Bul soraw FINZANJIR filosofiyasın kúsheyttirdi: aldawshılıqtı qıyınlastırıw, biraq nızamlı operaciyalarǵa tiykarсыз tosıq qoymaw; "
-            "false positive hám false negative jaǵdayların birge ólshew; qáteler hám ótkerip alǵan jaǵdaylardıń sebebin úyreniw; "
-            "puqaralardıń múrájatların tez hám ádil qayta kóriwge járdemlesiw; dálil hám sınawlar tiykarında qátelerdi azaytıw. "
-            "Signal ayıplılıq dálili de, kartanı avtomat bloklaw buyrıǵı da emes. Banktiń nızamlı wákileti hám insan tekseriwi saqlanadı. "
-            "FINZANJIR banklerdi ayıplaw yamasa olardıń wákiletin almastırıw ushın emes. Tiykarǵı qaǵıydası — aldawshılıqtı qıyınlastırıw, "
-            "nızamlı turmıstı qıyınlastırmaw. Maqset qáte bolmaydı dep wáde beriw emes, qátelerdi azaytıw hám bolǵan qátelerden úyreniw."
+            "Avtordıń FINZANJIR jaratıw sebebi bir waqıya yamasa tek bank kartası máselesi menen sheklenbeydi. "
+            "V14 konsepsiyasınıń 15-babında keńirek qaras berilgen: tólem sistemaları, cifrlı xızmetler, internet hám "
+            "kiber orta rawajlanǵan sayın qolaylıq hám jańa múmkinshilikler menen birge qáwipler de quramalasadı. "
+            "Sonıń ushın qáwipsizlik mexanizmleri de úzliksiz rawajlanıwı kerek. Avtor FINZANJIR-di tek programma yamasa "
+            "texnikalıq platforma emes, rawajlanıp atırǵan finanslıq hám kiber orta menen birge qáwipsizlikti rawajlandırıw "
+            "urınısı dep qaraydı.\n\n"
+            "Bul ideyanıń insanıy tiykarında avtordıń turmıslıq tájiriybesi, basınan ótken qıyınshılıqları, óz jolın qayta "
+            "izlew, bilim alıw hám ózin rawajlandırıwǵa umtılıwı, jámiyetke paydalı bolıw tilegi bar. Avtor puqaralar óz "
+            "aqshası ushın úzliksiz qorqıp jasamawın, másele tuwılǵanda qay jerge múrájat etiwdi biliwin hám bankler "
+            "qáwipsizlik proceslerin sistemalı hám isenimli shólkemlestiriwin qáleydi. Maqset — qáwiplerdi jaqsıraq túsiniw, "
+            "ziyan itimallığın azaytıw, waqıyalardan úyreniw hám keleshek qáwiplerine tayarlanıw. FINZANJIR tájiriybe hám "
+            "bilim toplaw, keleshektegi paydalı joybarlar ushın tiykar bolıwı múmkin.\n\n"
+            "Dáslepki ideya «Kiber Qalqan» dep atalǵan tar baǵdardan baslanıp, áste-aqırın keń finanslıq qáwipsizlik "
+            "konsepsiyasına aylandı. Qazaqstanda tabılǵan pul jiberilgennen keyin bir hayaldıń kartası bloklanǵanı haqqında "
+            "shańaraqta esitilgen gúrriń bul joldagı áhmiyetli túrtkilerdiń biri boldı, biraq birden-bir sebep emes. Avtor "
+            "bul waqıyanı óz aldına teksermegen hám kartanıń ne sebepten bloklanǵanın bilmeydi; bul bank qáteligi yamasa "
+            "nızamsız háreket dálili emes.\n\n"
+            "Bul tájiriybe tiykarǵı qaǵıydanı kúsheyttirdi: aldawshılıqtı qıyınlastırıw, nızamlı turmıstı qıyınlastırmaw. "
+            "False positive hám false negative birge ólshenwi kerek; signal ayıplılıq dálili yamasa avtomat bloklaw buyrıǵı "
+            "sıpatında qabıl etilmeui kerek; bank wákileti shegarasında insan tekseriwi saqlanıwı, puqaralardıń múrájatları "
+            "ádil qaralıwı hám qátelerden sistemalı sabaq alınǵanı maqul. FINZANJIR banklerdi ayıplaw yamasa olardıń "
+            "wákiletin almastırıw ushın emes. Maqset — qáwip hám zıyandı azaytıw, 100 procent qáteliksizlikke wáde beriw emes. "
+            "Konsepsiyadaǵı barlıq maqsetler házir-aq ámelge asqan degendi bildirmeydi; ayırımları joybar talapları yamasa keleshek baǵıtları."
         ),
     }
 
@@ -450,7 +498,7 @@ class GroundedAnswerGenerator:
         from finzanjir_ai.orchestration.intent import (
             classify_query_intent, detect_query_language, is_bank_authority_query,
             is_signal_guilt_query, is_case_purpose_query, is_fraud_graph_definition_query,
-            is_c_model_query, is_sixteen_layer_query,
+            is_c_model_query, is_sixteen_layer_query, is_author_motivation_query,
         )
 
         intent_query = context_query or query
@@ -545,27 +593,31 @@ class GroundedAnswerGenerator:
                 provider_status="not_attempted",
             )
 
-        if classify_query_intent(intent_query) == "author" and any(
-            item.record_id == "author_0004" for item in grounded_items
-        ):
-            normalized_author_query = intent_query.casefold().replace("’", "'").replace("ʻ", "'")
-            motivation_markers = (
-                "nima uchun", "nega", "sabab", "motivatsiya", "maqsad", "g'oya",
-                "why", "reason", "motivation", "почему", "причин", "не үшін", "не себеп", "ne ushin", "ne ushın", "jaratqan", "sebep", "maqset",
-                "неге", "себеп", "мақсат", "ushın", "ne ushın", "sebep", "turtki",
-                "ta'sir", "oilaviy davra",
-            )
-            if any(marker in normalized_author_query for marker in motivation_markers):
+        if classify_query_intent(query) == "author" and is_author_motivation_query(query):
+            motivation_evidence = {
+                item.record_id: item for item in grounded_items
+                if item.record_id in {"author_0004", "author_0008", "author_0009"}
+            }
+            required_motivation_ids = ("author_0004", "author_0008", "author_0009")
+            if all(record_id in motivation_evidence for record_id in required_motivation_ids):
                 return AnswerResult(
                     answer=self.AUTHOR_MOTIVATION_ANSWERS.get(
                         language, self.AUTHOR_MOTIVATION_ANSWERS["uz"]
                     ),
                     confidence=confidence,
                     abstained=False,
-                    citations=("author_0004",),
+                    citations=required_motivation_ids,
                     generation_mode="author_motivation_grounded",
                     provider_status="not_attempted",
                 )
+            return AnswerResult(
+                answer=self.NO_EVIDENCE_MESSAGES.get(language, self.NO_EVIDENCE_MESSAGES["uz"]),
+                confidence=0.0,
+                abstained=True,
+                citations=tuple(motivation_evidence),
+                generation_mode="author_motivation_evidence_incomplete",
+                provider_status="not_attempted",
+            )
 
         provider_status = (
             "not_configured" if self.provider is None
