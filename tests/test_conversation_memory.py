@@ -237,3 +237,30 @@ def test_sensitive_identifier_in_followup_history_is_blocked_before_provider_cal
     assert gateway.expand_question(context.contextual_query) == ()
     assert gateway.last_status == "blocked_sensitive"
     assert gateway.can_send_text(context.context_text) is False
+
+
+@pytest.mark.parametrize(
+    "prior_question",
+    [
+        "Fraud Graph nima?",
+        "Case nima uchun ochiladi?",
+        "Signal fuqaroning aybdorligini isbotlaydimi?",
+        "FINZANJIR bank kartasini o'zi bloklay oladimi?",
+    ],
+)
+def test_followup_new_question_does_not_replay_previous_deterministic_answer(prior_question):
+    result = _offline_ai().answer(
+        "U qayerda saqlanadi?",
+        runtime_refs=(),
+        working_memory_scope="conversation-topic-change-test",
+        conversation_history=(
+            {"role": "user", "content": prior_question},
+            {"role": "assistant", "content": "Oldingi mavzu bo'yicha javob."},
+        ),
+    )
+    assert result.answer.generation_mode not in {
+        "fraud_graph_localized",
+        "case_purpose_localized",
+        "signal_not_proof_localized",
+        "bank_authority_localized",
+    }
