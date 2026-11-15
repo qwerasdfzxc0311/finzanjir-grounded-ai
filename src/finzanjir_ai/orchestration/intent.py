@@ -128,6 +128,17 @@ def classify_query_intent(query: str) -> str:
         and any(phrase in normalized for phrase in ("nima uchun yaratilgan", "nima sababdan yaratilgan", "nima maqsadda yaratilgan"))
     ):
         return "author"
+    if (
+        any(token.startswith("finzanjir") for token in tokens)
+        and any(phrase in normalized for phrase in (
+            "maqsadi nima", "asosiy maqsadi", "nima uchun kerak",
+            "yaratilish sababi", "yaratilishidan maqsad", "yaratishdan maqsad",
+            "nima maqsadda", "why was finzanjir created", "why create finzanjir",
+            "purpose of finzanjir", "почему создан finzanjir", "для чего finzanjir",
+            "зачем создан finzanjir",
+        ))
+    ):
+        return "author"
     if "kiber qalqon" in normalized and any(
         marker in normalized for marker in ("qanday", "paydo", "boshlanish", "finzanjir")
     ):
@@ -239,3 +250,36 @@ def is_author_overview_query(query: str) -> bool:
     return classify_query_intent(query) == "author" and any(
         phrase in normalized for phrase in overview_phrases
     )
+
+
+def is_author_motivation_query(query: str) -> bool:
+    """Recognize clear questions about why FINZANJIR was created, not any author mention."""
+    normalized = normalize_query_for_intent(query)
+    if not normalized:
+        return False
+    tokens = set(normalized.split())
+    author_ref = bool(tokens & {
+        "muallif", "muallifi", "muallifning", "yaratuvchi", "asoschi",
+        "author", "автор", "avtor", "avtordıń",
+    })
+    project_ref = any(token.startswith("finzanjir") for token in tokens) or bool(tokens & {"loyiha", "project"})
+    motivation_markers = (
+        "nima uchun", "nega", "nima sabab", "qanday sabab", "maqsad",
+        "yaratilish sababi", "yaratishdan maqsad", "yaratilishidan maqsad",
+        "ne ushin", "ne ushın", "maqset", "sebep", "jaratqan",
+        "why", "reason", "purpose", "motivation", "why was", "why did",
+        "почему", "зачем", "для чего", "причина", "цель",
+        "не үшін", "не себеп", "мақсат", "себеп",
+    )
+    if author_ref and any(marker in normalized for marker in motivation_markers):
+        return True
+    if project_ref and any(marker in normalized for marker in (
+        "maqsadi nima", "asosiy maqsadi", "nima uchun kerak",
+        "nima uchun yaratil", "nima sababdan yaratil", "nima maqsadda yaratil",
+        "yaratilish sababi", "yaratilishidan maqsad", "yaratishdan maqsad",
+        "why was finzanjir created", "why create finzanjir",
+        "purpose of finzanjir", "почему создан finzanjir",
+        "для чего finzanjir", "зачем создан finzanjir",
+    )):
+        return True
+    return False
