@@ -454,6 +454,9 @@ class GroundedAnswerGenerator:
         )
 
         intent_query = context_query or query
+        # Deterministic canned answers must match the current question itself.
+        # Prior user turns resolve topic/retrieval context, but must not make an old
+        # question's intent fire again after the user changes what they are asking.
         language = detect_query_language(query)
         if not context.items:
             return AnswerResult(
@@ -489,7 +492,7 @@ class GroundedAnswerGenerator:
                 provider_status="not_attempted",
             )
 
-        if is_signal_guilt_query(intent_query) and any(
+        if is_signal_guilt_query(query) and any(
             item.record_id == "project_0002" for item in grounded_items
         ):
             return AnswerResult(
@@ -505,7 +508,7 @@ class GroundedAnswerGenerator:
             item for item in grounded_items
             if item.record_id in {"ck_003254", "src3_001247"}
         ]
-        if is_case_purpose_query(intent_query) and case_items:
+        if is_case_purpose_query(query) and case_items:
             return AnswerResult(
                 answer=self.CASE_PURPOSE_ANSWERS.get(language, self.CASE_PURPOSE_ANSWERS["uz"]),
                 confidence=confidence,
@@ -522,7 +525,7 @@ class GroundedAnswerGenerator:
                 "ck_003152", "ck_003150", "ck_003151", "ck_003277",
             }
         ]
-        if is_fraud_graph_definition_query(intent_query) and graph_items:
+        if is_fraud_graph_definition_query(query) and graph_items:
             return AnswerResult(
                 answer=self.FRAUD_GRAPH_ANSWERS.get(language, self.FRAUD_GRAPH_ANSWERS["uz"]),
                 confidence=confidence,
@@ -532,7 +535,7 @@ class GroundedAnswerGenerator:
                 provider_status="not_attempted",
             )
 
-        if is_bank_authority_query(intent_query) and any(item.record_id == "project_0004" for item in grounded_items):
+        if is_bank_authority_query(query) and any(item.record_id == "project_0004" for item in grounded_items):
             return AnswerResult(
                 answer=self.BANK_AUTHORITY_ANSWERS.get(language, self.BANK_AUTHORITY_ANSWERS["uz"]),
                 confidence=confidence,
