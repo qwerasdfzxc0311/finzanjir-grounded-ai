@@ -131,7 +131,7 @@ def classify_query_intent(query: str) -> str:
     if (
         any(token.startswith("finzanjir") for token in tokens)
         and any(phrase in normalized for phrase in (
-            "maqsadi nima", "asosiy maqsadi", "nima uchun kerak",
+            "maqsadi nima", "asosiy maqsadi",
             "yaratilish sababi", "yaratilishidan maqsad", "yaratishdan maqsad",
             "nima maqsadda", "why was finzanjir created", "why create finzanjir",
             "purpose of finzanjir", "почему создан finzanjir", "для чего finzanjir",
@@ -274,7 +274,7 @@ def is_author_motivation_query(query: str) -> bool:
     if author_ref and any(marker in normalized for marker in motivation_markers):
         return True
     if project_ref and any(marker in normalized for marker in (
-        "maqsadi nima", "asosiy maqsadi", "nima uchun kerak",
+        "maqsadi nima", "asosiy maqsadi",
         "nima uchun yaratil", "nima sababdan yaratil", "nima maqsadda yaratil",
         "yaratilish sababi", "yaratilishidan maqsad", "yaratishdan maqsad",
         "why was finzanjir created", "why create finzanjir",
