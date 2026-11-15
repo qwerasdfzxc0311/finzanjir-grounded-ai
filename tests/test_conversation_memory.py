@@ -95,7 +95,8 @@ def test_author_motivation_follow_up_resolves_to_authoritative_profile_record():
         ),
     )
     assert result.answer.abstained is False
-    assert result.answer.citations == ("author_0004",)
+    assert result.answer.citations == ("author_0004", "author_0008", "author_0009")
+    assert "jamiyatga foydali inson bo'lish istagi" in result.answer.answer
     assert "Kiber Qalqon" in result.answer.answer
 
 
