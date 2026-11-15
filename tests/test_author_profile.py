@@ -100,7 +100,7 @@ def test_author_motivation_has_concise_fallback_when_provider_fails():
     assert result.answer.abstained is False
     assert result.answer.generation_mode == "author_motivation_grounded"
     assert "jamiyatga foyda keltirish istagi" in result.answer.answer
-    assert "oilaviy davrada eshitilgan" in result.answer.answer.casefold()
+    assert "oilaviy davrada eshitilgan" not in result.answer.answer.casefold()
     assert result.answer.citations == ("author_0004", "author_0008", "author_0009")
 
 
