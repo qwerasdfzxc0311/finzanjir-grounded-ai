@@ -188,9 +188,21 @@ def is_case_purpose_query(query: str) -> bool:
 
 
 def is_fraud_graph_definition_query(query: str) -> bool:
-    """Recognize a direct definition question about the Fraud Graph concept."""
+    """Recognize only direct explanation requests, not every mention of Fraud Graph."""
     normalized = normalize_query_for_intent(query)
-    return any(marker in normalized for marker in ("fraud graph", "fraudgraph", "firibgarlik grafigi"))
+    concept_markers = ("fraud graph", "fraudgraph", "firibgarlik grafigi")
+    if not any(marker in normalized for marker in concept_markers):
+        return False
+
+    definition_markers = (
+        "nima", "nima degani", "nimani anglatadi", "qanday ishlaydi",
+        "ta'rif", "tarif", "tushuntir", "izohla",
+        "what is", "what does", "define", "explain", "how does",
+        "что такое", "что означает", "объясни",
+        "не", "нені білдіреді", "қалай жұмыс істейді",
+        "degen ne", "qanday isleydi",
+    )
+    return any(marker in normalized for marker in definition_markers)
 
 
 def is_c_model_query(query: str) -> bool:
