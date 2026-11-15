@@ -93,11 +93,26 @@ def test_offline_benchmark_author_motivation_uses_grounded_localized_answer():
     assert "bank xatosi" not in result.answer.casefold()
 
 
-def test_offline_benchmark_kazakh_comparison_never_returns_cell_definition():
-    result = _answer("FINZANJIR басқа елдерден несімен ерекшеленеді?")
+def test_offline_benchmark_kazakh_comparison_is_localized_and_never_returns_cell_definition():
+    from finzanjir_ai.orchestration.intent import detect_query_language
+
+    question = "FINZANJIR басқа елдерден несімен ерекшеленеді?"
+    result = _answer(question)
     answer = result.answer.casefold()
+    assert detect_query_language(question) == "kk"
     assert "жасуша" not in answer
     assert "cell" not in answer
+    assert any(term in answer for term in ("жоба", "салыстыру", "дерек", "расталған", "мәлімет"))
+
+
+def test_fraud_graph_definition_intent_does_not_capture_other_fraud_graph_questions():
+    from finzanjir_ai.orchestration.intent import is_fraud_graph_definition_query
+
+    assert is_fraud_graph_definition_query("Fraud Graph nima?")
+    assert is_fraud_graph_definition_query("What is Fraud Graph?")
+    assert is_fraud_graph_definition_query("Fraud Graph qanday ishlaydi?")
+    assert not is_fraud_graph_definition_query("Fraud Graph ma'lumotlari qayerda saqlanadi?")
+    assert not is_fraud_graph_definition_query("Fraud Graph bo'yicha kim qaror qabul qiladi?")
 
 
 def test_offline_benchmark_detects_uzbek_signal_questions_as_uzbek():
