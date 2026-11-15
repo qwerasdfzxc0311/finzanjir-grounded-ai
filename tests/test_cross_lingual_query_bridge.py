@@ -32,6 +32,8 @@ def test_kazakh_and_karakalpak_queries_get_domain_hints():
     assert kk_hint is not None
     assert "o'xshash" in kk_hint
     assert "farq" in kk_hint
+    assert "boshqa" in kk_hint
+    assert "nimasi bilan" in kk_hint
     karakalpak = "FINZANJIR basqa mámleketlerdegi usas joybarlardan neshe menen parıqlanadı?"
     kaa_hint, kaa_count = translate_search_hint(karakalpak, "kaa")
     assert kaa_count >= 3
