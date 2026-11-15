@@ -10,7 +10,7 @@ MAX_CONTEXT_CHARS = 4800
 
 # Conservative markers: only clear anaphora / ellipsis trigger context injection.
 _FOLLOW_UP_PATTERNS = (
-    r"(?<!\w)(?:u|uning|unga|undan|bunga|buni|shuni|shu|o'sha|o‘sha|"
+    r"(?<!\w)(?:u|uning|unga|undan|bu|bunga|buni|shuni|shu|o'sha|o‘sha|"
     r"oldingi|avvalgi|birinchi|ikkinchi|undan\s+oldin|yuqoridagi|"
     r"onasi|otasi|uning\s+onasi|uning\s+otasi|ular|ularning)(?!\w)",
     r"(?<!\w)(?:у|унинг|унга|ундан|бу|буни|шун|ўша|олдинги|аввалги|"
