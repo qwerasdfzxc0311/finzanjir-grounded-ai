@@ -35,7 +35,7 @@ Also keep project mission distinct from the author's personal motivation. A ques
 - No new canned answers or canonical knowledge facts are introduced by these batches.
 - Evidence IDs remain empty pending exact source-record and provenance review.
 - Kazakh and Karakalpak wording requires native-speaker review.
-- Cross-batch exact duplicate check: 276 new prompts are unique within the new corpus. One exact overlap with the pre-existing QA/decomposition fixtures is intentional: the misspelled turtle-lifespan query is retained as a normalization regression test.
+- Exact duplicate check: all 276 new prompts are unique within the new corpus. Two exact overlaps with pre-existing fixtures are intentional regression coverage: (1) the misspelled Uzbek turtle-lifespan query tests typo normalization and general-knowledge routing; (2) the Russian author-motivation question repeats an existing live QA prompt to verify the approved canonical answer remains stable. No unintended exact duplicates were found.
 - Existing baseline decomposition artifact is a small diagnostic only; its recall rates are not production capability claims.
 - CI must complete on the final branch head before the PR can be considered validated.
 
