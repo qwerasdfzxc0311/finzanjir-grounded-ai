@@ -85,6 +85,8 @@ def test_author_motivation_question_selects_only_motivation_evidence():
     assert "jamiyatga foydali inson bo'lish istagi" in result.answer.answer
     assert "fuqarolar o'z pullaridan doimiy qo'rqib yashamasligini" in result.answer.answer
     assert "amalda joriy qilingan degani emas" in result.answer.answer
+    assert "mustaqil texnik yoki yuridik ekspert xulosasi emas" in result.answer.answer
+    assert "bank/to'lov tizimlariga ishonch" in result.answer.answer
     assert "qonuniy tranzaksiyalarni" in result.answer.answer
     assert "false positive" in result.answer.answer.casefold()
     assert "false negative" in result.answer.answer.casefold()
