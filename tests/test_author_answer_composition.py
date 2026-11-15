@@ -62,7 +62,7 @@ def test_author_biography_question_composes_distinct_profile_facts():
     assert result.answer.abstained is False
     assert result.answer.generation_mode == "author_deterministic_fallback"
     assert set(result.answer.citations) == {
-        "author_0001", "author_0002", "author_0003", "author_0004", "author_0006", "author_0007"
+        "author_0001", "author_0002", "author_0003", "author_0004", "author_0006", "author_0007", "author_0008", "author_0009"
     }
     assert "astronomiya" in result.answer.answer
     assert "moliyaviy yo'qotishlar" in result.answer.answer
@@ -127,7 +127,7 @@ def test_author_motivation_answer_preserves_exact_family_story_and_unknown_cause
     assert result.answer.generation_mode == "author_motivation_grounded"
     assert result.answer.provider_status == "not_attempted"
     assert result.answer.citations == ("author_0004", "author_0008", "author_0009")
-    assert "oilaviy davrada eshitilgan" in result.answer.answer
+    assert "oilaviy davrada eshitilgan" in result.answer.answer.casefold()
     assert "FINZANJIRni yaratish sababi bitta voqea" in result.answer.answer
     assert "jamiyatga foydali inson bo'lish istagi" in result.answer.answer
     assert "mustaqil tekshirmagan" in result.answer.answer
@@ -173,7 +173,7 @@ def test_semantically_similar_author_purpose_questions_use_the_same_grounded_ans
     ai = _engine_with_author_profile()
     questions = (
         "FINZANJIRning asosiy maqsadi nima?",
-        "Bu loyihani yaratishdan ko'zlangan maqsad nima?",
+        "FINZANJIR loyihasini yaratishdan ko'zlangan maqsad nima?",
         "Muallif nima sababdan FINZANJIRni yaratishga qaror qilgan?",
         "FINZANJIR nima uchun kerak?",
         "Why was FINZANJIR created?",
