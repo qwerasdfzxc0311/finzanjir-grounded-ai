@@ -15,7 +15,11 @@ from finzanjir_ai.retrieval.rerank import QueryExpander, Reranker
 from finzanjir_ai.retrieval.text import query_script_variants
 from finzanjir_ai.runtime.context import RuntimeContext
 from finzanjir_ai.memory.conversation import build_conversation_context
-from finzanjir_ai.orchestration.intent import classify_query_intent, is_author_overview_query
+from finzanjir_ai.orchestration.intent import (
+    classify_query_intent,
+    is_author_motivation_query,
+    is_author_overview_query,
+)
 
 
 _NON_EVIDENCE_PROJECT_TITLES = frozenset({
@@ -202,6 +206,28 @@ class FINZANJIRAI:
         # A broad "tell me about this person" request is an entity lookup,
         # not a keyword-match task. Resolve the canonical entity first, then let
         # the answer composer select and organize its verified biography facets.
+        # Motivation questions need the complete, source-separated author profile.
+        # Do not answer from the family anecdote alone or from a name match.
+        if query_intent == "author" and is_author_motivation_query(query):
+            profile = self.grounder.assemble_entity("person:salamat_smaylov", max_items=16)
+            if profile.items:
+                runtime = RuntimeContext.from_refs(
+                    knowledge_refs=tuple(item.record_id for item in profile.items),
+                    runtime_refs=runtime_refs,
+                    working_memory_scope=working_memory_scope,
+                )
+                answer = self.answer_generator.generate(
+                    query,
+                    profile,
+                    context_query=contextual_query,
+                    conversation_context=conversation.context_text,
+                )
+                return OrchestrationResult(
+                    answer=answer,
+                    grounded_context=profile,
+                    runtime_context=runtime,
+                )
+
         if query_intent == "author" and is_author_overview_query(contextual_query):
             profile = self.grounder.assemble_entity("person:salamat_smaylov", max_items=top_k)
             if profile.items:
