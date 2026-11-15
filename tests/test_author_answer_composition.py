@@ -79,8 +79,12 @@ def test_author_motivation_question_selects_only_motivation_evidence():
     )
     assert result.answer.abstained is False
     assert result.answer.generation_mode == "author_motivation_grounded"
-    assert result.answer.citations == ("author_0004",)
+    assert result.answer.citations == ("author_0004", "author_0008", "author_0009")
     assert "bank cheklovlari" in result.answer.answer
+    assert "to'lov tizimlari, raqamli xizmatlar" in result.answer.answer
+    assert "jamiyatga foydali inson bo'lish istagi" in result.answer.answer
+    assert "fuqarolar o'z pullaridan doimiy qo'rqib yashamasligini" in result.answer.answer
+    assert "amaliyotga joriy qilingan degani emas" in result.answer.answer
     assert "qonuniy tranzaksiyalarni" in result.answer.answer
     assert "false positive" in result.answer.answer
     assert "false negative" in result.answer.answer
@@ -122,8 +126,10 @@ def test_author_motivation_answer_preserves_exact_family_story_and_unknown_cause
     assert result.answer.abstained is False
     assert result.answer.generation_mode == "author_motivation_grounded"
     assert result.answer.provider_status == "not_attempted"
-    assert result.answer.citations == ("author_0004",)
-    assert "oilaviy davrada eshitilgan voqea" in result.answer.answer
+    assert result.answer.citations == ("author_0004", "author_0008", "author_0009")
+    assert "oilaviy davrada eshitilgan" in result.answer.answer
+    assert "FINZANJIRni yaratish sababi bitta voqea" in result.answer.answer
+    assert "jamiyatga foydali inson bo'lish istagi" in result.answer.answer
     assert "mustaqil tekshirmagan" in result.answer.answer
     assert "nima sababdan bloklanganini bilmaydi" in result.answer.answer
     assert "bank xatosi yoki noqonuniy harakat isboti emas" in result.answer.answer
@@ -143,8 +149,8 @@ def test_project_origin_question_does_not_misstate_family_story_as_bank_fault():
 
     assert result.answer.abstained is False
     assert result.answer.generation_mode == "author_motivation_grounded"
-    assert result.answer.citations == ("author_0004",)
-    assert "karta aynan nima sababdan bloklanganini bilmaydi" in result.answer.answer
+    assert result.answer.citations == ("author_0004", "author_0008", "author_0009")
+    assert "karta nima sababdan bloklanganini bilmaydi" in result.answer.answer
     assert "bank xatosi yoki noqonuniy harakat isboti emas" in result.answer.answer
 
 
@@ -160,3 +166,36 @@ def test_author_motivation_answer_is_localized_for_supported_languages():
         assert result.answer.abstained is False
         assert result.answer.generation_mode == "author_motivation_grounded"
         assert phrase in result.answer.answer
+
+
+
+def test_semantically_similar_author_purpose_questions_use_the_same_grounded_answer():
+    ai = _engine_with_author_profile()
+    questions = (
+        "FINZANJIRning asosiy maqsadi nima?",
+        "Bu loyihani yaratishdan ko'zlangan maqsad nima?",
+        "Muallif nima sababdan FINZANJIRni yaratishga qaror qilgan?",
+        "FINZANJIR nima uchun kerak?",
+        "Why was FINZANJIR created?",
+        "Почему был создан FINZANJIR?",
+        "Автор FINZANJIR-ді не үшін жасады?",
+        "Muallif FINZANJIRdi ne ushın jaratqan?",
+    )
+    for question in questions:
+        result = ai.answer(
+            question,
+            runtime_refs=(),
+            working_memory_scope="author-purpose-variants",
+        )
+        assert result.answer.abstained is False, question
+        assert result.answer.generation_mode == "author_motivation_grounded", question
+        assert result.answer.citations == ("author_0004", "author_0008", "author_0009"), question
+        assert "FINZANJIR" in result.answer.answer or "FINZANJIR" in question
+
+
+def test_author_name_or_critique_question_does_not_trigger_motivation_answer():
+    from finzanjir_ai.orchestration.intent import is_author_motivation_query
+
+    assert not is_author_motivation_query("Salamat Smaylov kim?")
+    assert not is_author_motivation_query("Muallif FINZANJIRni haddan tashqari maqtaydimi?")
+    assert not is_author_motivation_query("Salamat Smaylov loyihani tanqid qiladimi?")
