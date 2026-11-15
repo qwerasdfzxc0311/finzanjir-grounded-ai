@@ -154,12 +154,19 @@ class LLMGateway:
 
     @staticmethod
     def can_send_text(text: str) -> bool:
-        # Keep common personal/payment identifiers out of third-party model calls.
+        # Conservative guard for common payment and identity identifiers before
+        # any third-party model call. This is a deny-list, not full DLP coverage.
         if re.search(r"(?<!\d)(?:\d[ -]?){13,19}(?!\d)", text):
             return False
         if re.search(r"(?<!\w)[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}(?!\w)", text):
             return False
-        if re.search(r"(?<!\d)\+?998[\s()-]?(?:\d[\s()-]?){9}(?!\d)", text):
+        if re.search(r"(?<!\d)\+?998[\s().-]?(?:\d[\s().-]?){9}(?!\d)", text):
+            return False
+        if re.search(r"(?<!\d)\+\d{1,3}(?:[\s().-]?\d){7,14}(?!\d)", text):
+            return False
+        if re.search(r"(?<![A-Z0-9])[A-Z]{2}[\s-]?\d{7}(?!\d)", text, flags=re.IGNORECASE):
+            return False
+        if re.search(r"(?<![A-Z0-9])[A-Z]{2}\d{2}(?:\s?[A-Z0-9]){11,30}(?![A-Z0-9])", text, flags=re.IGNORECASE):
             return False
         return True
 
