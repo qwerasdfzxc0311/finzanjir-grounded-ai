@@ -283,3 +283,16 @@ def is_author_motivation_query(query: str) -> bool:
     )):
         return True
     return False
+
+
+def is_author_motivation_follow_up(query: str) -> bool:
+    """Recognize explicit anaphoric follow-ups asking why the author created the project."""
+    normalized = normalize_query_for_intent(query)
+    return any(marker in normalized for marker in (
+        "u nima sababdan yarat", "u nima uchun yarat",
+        "u nima maqsadda yarat", "nima sababdan yaratgan",
+        "nega yaratgan", "nima maqsadda yaratgan",
+        "why did he create", "why did they create",
+        "why was it created", "зачем он создал",
+        "почему он создал", "не себептен құрды",
+    ))
