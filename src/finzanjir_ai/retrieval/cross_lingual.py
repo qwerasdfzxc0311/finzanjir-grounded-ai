@@ -107,6 +107,8 @@ _TRANSLATION_PATTERNS: dict[str, tuple[tuple[str, str], ...]] = {
         (r"\bерекшелен\w*\b", "farq"),
         (r"\bайырмаш\w*\b", "farq"),
         (r"\bұқсас\w*\b", "o'xshash"),
+        (r"\bбасқа\b", "boshqa"),
+        (r"\bнесімен\b", "nimasi bilan"),
         (r"\bелдер\w*\b", "davlat"),
     ),
     "kaa": (
