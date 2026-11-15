@@ -81,12 +81,12 @@ def test_author_motivation_question_selects_only_motivation_evidence():
     assert result.answer.generation_mode == "author_motivation_grounded"
     assert result.answer.citations == ("author_0004", "author_0008", "author_0009")
     assert "hayotiy tajribalari" in result.answer.answer
-    assert "to'lov tizimlari" in result.answer.answer
+    assert "moliyaviy xavfsizlikka oid tashvishlari" in result.answer.answer
     assert "jamiyatga foyda keltirish istagini" in result.answer.answer
     assert "insoniylik va adolat" in result.answer.answer
     assert "moliyaviy va kiberxavfsizlik bo'yicha bilim" in result.answer.answer
     assert "Kiber Qalqon" in result.answer.answer
-    assert "100 foiz hal qilishga va'da bermaydi" in result.answer.answer
+    assert "100 foiz hal qilishga va’da bermaydi" in result.answer.answer
     assert "Firibgarlikni qiyinlashtirish, qonuniy hayotni esa qiyinlashtirmaslik" in result.answer.answer
     assert "oilaviy davrada eshitilgan" not in result.answer.answer
     assert "2003-yil" not in result.answer.answer
