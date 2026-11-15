@@ -128,3 +128,17 @@ A small synthetic test set is not proof of real-world accuracy. Human review rem
 - The model cannot change risk scores, open cases, block accounts or make bank decisions.
 - The AI answer endpoint is informational and grounded in the project corpus only.
 - This change does not fine-tune a new foundation model. It uses existing models with retrieval, controlled prompts and evidence validation.
+
+
+## Author-purpose answers: source hierarchy and safety
+
+Questions such as "Muallif nima uchun FINZANJIRni yaratgan?", "FINZANJIRning asosiy maqsadi nima?", "Why was FINZANJIR created?" and close semantic variants use a deterministic, source-grounded answer rather than free-form provider generation.
+
+The answer composes three separate author-profile records:
+- `author_0004`: the narrower project-origin context, including the family anecdote. The author did not independently investigate the reported card block and does not know its cause; it is not evidence of bank error or wrongdoing.
+- `author_0008`: the broader purpose and future-facing perspective from V14 chapter 15 (sections 15.1–15.10 and 15.12, including harm reduction, non-stigmatization, convenience/trust, continuous development, international learning, and financial resources as a means rather than an end).
+- `author_0009`: the human motivation described in V14 section 15.11.1, without disclosing unrelated private family details.
+
+The router loads the complete author profile for clear purpose questions. It does not trigger on a bare author-name match or a critique/opinion question. If any required evidence record is missing, the answer abstains rather than presenting the narrow anecdote as the complete motivation.
+
+The response must distinguish the author's stated intention from implemented product capability. It must not imply that every concept feature is already deployed, that banks are at fault, or that FINZANJIR can guarantee zero fraud or zero errors. A signal is not proof of guilt and is not an automatic blocking instruction; bank authority and human review remain.

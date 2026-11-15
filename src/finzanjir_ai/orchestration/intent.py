@@ -128,6 +128,20 @@ def classify_query_intent(query: str) -> str:
         and any(phrase in normalized for phrase in ("nima uchun yaratilgan", "nima sababdan yaratilgan", "nima maqsadda yaratilgan"))
     ):
         return "author"
+    if (
+        any(token.startswith("finzanjir") for token in tokens)
+        and any(phrase in normalized for phrase in (
+            "maqsadi nima", "asosiy maqsadi",
+            "nima uchun yarat", "nima sababdan yarat", "nima maqsadda yarat",
+            "yaratilish sababi", "yaratilishidan maqsad", "yaratishdan maqsad",
+            "yaratishdan ko zlangan maqsad", "ne ushin jaratqan", "ne ushın jaratqan",
+            "why was finzanjir created", "why create finzanjir",
+            "purpose of finzanjir", "почему создан finzanjir", "почему был создан finzanjir",
+            "зачем был создан finzanjir", "для чего был создан finzanjir",
+            "для чего finzanjir", "зачем создан finzanjir",
+        ))
+    ):
+        return "author"
     if "kiber qalqon" in normalized and any(
         marker in normalized for marker in ("qanday", "paydo", "boshlanish", "finzanjir")
     ):
@@ -239,3 +253,57 @@ def is_author_overview_query(query: str) -> bool:
     return classify_query_intent(query) == "author" and any(
         phrase in normalized for phrase in overview_phrases
     )
+
+
+def is_author_motivation_query(query: str) -> bool:
+    """Recognize clear questions about why FINZANJIR was created, not any author mention."""
+    normalized = normalize_query_for_intent(query)
+    if not normalized:
+        return False
+    tokens = set(normalized.split())
+    author_ref = bool(tokens & {
+        "muallif", "muallifi", "muallifning", "yaratuvchi", "asoschi",
+        "author", "автор", "avtor", "avtordıń",
+    })
+    project_ref = any(token.startswith("finzanjir") for token in tokens) or bool(tokens & {"loyiha", "project"})
+    has_creation_verb = any(token.startswith((
+        "yarat", "jarat", "create", "creat", "созда", "жаса",
+    )) for token in tokens)
+    reason_markers = (
+        "nima uchun", "nega", "nima sabab", "qanday sabab",
+        "maqsad", "maqset", "sebep", "why", "reason", "purpose",
+        "почему", "зачем", "для чего", "причина", "цель",
+        "не үшін", "не себеп", "мақсат", "себеп", "ne ushin", "ne ushın",
+    )
+    explicit_purpose_markers = (
+        "maqsadi nima", "asosiy maqsadi",
+        "yaratilish sababi", "yaratilishidan maqsad",
+        "yaratishdan maqsad", "yaratishdan maqsadi",
+        "yaratishdan ko zlangan maqsad",
+        "why was finzanjir created", "why create finzanjir",
+        "purpose of finzanjir", "почему создан finzanjir",
+        "почему был создан finzanjir", "зачем был создан finzanjir",
+        "для чего был создан finzanjir", "для чего finzanjir",
+        "зачем создан finzanjir",
+    )
+    if author_ref and has_creation_verb and any(marker in normalized for marker in reason_markers):
+        return True
+    if project_ref and (
+        any(marker in normalized for marker in explicit_purpose_markers)
+        or (has_creation_verb and any(marker in normalized for marker in reason_markers))
+    ):
+        return True
+    return False
+
+
+def is_author_motivation_follow_up(query: str) -> bool:
+    """Recognize explicit anaphoric follow-ups asking why the author created the project."""
+    normalized = normalize_query_for_intent(query)
+    return any(marker in normalized for marker in (
+        "u nima sababdan yarat", "u nima uchun yarat",
+        "u nima maqsadda yarat", "nima sababdan yaratgan",
+        "nega yaratgan", "nima maqsadda yaratgan",
+        "why did he create", "why did they create",
+        "why was it created", "зачем он создал",
+        "почему он создал", "не себептен құрды",
+    ))
