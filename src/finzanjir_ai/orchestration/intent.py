@@ -188,21 +188,21 @@ def is_case_purpose_query(query: str) -> bool:
 
 
 def is_fraud_graph_definition_query(query: str) -> bool:
-    """Recognize only direct explanation requests, not every mention of Fraud Graph."""
+    """Recognize direct Fraud Graph explanations without matching unrelated questions."""
     normalized = normalize_query_for_intent(query)
-    concept_markers = ("fraud graph", "fraudgraph", "firibgarlik grafigi")
-    if not any(marker in normalized for marker in concept_markers):
-        return False
-
-    definition_markers = (
-        "nima", "nima degani", "nimani anglatadi", "qanday ishlaydi",
-        "ta'rif", "tarif", "tushuntir", "izohla",
-        "what is", "what does", "define", "explain", "how does",
-        "что такое", "что означает", "объясни",
-        "не", "нені білдіреді", "қалай жұмыс істейді",
-        "degen ne", "qanday isleydi",
+    patterns = (
+        r"\b(?:fraud graph|fraudgraph|firibgarlik grafigi)\s+(?:nima\b|nima degani\b|nimani anglatadi\b|qanday ishlaydi\b|ta'rif\b|tarif\b|tushuntir\b|izohla\b)",
+        r"\bwhat is (?:the )?fraud graph\b",
+        r"\bwhat does (?:the )?fraud graph mean\b",
+        r"\b(?:define|explain) (?:the )?fraud graph\b",
+        r"\bhow does (?:the )?fraud graph work\b",
+        r"\bчто такое fraud graph\b",
+        r"\bчто означает fraud graph\b",
+        r"\bобъясни fraud graph\b",
+        r"\bfraud graph (?:не|нені білдіреді|қалай жұмыс істейді|degen ne)\b",
+        r"\bfraud graph qanday isleydi\b",
     )
-    return any(marker in normalized for marker in definition_markers)
+    return any(re.search(pattern, normalized) for pattern in patterns)
 
 
 def is_c_model_query(query: str) -> bool:
