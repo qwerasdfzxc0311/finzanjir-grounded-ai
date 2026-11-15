@@ -1,0 +1,172 @@
+{
+  "schema_version": "1.0",
+  "policy": "docs/ANSWER_MODE_POLICY_V1.md",
+  "principle": "Canonical answers for a narrow approved allowlist; grounded generative reasoning for other project questions.",
+  "modes": [
+    "canonical_deterministic",
+    "grounded_generative",
+    "abstain_or_clarify",
+    "separate_general_knowledge"
+  ],
+  "canonical_allowlist": [
+    {
+      "id": "author_motivation",
+      "question_family": "Why did the author create FINZANJIR?",
+      "mode": "canonical_deterministic",
+      "status": "implemented",
+      "required_evidence": [
+        "author_0004",
+        "author_0008",
+        "author_0009"
+      ],
+      "languages": [
+        "uz",
+        "ru",
+        "en",
+        "kk",
+        "kaa"
+      ]
+    },
+    {
+      "id": "project_overview",
+      "question_family": "What is FINZANJIR at a high level?",
+      "mode": "canonical_deterministic",
+      "status": "implemented",
+      "required_evidence": [
+        "project_0001"
+      ],
+      "languages": [
+        "uz",
+        "ru",
+        "en",
+        "kk",
+        "kaa"
+      ]
+    },
+    {
+      "id": "bank_authority_boundary",
+      "question_family": "Can FINZANJIR itself block a bank card or override a bank?",
+      "mode": "canonical_deterministic",
+      "status": "implemented",
+      "required_evidence": [
+        "project_0004"
+      ],
+      "languages": [
+        "uz",
+        "ru",
+        "en",
+        "kk",
+        "kaa"
+      ]
+    },
+    {
+      "id": "signal_not_guilt",
+      "question_family": "Does a suspicious signal prove a citizen's guilt?",
+      "mode": "canonical_deterministic",
+      "status": "implemented",
+      "required_evidence": [
+        "project_0002"
+      ],
+      "languages": [
+        "uz",
+        "ru",
+        "en",
+        "kk",
+        "kaa"
+      ]
+    },
+    {
+      "id": "case_definition",
+      "question_family": "What is a Case and what does it not mean?",
+      "mode": "canonical_deterministic",
+      "status": "implemented",
+      "required_evidence": [
+        "ck_003254",
+        "src3_001247"
+      ],
+      "languages": [
+        "uz",
+        "ru",
+        "en",
+        "kk",
+        "kaa"
+      ]
+    },
+    {
+      "id": "fraud_graph_definition",
+      "question_family": "What does Fraud Graph mean at a high level?",
+      "mode": "canonical_deterministic",
+      "status": "implemented",
+      "required_evidence": [
+        "ck_000290",
+        "ck_001671",
+        "ck_003148"
+      ],
+      "languages": [
+        "uz",
+        "ru",
+        "en",
+        "kk",
+        "kaa"
+      ]
+    },
+    {
+      "id": "false_positive_negative_principle",
+      "question_family": "What is the fairness principle for false positives and false negatives?",
+      "mode": "canonical_deterministic",
+      "status": "partially_implemented",
+      "required_evidence": [
+        "project_0003"
+      ],
+      "languages": [
+        "uz"
+      ]
+    },
+    {
+      "id": "c_model_definition",
+      "question_family": "What is the C model?",
+      "mode": "canonical_deterministic",
+      "status": "implemented",
+      "required_evidence": [
+        "verified_c_model_records"
+      ],
+      "languages": [
+        "verify_per_language"
+      ]
+    },
+    {
+      "id": "sixteen_layer_overview",
+      "question_family": "What are the sixteen layers?",
+      "mode": "canonical_deterministic",
+      "status": "implemented",
+      "required_evidence": [
+        "verified_layer_records"
+      ],
+      "languages": [
+        "verify_per_language"
+      ]
+    }
+  ],
+  "grounded_generative_families": [
+    "detailed_architecture",
+    "workflow_and_investigation_process",
+    "data_privacy_retention_access_and_sharing",
+    "legal_basis_and_regulatory_uncertainty",
+    "pilot_design_and_evaluation",
+    "implemented_vs_planned_capabilities",
+    "false_positive_context_and_mitigation",
+    "cross_bank_exchange_and_privacy_preserving_options",
+    "incident_response_complaints_and_recovery_support",
+    "comparisons_with_other_systems",
+    "examples_scenarios_and_hypotheticals",
+    "technical_troubleshooting_deployment_and_roadmap"
+  ],
+  "routing_guardrails": [
+    "No deterministic answer on keyword-only matches.",
+    "Require current-question intent match and all required evidence.",
+    "Never promote proposals to implemented capabilities.",
+    "Never treat a signal, graph relationship, or Case as proof of guilt.",
+    "Keep external research separate from canonical project facts.",
+    "Prefer grounded generation over a false deterministic trigger."
+  ]
+}
