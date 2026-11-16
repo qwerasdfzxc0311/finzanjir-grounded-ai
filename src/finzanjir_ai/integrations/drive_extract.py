@@ -15,6 +15,7 @@ TEXT_MIMES = {
     "application/json", "application/xml",
 }
 DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 PDF_MIME = "application/pdf"
 
 
@@ -54,6 +55,26 @@ def extract_drive_text(file_name: str, mime_type: str, content: bytes) -> dict[s
         for index, page in enumerate(reader.pages, start=1):
             pages.append(f"[Page {index}]\n{page.extract_text() or ''}")
         return {"text": _clean("\n\n".join(pages)), "extractor": "pypdf-text-v1"}
+    if mime == XLSX_MIME:
+        from openpyxl import load_workbook
+        workbook = load_workbook(io.BytesIO(content), read_only=True, data_only=True)
+        if len(workbook.worksheets) > 100:
+            raise ValueError("workbook exceeds the 100-sheet extraction limit")
+        parts = []
+        cells = 0
+        try:
+            for sheet in workbook.worksheets:
+                parts.append(f"[Sheet: {sheet.title[:120]}]")
+                for row in sheet.iter_rows(values_only=True):
+                    cells += len(row)
+                    if cells > 100_000:
+                        raise ValueError("workbook exceeds the 100,000-cell extraction limit")
+                    values = ["" if value is None else str(value) for value in row]
+                    if any(values):
+                        parts.append("\\t".join(values))
+        finally:
+            workbook.close()
+        return {"text": _clean("\\n".join(parts)), "extractor": "openpyxl-xlsx-v1"}
     if mime == DOCX_MIME:
         from docx import Document
         document = Document(io.BytesIO(content))
