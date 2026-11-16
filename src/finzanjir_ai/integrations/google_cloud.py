@@ -30,7 +30,6 @@ SESSION_COOKIE = "finzanjir_owner_session"
 IDENTITY_SCOPES = ("openid", "email", "profile")
 SERVICE_SCOPES = {
     "drive": ("https://www.googleapis.com/auth/drive.readonly",),
-    "gmail": ("https://www.googleapis.com/auth/gmail.readonly",),
 }
 GOOGLE_AUTH = "https://accounts.google.com/o/oauth2/v2/auth"
 GOOGLE_TOKEN = "https://oauth2.googleapis.com/token"
@@ -357,7 +356,7 @@ def google_oauth_start(
         owner_session_id = _read_session(request, cfg, store)
         selected = tuple(dict.fromkeys(item.strip().lower() for item in services.split(",") if item.strip()))
         if not selected or any(item not in SERVICE_SCOPES for item in selected):
-            raise HTTPException(status_code=422, detail="Faqat drive va gmail xizmatlari tanlanishi mumkin.")
+            raise HTTPException(status_code=422, detail="Hozircha faqat Google Drive xizmati tanlanishi mumkin.")
         for service in selected:
             scopes.extend(SERVICE_SCOPES[service])
     elif services != "drive":
@@ -438,7 +437,31 @@ def google_accounts(request: Request):
         raise HTTPException(status_code=503, detail="Google xotira ombori sozlanmagan.") from exc
     _read_session(request, cfg, store)
     accounts = store.list_accounts(cfg["FINZANJIR_OWNER_EMAIL"])
-    return {"count": len(accounts), "limit": MAX_GOOGLE_ACCOUNTS, "accounts": accounts}
+    connected_count = sum(1 for account in accounts if account["status"] == "connected")
+    return {"count": connected_count, "limit": MAX_GOOGLE_ACCOUNTS, "accounts": accounts}
+
+
+
+def _require_same_origin(request: Request) -> None:
+    origin = request.headers.get("origin")
+    expected = f"{request.url.scheme}://{request.url.netloc}"
+    if not origin or origin.rstrip("/") != expected.rstrip("/"):
+        raise HTTPException(status_code=403, detail="So‘rov manbasi tasdiqlanmadi.")
+
+
+@router.post("/logout")
+def google_owner_logout(request: Request):
+    try:
+        cfg = _config()
+        store = _store(cfg)
+    except (GoogleConfigError, OSError, ValueError) as exc:
+        raise HTTPException(status_code=503, detail="Google xotira ombori sozlanmagan.") from exc
+    _require_same_origin(request)
+    session_id = _read_session(request, cfg, store)
+    store.revoke_session(session_id)
+    redirect = RedirectResponse("/?google=disconnected", status_code=303)
+    redirect.delete_cookie(SESSION_COOKIE, path="/", secure=True, httponly=True, samesite="lax")
+    return redirect
 
 
 @router.post("/accounts/{account_id}/disconnect")
@@ -448,6 +471,7 @@ def google_account_disconnect(account_id: str, request: Request):
         store = _store(cfg)
     except (GoogleConfigError, OSError, ValueError) as exc:
         raise HTTPException(status_code=503, detail="Google xotira ombori sozlanmagan.") from exc
+    _require_same_origin(request)
     _read_session(request, cfg, store)
     token = store.disconnect(cfg["FINZANJIR_OWNER_EMAIL"], account_id)
     if token is None:
