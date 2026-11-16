@@ -1050,6 +1050,8 @@ def google_photos_import_selected_media(account_id: str, session_id: str,
                 break
         if not selected:
             raise HTTPException(status_code=404, detail="Bu media aynan shu Google Photos sessiyasida tanlanmagan.")
+        if selected.get("type") not in {"PHOTO", "VIDEO"}:
+            raise HTTPException(status_code=415, detail="Google Photos media turi qo‘llab-quvvatlanmaydi.")
         media_file = selected.get("mediaFile") or {}
         base_url = str(media_file.get("baseUrl") or "")
         parsed = urlsplit(base_url)
@@ -1088,6 +1090,8 @@ def google_photos_import_selected_media(account_id: str, session_id: str,
         )
     except HTTPException:
         raise
+    except UnsupportedMedia as exc:
+        raise HTTPException(status_code=415, detail=str(exc)) from exc
     except (httpx.HTTPError, KeyError, ValueError, RuntimeError) as exc:
         raise HTTPException(status_code=502, detail="Tanlangan media faylni shifrlab saqlash muvaffaqiyatsiz: " + type(exc).__name__) from exc
     return {
