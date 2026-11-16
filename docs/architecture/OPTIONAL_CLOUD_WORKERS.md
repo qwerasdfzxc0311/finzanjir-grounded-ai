@@ -27,7 +27,15 @@ Each role may be backed by a different provider. Provider names, endpoints, mode
 
 ## Adapter contract
 
-`JsonHttpWorkerAdapter` provides a generic HTTPS JSON transport. Each provider integration supplies its own request and response mappers because providers do not share a universal API contract. Credentials are read from server-side environment variables; prompts, responses and secrets are not logged.
+`JsonHttpWorkerAdapter` provides the generic HTTPS JSON transport. `cloud/providers.py` supplies independent request/response adapters for OpenAI, Anthropic, Gemini, Mistral and Cohere because their APIs use different authentication headers and payloads. A provider is registered only when both its server-side API key and model ID are configured:
+
+- OpenAI: `OPENAI_API_KEY`, `OPENAI_MODEL`
+- Anthropic: `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`
+- Gemini: `GEMINI_API_KEY`, `GEMINI_MODEL`
+- Mistral: `MISTRAL_API_KEY`, `MISTRAL_MODEL`
+- Cohere: `COHERE_API_KEY`, `COHERE_MODEL`
+
+Optional endpoint override variables are available in the adapter module for controlled deployments. Model IDs are never hard-coded. Credentials are read from server-side environment variables; prompts, responses and secrets are not logged. Registering an adapter does not make a request: the default-deny `CloudPolicy` and per-task approval still gate every execution.
 
 Before configuring a real provider, assess:
 - data-processing terms, retention and model-training use;
