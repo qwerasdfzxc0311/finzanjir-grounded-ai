@@ -64,7 +64,10 @@ class PersonalMemoryStore:
         self, *, owner_email: str, account_id: str, remote_file_id: str,
         file_name: str, mime_type: str, modified_time: str | None,
         extracted_text: str, metadata: dict[str, Any] | None = None,
+        provider: str = "google_drive",
     ) -> dict[str, Any]:
+        if provider not in {"google_drive", "google_gmail", "google_photos"}:
+            raise ValueError("unsupported personal memory provider")
         if not all((owner_email, account_id, remote_file_id, file_name, mime_type)):
             raise ValueError("source identity fields are required")
         encoded = extracted_text.encode("utf-8")
@@ -73,10 +76,10 @@ class PersonalMemoryStore:
         digest = hashlib.sha256(encoded).hexdigest()
         encrypted = self.cipher.encrypt(encoded)
         source_id = hashlib.sha256(
-            f"{owner_email.casefold()}|google-drive|{account_id}|{remote_file_id}".encode()
+            f"{owner_email.casefold()}|{provider}|{account_id}|{remote_file_id}".encode()
         ).hexdigest()
         safe_meta = {
-            "source": "google_drive",
+            "source": provider,
             "account_id": account_id,
             "remote_file_id": remote_file_id,
             "file_name": file_name[:255],
@@ -90,7 +93,7 @@ class PersonalMemoryStore:
                     (source_id, owner_email, provider, account_id, remote_file_id,
                      file_name, mime_type, modified_time, content_sha256,
                      extracted_text_ciphertext, metadata_json, status)
-                VALUES (?, ?, 'google_drive', ?, ?, ?, ?, ?, ?, ?, ?, 'quarantined')
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'quarantined')
                 ON CONFLICT(owner_email, provider, account_id, remote_file_id)
                 DO UPDATE SET
                     file_name=excluded.file_name,
@@ -102,7 +105,7 @@ class PersonalMemoryStore:
                     status='quarantined',
                     imported_at=CURRENT_TIMESTAMP
             """, (
-                source_id, owner_email.casefold(), account_id, remote_file_id,
+                source_id, owner_email.casefold(), provider, account_id, remote_file_id,
                 file_name[:255], mime_type[:200], modified_time, digest,
                 encrypted, json.dumps(safe_meta, ensure_ascii=False, sort_keys=True),
             ))
