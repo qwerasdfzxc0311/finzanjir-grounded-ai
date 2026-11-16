@@ -78,3 +78,8 @@ Additional browser OAuth settings:
 The OAuth callback redirects to this configured frontend. Without both values, Google OAuth fails closed. Credentialed CORS and the CSRF Origin check use this allowlist.
 
 XLSX and DOCX archives are inspected before parsing: at most 2,000 ZIP entries, 100 MiB total expanded content, 50 MiB per entry, a 200:1 compression-ratio ceiling and no absolute or parent-traversal paths. Google Sheets are exported as XLSX so all worksheets can be read, subject to a 100-sheet and 100,000-cell cap.
+
+
+## Unified memory audit and frontend
+
+The private memory panel in the frontend supports owner Google sign-in, adding accounts/services, Drive document and media import, Gmail message import, Google Photos Picker selection, local encrypted-text search, source/media inventory, and recent import audit events. Browser requests include the owner session cookie; exact frontend CORS and CSRF allowlists are required. Import audit rows record action, provider, account ID, a hash of the remote object ID, content hash and safe file metadata; they never record the document body or search query.
