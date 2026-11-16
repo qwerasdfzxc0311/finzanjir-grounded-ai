@@ -64,7 +64,7 @@ def extract_gmail_message(message: dict[str, Any]) -> dict[str, Any]:
         mime = str(part.get("mimeType") or "").lower()
         body = part.get("body") or {}
         data = body.get("data")
-        if data and mime in {"text/plain", "text/html"}:
+        if data and not part.get("filename") and mime in {"text/plain", "text/html"}:
             decoded = _decode_body(str(data))
             total += len(decoded)
             if total > MAX_MESSAGE_BYTES:
