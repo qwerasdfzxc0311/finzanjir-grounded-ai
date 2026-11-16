@@ -55,12 +55,12 @@ def normalize_conversation_history(history: Any) -> tuple[dict[str, str], ...]:
 _TOPIC_SWITCH_RE = re.compile(
     r"^(?:endi boshqa mavzu|boshqa mavzu|alohida savol|"
     r"now another topic|new topic|unrelated question|"
-    r"другая тема|отдельный вопрос)\\b",
+    r"другая тема|отдельный вопрос)\b",
     re.IGNORECASE,
 )
 _CORRECTION_RE = re.compile(
-    r"^(?:yo['ʻ’]?q|нет|no|aksincha|to['ʻ’]?g['ʻ’]?risi)\\b|"
-    r"\\b(?:men .{0,40} nazarda tutdim|I meant|я имел в виду)\\b",
+    r"^(?:yo['ʻ’]?q|нет|no|aksincha|to['ʻ’]?g['ʻ’]?risi)\b|"
+    r"\b(?:men .{0,40} nazarda tutdim|I meant|я имел в виду)\b",
     re.IGNORECASE,
 )
 
@@ -69,7 +69,7 @@ def is_context_dependent_query(query: str) -> bool:
     value = str(query or "").strip().casefold()
     if not value or _TOPIC_SWITCH_RE.search(value):
         return False
-    if re.fullmatch(r"(?:nega|nima uchun|nima sababdan|why|почему|не үшін)[?!.,\\s]*", value):
+    if re.fullmatch(r"(?:nega|nima uchun|nima sababdan|why|почему|не үшін)[?!.,\s]*", value):
         return True
     return bool(_FOLLOW_UP_RE.search(value) or _CORRECTION_RE.search(value))
 
