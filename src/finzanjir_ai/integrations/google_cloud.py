@@ -337,7 +337,7 @@ def _authorization_url(cfg: dict[str, str], state: str, verifier: str,
         "access_type": "offline",
         "include_granted_scopes": "true",
     }
-    if "drive.readonly" in scopes or "gmail.readonly" in scopes:
+    if len(scopes) > len(IDENTITY_SCOPES):
         params["prompt"] = "consent"
     return GOOGLE_AUTH + "?" + urlencode(params)
 
