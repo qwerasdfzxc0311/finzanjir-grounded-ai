@@ -316,7 +316,7 @@ class PersonalMemoryStore:
             raise ValueError("query must contain 1 to 256 characters")
         if not 1 <= limit <= 20:
             raise ValueError("limit must be between 1 and 20")
-        terms = list(dict.fromkeys(re.findall(r"[\\w-]{2,}", cleaned.casefold())))[:20]
+        terms = list(dict.fromkeys(re.findall(r"[\w-]{2,}", cleaned.casefold())))[:20]
         if not terms:
             return []
         hashes = [
