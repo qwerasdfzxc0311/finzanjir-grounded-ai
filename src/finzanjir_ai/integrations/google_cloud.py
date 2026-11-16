@@ -140,6 +140,24 @@ class GoogleAccountStore:
                     detail_json TEXT NOT NULL
                 );
             """)
+            db.execute("PRAGMA secure_delete=ON")
+            flow_rows = db.execute(
+                "SELECT state_hash, verifier, nonce FROM google_oauth_flows"
+            ).fetchall()
+            for flow in flow_rows:
+                verifier_value = str(flow["verifier"])
+                nonce_value = str(flow["nonce"])
+                if not verifier_value.startswith("gAAAA") or not nonce_value.startswith("gAAAA"):
+                    db.execute(
+                        "UPDATE google_oauth_flows SET verifier=?, nonce=? WHERE state_hash=?",
+                        (
+                            self.cipher.encrypt(verifier_value.encode()).decode()
+                            if not verifier_value.startswith("gAAAA") else verifier_value,
+                            self.cipher.encrypt(nonce_value.encode()).decode()
+                            if not nonce_value.startswith("gAAAA") else nonce_value,
+                            flow["state_hash"],
+                        ),
+                    )
         try:
             os.chmod(self.path, 0o600)
         except OSError:
