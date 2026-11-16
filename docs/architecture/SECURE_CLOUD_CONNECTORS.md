@@ -83,3 +83,5 @@ XLSX and DOCX archives are inspected before parsing: at most 2,000 ZIP entries, 
 ## Unified memory audit and frontend
 
 The private memory panel in the frontend supports owner Google sign-in, adding accounts/services, Drive document and media import, Gmail message import, Google Photos Picker selection, local encrypted-text search, source/media inventory, and recent import audit events. Browser requests include the owner session cookie; exact frontend CORS and CSRF allowlists are required. Import audit rows record action, provider, account ID, a hash of the remote object ID, content hash and safe file metadata; they never record the document body or search query.
+
+Gmail attachments are limited to 20 per message, 10 MiB each and 50 MiB total per import. Unsupported formats are reported as skipped; supported text documents are extracted and media is stored encrypted. Attachment IDs and source message IDs remain attached to provenance.
