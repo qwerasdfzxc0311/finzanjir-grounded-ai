@@ -316,17 +316,28 @@ class PersonalMemoryStore:
             raise ValueError("query must contain 1 to 256 characters")
         if not 1 <= limit <= 20:
             raise ValueError("limit must be between 1 and 20")
-        terms = list(dict.fromkeys(re.findall(r"[\w-]{2,}", cleaned.casefold())))
+        terms = list(dict.fromkeys(re.findall(r"[\\w-]{2,}", cleaned.casefold())))[:20]
         if not terms:
             return []
+        hashes = [
+            hmac.new(self.index_key, term.encode("utf-8"), hashlib.sha256).hexdigest()
+            for term in terms
+        ]
+        placeholders = ",".join("?" for _ in hashes)
         with self._db() as db:
-            rows = db.execute("""
-                SELECT source_id, file_name, mime_type, content_sha256,
-                       extracted_text_ciphertext, metadata_json, status
-                FROM personal_memory_sources
-                WHERE owner_email=? AND status='quarantined'
-                ORDER BY imported_at DESC LIMIT 200
-            """, (owner_email.casefold(),)).fetchall()
+            rows = db.execute(f"""
+                SELECT s.source_id, s.file_name, s.mime_type, s.content_sha256,
+                       s.extracted_text_ciphertext, s.metadata_json,
+                       SUM(t.frequency) AS score
+                FROM personal_memory_terms t
+                JOIN personal_memory_sources s
+                  ON s.source_id=t.source_id AND s.owner_email=t.owner_email
+                WHERE t.owner_email=? AND t.term_hash IN ({placeholders})
+                  AND s.status='quarantined'
+                GROUP BY s.source_id
+                ORDER BY score DESC
+                LIMIT 200
+            """, (owner_email.casefold(), *hashes)).fetchall()
         matches = []
         for row in rows:
             try:
@@ -334,16 +345,13 @@ class PersonalMemoryStore:
             except (InvalidToken, UnicodeDecodeError, ValueError):
                 continue
             folded = text.casefold()
-            score = sum(folded.count(term) for term in terms)
-            if score <= 0:
-                continue
             first = min((folded.find(term) for term in terms if folded.find(term) >= 0), default=0)
-            start = max(0, first - 180)
-            snippet = text[start:start + 500].replace("\n", " ")
+            start_at = max(0, first - 180)
+            snippet = text[start_at:start_at + 500].replace("\\n", " ")
             matches.append({
                 "source_id": row["source_id"], "file_name": row["file_name"],
                 "mime_type": row["mime_type"], "content_sha256": row["content_sha256"],
-                "score": score, "snippet": snippet,
+                "score": int(row["score"]), "snippet": snippet,
                 "metadata": json.loads(row["metadata_json"]),
             })
         matches.sort(key=lambda item: (-item["score"], item["file_name"].casefold()))
