@@ -54,6 +54,19 @@ class PersonalMemoryStore:
                     status TEXT NOT NULL DEFAULT 'created',
                     UNIQUE(owner_email, account_id, session_id)
                 );
+                CREATE TABLE IF NOT EXISTS personal_memory_audit (
+                    event_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    owner_email TEXT NOT NULL,
+                    action TEXT NOT NULL,
+                    provider TEXT NOT NULL,
+                    account_id TEXT NOT NULL,
+                    remote_ref_hash TEXT NOT NULL,
+                    content_sha256 TEXT,
+                    occurred_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    detail_json TEXT NOT NULL
+                );
+                CREATE INDEX IF NOT EXISTS idx_personal_memory_audit_owner_time
+                ON personal_memory_audit(owner_email, occurred_at);
                 CREATE TABLE IF NOT EXISTS personal_memory_media (
                     media_id TEXT PRIMARY KEY,
                     owner_email TEXT NOT NULL,
@@ -134,6 +147,16 @@ class PersonalMemoryStore:
                 source_id, owner_email.casefold(), provider, account_id, remote_file_id,
                 file_name[:255], mime_type[:200], modified_time, digest,
                 encrypted, json.dumps(safe_meta, ensure_ascii=False, sort_keys=True),
+            ))
+            db.execute("""
+                INSERT INTO personal_memory_audit
+                    (owner_email, action, provider, account_id, remote_ref_hash,
+                     content_sha256, detail_json)
+                VALUES (?, 'source_quarantined', ?, ?, ?, ?, ?)
+            """, (
+                owner_email.casefold(), provider, account_id,
+                hashlib.sha256(remote_file_id.encode()).hexdigest(),
+                digest, json.dumps({"file_name": file_name[:255], "mime_type": mime_type[:200]}),
             ))
         return {
             "source_id": source_id, "content_sha256": digest,
@@ -217,6 +240,16 @@ class PersonalMemoryStore:
                 media_id, owner_email.casefold(), provider, account_id, remote_media_id,
                 file_name[:255], mime_type[:200], media_type, digest, encrypted,
                 json.dumps(safe_meta, ensure_ascii=False, sort_keys=True),
+            ))
+            db.execute("""
+                INSERT INTO personal_memory_audit
+                    (owner_email, action, provider, account_id, remote_ref_hash,
+                     content_sha256, detail_json)
+                VALUES (?, 'media_quarantined', ?, ?, ?, ?, ?)
+            """, (
+                owner_email.casefold(), provider, account_id,
+                hashlib.sha256(remote_media_id.encode()).hexdigest(),
+                digest, json.dumps({"file_name": file_name[:255], "mime_type": mime_type[:200], "media_type": media_type}),
             ))
         return {"media_id": media_id, "content_sha256": digest,
                 "status": "quarantined", "requires_owner_review": True}
