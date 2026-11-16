@@ -7,6 +7,7 @@ from typing import Any
 
 from finzanjir_ai.retrieval.grounding import GroundedContext, is_grounded_evidence
 from finzanjir_ai.retrieval.text import meaningful_tokens
+from finzanjir_ai.answer.local_composer import compose_local_grounded_answer
 from finzanjir_ai.orchestration.task_intent import classify_task_type
 
 
@@ -954,15 +955,26 @@ class GroundedAnswerGenerator:
                 provider_status=provider_status,
             )
 
-        answer = "Loyiha bilimlar bazasidagi tasdiqlangan ma'lumotlar:\n\n" + "\n\n".join(
-            f"{index}. {item.statement}" for index, item in enumerate(grounded_items, start=1)
+        composition = compose_local_grounded_answer(
+            intent_query,
+            grounded_items,
+            language=language,
         )
+        if composition.abstained:
+            return AnswerResult(
+                answer=self.NO_EVIDENCE_MESSAGES.get(language, self.NO_EVIDENCE_MESSAGES["uz"]),
+                confidence=0.0,
+                abstained=True,
+                citations=(),
+                generation_mode="local_composer_no_match",
+                provider_status=provider_status,
+            )
         return AnswerResult(
-            answer=answer,
+            answer=composition.answer,
             confidence=confidence,
             abstained=False,
-            citations=tuple(item.record_id for item in grounded_items),
-            generation_mode="deterministic_fallback",
+            citations=composition.citations,
+            generation_mode=composition.generation_mode,
             provider_status=provider_status,
         )
 
