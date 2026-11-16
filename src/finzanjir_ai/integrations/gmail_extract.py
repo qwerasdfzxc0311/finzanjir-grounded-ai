@@ -97,7 +97,7 @@ def extract_gmail_message(message: dict[str, Any]) -> dict[str, Any]:
     if len(body_text.encode("utf-8")) > MAX_MESSAGE_BYTES:
         raise ValueError("Gmail message body exceeds the 2 MB limit")
     header_text = "\n".join(
-        f"{name}: {headers[name]}" for name in ("from", "to", "cc", "subject", "date")
+        f"{label}: {headers[key]}" for key, label in (("from", "From"), ("to", "To"), ("cc", "Cc"), ("subject", "Subject"), ("date", "Date"))
         if headers.get(name)
     )
     full_text = (header_text + "\n\n" + body_text).strip()
