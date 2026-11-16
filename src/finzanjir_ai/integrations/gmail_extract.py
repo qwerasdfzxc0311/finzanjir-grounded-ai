@@ -106,3 +106,38 @@ def extract_gmail_message(message: dict[str, Any]) -> dict[str, Any]:
         "extractor": extractor,
         "headers": {key: headers[key] for key in ("from", "to", "cc", "subject", "date") if key in headers},
     }
+
+
+
+def collect_gmail_attachments(message: dict[str, Any]) -> list[dict[str, Any]]:
+    """Return metadata for named attachments only; never follows external links."""
+    found: list[dict[str, Any]] = []
+
+    def visit(part: dict[str, Any]):
+        filename = str(part.get("filename") or "").strip()
+        body = part.get("body") or {}
+        if filename:
+            attachment_id = body.get("attachmentId")
+            inline_data = body.get("data")
+            if attachment_id or inline_data:
+                try:
+                    size = int(body.get("size") or 0)
+                except (TypeError, ValueError):
+                    size = 0
+                found.append({
+                    "filename": filename[:255],
+                    "mime_type": str(part.get("mimeType") or "application/octet-stream")[:200],
+                    "attachment_id": str(attachment_id) if attachment_id else None,
+                    "inline_data": str(inline_data) if inline_data else None,
+                    "size": max(0, size),
+                })
+        for child in part.get("parts", []) or []:
+            if isinstance(child, dict):
+                visit(child)
+
+    visit(message.get("payload") or {})
+    return found
+
+
+def decode_gmail_attachment_data(data: str) -> bytes:
+    return _decode_body(data)
