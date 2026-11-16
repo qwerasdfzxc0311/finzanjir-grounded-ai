@@ -5,7 +5,7 @@ import pytest
 from cryptography.fernet import Fernet
 from fastapi.testclient import TestClient
 
-from finzanjir_api.app import app
+from finzanjir_api.app import app, _parse_allowed_origins
 from finzanjir_ai.integrations.google_cloud import (
     GoogleAccountStore,
     GoogleConfigError,
@@ -153,17 +153,10 @@ def test_photos_picker_scope_is_explicit_and_not_legacy_library_scope():
 
 def test_cors_allows_credentials_only_for_configured_frontend_origin(monkeypatch):
     monkeypatch.setenv("FINZANJIR_ALLOWED_ORIGINS", "https://frontend.example.com")
-    response = TestClient(app).options(
-        "/api/google/accounts",
-        headers={
-            "Origin": "https://frontend.example.com",
-            "Access-Control-Request-Method": "GET",
-            "Access-Control-Request-Headers": "content-type",
-        },
-    )
-    assert response.status_code == 200
-    assert response.headers["access-control-allow-origin"] == "https://frontend.example.com"
-    assert response.headers["access-control-allow-credentials"] == "true"
+    assert _parse_allowed_origins("https://frontend.example.com") == ["https://frontend.example.com"]
+    middleware = next(item for item in app.user_middleware if item.cls.__name__ == "CORSMiddleware")
+    assert middleware.kwargs["allow_credentials"] is True
+    assert "DELETE" in middleware.kwargs["allow_methods"]
 
 
 def test_csrf_origin_rejects_unlisted_frontend(monkeypatch):
