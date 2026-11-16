@@ -195,7 +195,17 @@ class GoogleAccountStore:
                 (_digest(state), stamp),
             ).fetchone()
             db.execute("DELETE FROM google_oauth_flows WHERE state_hash=?", (_digest(state),))
-        return dict(row) if row else None
+        if row is None:
+            return None
+        try:
+            verifier = self.cipher.decrypt(str(row["verifier"]).encode()).decode()
+            nonce = self.cipher.decrypt(str(row["nonce"]).encode()).decode()
+        except (InvalidToken, UnicodeDecodeError, ValueError) as exc:
+            raise ValueError("OAuth flow state failed integrity/decryption check") from exc
+        return {
+            "verifier": verifier, "nonce": nonce, "purpose": row["purpose"],
+            "owner_session_id": row["owner_session_id"],
+        }
 
     def create_session(self, owner_email: str, now: int | None = None) -> str:
         stamp = int(time.time() if now is None else now)
