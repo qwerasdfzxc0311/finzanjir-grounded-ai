@@ -71,12 +71,18 @@
     }
   }
 
-  async function loadDrive(account, target) {
+  async function loadDrive(account, target, pageToken = null, append = false) {
     message(target, "Drive fayllari olinmoqda...");
     try {
-      const result = await request("/api/google/accounts/" + encodeURIComponent(account.account_id) + "/drive/files");
-      target.replaceChildren();
-      const list = element("div", "cloud-memory-list");
+      const page = pageToken ? "?page_token=" + encodeURIComponent(pageToken) : "";
+      const result = await request("/api/google/accounts/" + encodeURIComponent(account.account_id) + "/drive/files" + page);
+      if (!append) target.replaceChildren();
+      target.querySelector(".cloud-next-page")?.remove();
+      let list = target.querySelector(".cloud-memory-list");
+      if (!list) {
+        list = element("div", "cloud-memory-list");
+        target.appendChild(list);
+      }
       result.files.forEach(file => {
         const isMedia = /^(image|audio|video)\//.test(file.mimeType || "");
         const action = button("Import", async () => {
