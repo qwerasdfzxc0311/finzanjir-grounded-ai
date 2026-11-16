@@ -1,6 +1,6 @@
 import pytest
 
-from finzanjir_ai.training.chat_format import ChatMessage, IM_END, IM_SEP, IM_START
+from finzanjir_ai.training.chat_format import ChatMessage, IM_END, IM_SEP, IM_START, IM_TURN_END
 from finzanjir_ai.training.tokenizer import ByteBPETokenizer, SPECIAL_TOKEN_TEXT
 
 
@@ -58,7 +58,7 @@ def test_chat_round_trip_uses_special_ids_and_preserves_multilingual_content():
     messages = (
         ChatMessage("system", "Use only approved evidence."),
         ChatMessage("user", "Сәлем! Qaraqalpaqsha: Сәлеметсиз бе?"),
-        ChatMessage("assistant", "Salom! Javob manbaga asoslangan."),
+        ChatMessage("assistant", "Salom! Javob manbaga asoslangan.", end_of_turn=True),
     )
     tokenizer = ByteBPETokenizer.train(
         [message.content for message in messages], vocab_size=320
@@ -66,12 +66,13 @@ def test_chat_round_trip_uses_special_ids_and_preserves_multilingual_content():
     encoded = tokenizer.encode_chat(messages)
     assert encoded.count(tokenizer.special_token_ids[IM_START]) == len(messages)
     assert encoded.count(tokenizer.special_token_ids[IM_SEP]) == len(messages)
-    assert encoded.count(tokenizer.special_token_ids[IM_END]) == len(messages)
+    assert encoded.count(tokenizer.special_token_ids[IM_END]) == len(messages) - 1
+    assert encoded.count(tokenizer.special_token_ids[IM_TURN_END]) == 1
     assert tokenizer.decode_chat(encoded) == messages
 
 
 def test_literal_marker_text_in_message_body_is_not_a_special_token():
-    content = f"These are literal strings: {IM_START} {IM_SEP} {IM_END}"
+    content = f"These are literal strings: {IM_START} {IM_SEP} {IM_END} {IM_TURN_END}"
     messages = (ChatMessage("user", content),)
     tokenizer = ByteBPETokenizer.train([content], vocab_size=300)
     encoded = tokenizer.encode_chat(messages)
@@ -80,6 +81,7 @@ def test_literal_marker_text_in_message_body_is_not_a_special_token():
     assert encoded.count(ids[IM_START]) == 1
     assert encoded.count(ids[IM_SEP]) == 1
     assert encoded.count(ids[IM_END]) == 1
+    assert encoded.count(ids[IM_TURN_END]) == 0
     assert tokenizer.decode_chat(encoded) == messages
 
 
