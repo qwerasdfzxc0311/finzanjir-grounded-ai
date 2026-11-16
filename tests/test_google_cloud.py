@@ -8,6 +8,8 @@ from fastapi.testclient import TestClient
 from finzanjir_api.app import app
 from finzanjir_ai.integrations.google_cloud import (
     GoogleAccountStore,
+    GoogleConfigError,
+    _config,
     MAX_GOOGLE_ACCOUNTS,
     SERVICE_SCOPES,
     _authorization_url,
@@ -179,3 +181,20 @@ def test_csrf_origin_rejects_unlisted_frontend(monkeypatch):
     with pytest.raises(HTTPException) as exc:
         _require_same_origin(Request(scope))
     assert exc.value.status_code == 403
+
+
+def test_google_oauth_config_requires_frontend_in_exact_origin_allowlist(monkeypatch, tmp_path):
+    monkeypatch.setenv("FINZANJIR_GOOGLE_CLIENT_ID", "client-id")
+    monkeypatch.setenv("FINZANJIR_GOOGLE_CLIENT_SECRET", "client-secret")
+    monkeypatch.setenv("FINZANJIR_GOOGLE_REDIRECT_URI", "https://api.example.com/api/google/oauth/callback")
+    monkeypatch.setenv("FINZANJIR_OWNER_EMAIL", "owner@example.com")
+    monkeypatch.setenv("FINZANJIR_SESSION_SECRET", "s" * 40)
+    monkeypatch.setenv("FINZANJIR_TOKEN_ENCRYPTION_KEY", Fernet.generate_key().decode())
+    monkeypatch.setenv("FINZANJIR_GOOGLE_STATE_DB_PATH", str(tmp_path / "state.sqlite"))
+    monkeypatch.setenv("FINZANJIR_PERSONAL_MEMORY_DB_PATH", str(tmp_path / "memory.sqlite"))
+    monkeypatch.setenv("FINZANJIR_FRONTEND_URL", "https://frontend.example.com")
+    monkeypatch.setenv("FINZANJIR_ALLOWED_ORIGINS", "https://frontend.example.com")
+    assert _config()["FINZANJIR_FRONTEND_URL"] == "https://frontend.example.com"
+    monkeypatch.setenv("FINZANJIR_ALLOWED_ORIGINS", "https://other.example.com")
+    with pytest.raises(GoogleConfigError):
+        _config()
