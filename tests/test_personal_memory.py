@@ -181,3 +181,16 @@ def test_owner_only_local_search_reads_encrypted_sources_without_external_search
     assert store.search_sources("other@example.com", "astronomy Mars") == []
     with pytest.raises(ValueError):
         store.search_sources("owner@example.com", " ")
+
+
+def test_media_from_drive_and_photos_have_separate_source_ids(tmp_path):
+    store = PersonalMemoryStore(str(tmp_path / "memory.sqlite"), Fernet.generate_key().decode())
+    common = dict(
+        owner_email="owner@example.com", account_id="account-1",
+        remote_media_id="media-1", file_name="recording.wav",
+        mime_type="audio/wav", media_type="audio", content=b"private-audio",
+    )
+    photos = store.quarantine_media(**common, provider="google_photos")
+    drive = store.quarantine_media(**common, provider="google_drive")
+    assert photos["media_id"] != drive["media_id"]
+    assert len(store.list_media("owner@example.com")) == 2
