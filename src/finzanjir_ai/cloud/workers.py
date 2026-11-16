@@ -92,6 +92,7 @@ class JsonHttpWorkerAdapter:
     timeout_seconds: float = 12.0
     auth_header: str = "Authorization"
     auth_prefix: str = "Bearer "
+    extra_headers: Mapping[str, str] = field(default_factory=dict)
     transport: httpx.BaseTransport | None = field(default=None, repr=False)
 
     def execute(self, task: CloudTask) -> str:
@@ -103,6 +104,7 @@ class JsonHttpWorkerAdapter:
             raise RuntimeError("Cloud worker is not configured")
         timeout = httpx.Timeout(self.timeout_seconds, connect=min(5.0, self.timeout_seconds))
         headers = {
+            **dict(self.extra_headers),
             self.auth_header: self.auth_prefix + api_key,
             "Content-Type": "application/json",
         }
