@@ -66,3 +66,8 @@ Selected photo and video bytes are downloaded only after explicit selection, wit
 ## Drive binary media import
 
 In addition to document extraction, an owner-selected Drive file can be imported as a binary image, audio or video item. The server validates the declared MIME type against supported container signatures (Pillow image verification, WAV/MP3/FLAC/OGG audio headers, MP4/MOV, Matroska/WebM and AVI signatures), applies a 100 MiB cap and a 40-megapixel image limit, then encrypts the bytes into the same owner-only media quarantine. Unsupported types and mismatched content are rejected. This stage preserves the media and provenance; it does not claim to transcribe audio or semantically understand images/video.
+
+
+## Browser session and CORS requirements
+
+Owner sessions use HttpOnly/Secure cookies. Browser calls from the static frontend must use `credentials: "include"`; the API permits credentialed CORS only for the exact origins listed in `FINZANJIR_ALLOWED_ORIGINS` (comma-separated, no wildcard). The same allowlist is also checked by the server-side Origin/CSRF guard on state-changing actions. Add the exact deployed frontend origin(s) to that setting before enabling Google login. No wildcard credentialed CORS is permitted.
