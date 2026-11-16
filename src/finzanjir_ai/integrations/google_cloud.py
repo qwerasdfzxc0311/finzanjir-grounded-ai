@@ -21,7 +21,9 @@ from urllib.parse import urlencode, quote, urlsplit
 
 from .drive_extract import MAX_DOWNLOAD_BYTES, UnsupportedDriveFormat, extract_drive_text
 from .personal_memory import PersonalMemoryStore
-from .gmail_extract import extract_gmail_message
+from .gmail_extract import (
+    collect_gmail_attachments, decode_gmail_attachment_data, extract_gmail_message,
+)
 from .media_validation import UnsupportedMedia, validate_media_content
 
 import httpx
@@ -865,6 +867,82 @@ def google_gmail_import_message(account_id: str, message_id: str, request: Reque
                 "source_link": "https://mail.google.com/mail/u/0/#all/" + quote(message_id, safe=""),
             },
         )
+        attachment_records = collect_gmail_attachments(message)
+        imported_attachments = []
+        skipped_attachments = []
+        total_attachment_bytes = 0
+        for attachment in attachment_records[:20]:
+            filename = attachment["filename"]
+            mime = attachment["mime_type"]
+            if attachment["size"] > 10 * 1024 * 1024:
+                skipped_attachments.append({"file_name": filename, "reason": "10 MB limit"})
+                continue
+            try:
+                if attachment.get("attachment_id"):
+                    attachment_url = (
+                        GOOGLE_GMAIL_MESSAGES + "/" + quote(message_id, safe="") +
+                        "/attachments/" + quote(attachment["attachment_id"], safe="")
+                    )
+                    with httpx.Client(timeout=25, follow_redirects=False) as client:
+                        attachment_response = client.get(
+                            attachment_url,
+                            headers={"Authorization": "Bearer " + access_token},
+                        )
+                        attachment_response.raise_for_status()
+                        attachment_data = str(attachment_response.json().get("data") or "")
+                else:
+                    attachment_data = str(attachment.get("inline_data") or "")
+                content = decode_gmail_attachment_data(attachment_data)
+                if len(content) > 10 * 1024 * 1024 or total_attachment_bytes + len(content) > 50 * 1024 * 1024:
+                    skipped_attachments.append({"file_name": filename, "reason": "message attachment size limit"})
+                    continue
+                remote_attachment_id = attachment.get("attachment_id") or filename
+                if mime.startswith(("image/", "audio/", "video/")):
+                    validation = validate_media_content(mime, content)
+                    stored = memory.quarantine_media(
+                        owner_email=cfg["FINZANJIR_OWNER_EMAIL"],
+                        account_id=account_id,
+                        remote_media_id=message_id + ":" + str(remote_attachment_id),
+                        file_name=filename,
+                        mime_type=mime,
+                        media_type=validation["media_type"],
+                        content=content,
+                        provider="google_gmail",
+                        metadata={
+                            "message_id": message_id,
+                            "thread_id": message.get("threadId"),
+                            "validation": validation,
+                        },
+                    )
+                else:
+                    extracted_attachment = extract_drive_text(filename, mime, content)
+                    stored = memory.quarantine(
+                        owner_email=cfg["FINZANJIR_OWNER_EMAIL"],
+                        account_id=account_id,
+                        remote_file_id=message_id + ":" + str(remote_attachment_id),
+                        file_name=filename,
+                        mime_type=mime,
+                        modified_time=str(message.get("internalDate") or ""),
+                        extracted_text=extracted_attachment["text"],
+                        provider="google_gmail",
+                        metadata={
+                            "message_id": message_id,
+                            "thread_id": message.get("threadId"),
+                            "extractor": extracted_attachment["extractor"],
+                        },
+                    )
+                total_attachment_bytes += len(content)
+                imported_attachments.append({
+                    "file_name": filename, "mime_type": mime,
+                    "bytes": len(content), "source_id": stored.get("source_id") or stored.get("media_id"),
+                })
+            except (httpx.HTTPError, ValueError, UnsupportedMedia, KeyError):
+                skipped_attachments.append({"file_name": filename, "reason": "unsupported, invalid or unavailable"})
+        if len(attachment_records) > 20:
+            skipped_attachments.extend(
+                {"file_name": item["filename"], "reason": "20 attachment per message limit"}
+                for item in attachment_records[20:]
+            )
     except HTTPException:
         raise
     except (httpx.HTTPError, KeyError, ValueError, RuntimeError) as exc:
@@ -872,7 +950,10 @@ def google_gmail_import_message(account_id: str, message_id: str, request: Reque
     return {
         **result, "subject": headers.get("subject", ""),
         "extractor": extracted["extractor"],
-        "message": "Xat shifrlangan shaxsiy xotira karantiniga saqlandi; avtomatik ravishda bilim bazasiga yoki treningga qo‘shilmadi.",
+        "attachments_imported": imported_attachments,
+        "attachments_skipped": skipped_attachments,
+        "attachment_bytes": total_attachment_bytes,
+        "message": "Xat va qo‘llab-quvvatlangan ilovalar shifrlangan shaxsiy xotira karantiniga saqlandi; avtomatik ravishda bilim bazasiga yoki treningga qo‘shilmadi.",
     }
 
 
