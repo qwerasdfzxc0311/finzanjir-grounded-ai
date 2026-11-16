@@ -124,3 +124,29 @@ def test_model_config_is_random_initialized_and_validated():
 def test_model_config_rejects_incompatible_attention_dimensions():
     with pytest.raises(ValueError, match="divisible"):
         ModelTrainingConfig(hidden_size=510, attention_heads=8).validate()
+
+
+def test_model_config_rejects_zero_attention_heads_without_division_error():
+    with pytest.raises(ValueError, match="must be positive"):
+        ModelTrainingConfig(attention_heads=0).validate()
+
+
+def test_preflight_rejects_mismatched_split_count():
+    builder = _ready_builder()
+    readiness = builder.readiness(
+        required_languages=("kaa-Latn",),
+        minimum_per_language=1,
+        reviewer_approved=True,
+    )
+    plan = build_source_grouped_split(builder.accepted_examples, seed=5)
+    from dataclasses import replace
+    shortened = replace(plan, test=replace(plan.test, examples=()))
+    result = training_preflight(
+        readiness,
+        shortened,
+        required_languages=("kaa-Latn",),
+        human_split_review_approved=True,
+    )
+    assert result.ready is False
+    assert "dataset_split_count_mismatch" in result.reasons
+    assert "empty_dataset_partition" in result.reasons
