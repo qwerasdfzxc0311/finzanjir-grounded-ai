@@ -17,6 +17,7 @@ APPROVED_LICENSES = frozenset({
     "author-granted", "custom-training-grant",
 })
 APPROVED_DATA_CLASSES = frozenset({"public", "licensed_nonpersonal"})
+APPROVED_SOURCE_TYPES = frozenset({"public_domain", "licensed_corpus", "author_provided"})
 
 
 @dataclass(frozen=True)
@@ -33,6 +34,7 @@ class TrainingExample:
     contains_personal_data: bool = False
     contains_financial_data: bool = False
     data_class: str = "unknown"
+    source_type: str = "unknown"
 
 
 @dataclass(frozen=True)
@@ -47,6 +49,7 @@ class AcceptedExample:
     license_id: str
     permission_ref: str | None
     data_class: str
+    source_type: str
 
 
 @dataclass(frozen=True)
@@ -101,6 +104,8 @@ class TrainingDatasetBuilder:
             return self._reject("unsupported_source_uri")
         if example.data_class not in APPROVED_DATA_CLASSES:
             return self._reject("data_class_not_approved")
+        if example.source_type not in APPROVED_SOURCE_TYPES:
+            return self._reject("source_type_not_approved")
         if not example.verified:
             return self._reject("source_not_verified")
         if example.contains_personal_data or example.contains_financial_data:
@@ -130,6 +135,7 @@ class TrainingDatasetBuilder:
             license_id=example.license_id,
             permission_ref=example.permission_ref,
             data_class=example.data_class,
+            source_type=example.source_type,
         ))
         self._seen.add(fingerprint)
         return True
