@@ -209,3 +209,17 @@ def test_reconnecting_account_adds_scopes_without_dropping_prior_services(tmp_pa
     scopes = set(store.account_secret("owner@example.com", second["account_id"])[1])
     assert "https://www.googleapis.com/auth/drive.readonly" in scopes
     assert "https://www.googleapis.com/auth/gmail.readonly" in scopes
+
+
+def test_oauth_requests_consent_when_any_cloud_service_is_selected():
+    cfg = {
+        "FINZANJIR_GOOGLE_CLIENT_ID": "client-id",
+        "FINZANJIR_GOOGLE_REDIRECT_URI": "https://api.example.com/api/google/oauth/callback",
+    }
+    url = _authorization_url(
+        cfg, "state", "verifier", "nonce",
+        ("openid", "email", "https://www.googleapis.com/auth/photospicker.mediaitems.readonly"),
+    )
+    params = parse_qs(urlsplit(url).query)
+    assert params["prompt"] == ["consent"]
+    assert params["include_granted_scopes"] == ["true"]
