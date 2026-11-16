@@ -13,9 +13,10 @@ SUPPORTED_LANGUAGES = frozenset({
     "uz-Latn", "uz-Cyrl", "kaa-Latn", "kaa-Cyrl", "kk", "ru", "en",
 })
 APPROVED_LICENSES = frozenset({
-    "CC0-1.0", "CC-BY-4.0", "MIT", "Apache-2.0", "BSD-3-Clause",
-    "public-domain", "author-granted",
+    "CC0-1.0", "CC-BY-4.0", "public-domain",
+    "author-granted", "custom-training-grant",
 })
+APPROVED_DATA_CLASSES = frozenset({"public", "licensed_nonpersonal"})
 
 
 @dataclass(frozen=True)
@@ -31,6 +32,7 @@ class TrainingExample:
     permission_ref: str | None = None
     contains_personal_data: bool = False
     contains_financial_data: bool = False
+    data_class: str = "unknown"
 
 
 @dataclass(frozen=True)
@@ -44,6 +46,7 @@ class AcceptedExample:
     source_uri: str
     license_id: str
     permission_ref: str | None
+    data_class: str
 
 
 @dataclass(frozen=True)
@@ -94,12 +97,16 @@ class TrainingDatasetBuilder:
             return self._reject("license_not_approved")
         if not example.source_id.strip() or not example.source_uri.strip():
             return self._reject("missing_source_provenance")
+        if not example.source_uri.startswith(("https://", "local://")):
+            return self._reject("unsupported_source_uri")
+        if example.data_class not in APPROVED_DATA_CLASSES:
+            return self._reject("data_class_not_approved")
         if not example.verified:
             return self._reject("source_not_verified")
         if example.contains_personal_data or example.contains_financial_data:
             return self._reject("personal_or_financial_data_forbidden")
-        if example.license_id == "author-granted" and not (example.permission_ref or "").strip():
-            return self._reject("missing_author_permission_reference")
+        if example.license_id in {"author-granted", "custom-training-grant"} and not (example.permission_ref or "").strip():
+            return self._reject("missing_training_permission_reference")
 
         combined = example.input_text + "\n" + example.target_text
         if _contains_sensitive_identifier(combined):
@@ -122,6 +129,7 @@ class TrainingDatasetBuilder:
             source_uri=example.source_uri.strip(),
             license_id=example.license_id,
             permission_ref=example.permission_ref,
+            data_class=example.data_class,
         ))
         self._seen.add(fingerprint)
         return True
@@ -137,7 +145,11 @@ class TrainingDatasetBuilder:
         minimum_per_language: int,
         reviewer_approved: bool = False,
     ) -> DatasetReadiness:
+        if minimum_per_language < 1:
+            raise ValueError("minimum_per_language must be at least 1")
         required = tuple(dict.fromkeys(required_languages))
+        if not required:
+            raise ValueError("required_languages must not be empty")
         counts = Counter(item.language for item in self._accepted)
         missing = tuple(
             language for language in required
