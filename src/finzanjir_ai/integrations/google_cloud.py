@@ -323,8 +323,8 @@ def _exchange_and_verify(code: str, verifier: str, cfg: dict[str, str]) -> tuple
         token_response.raise_for_status()
         tokens = token_response.json()
         id_token = tokens.get("id_token")
-        if not id_token or not tokens.get("refresh_token"):
-            raise ValueError("Google did not return required ID and refresh tokens")
+        if not id_token:
+            raise ValueError("Google did not return a required ID token")
         info_response = client.get(GOOGLE_TOKEN_INFO, params={"id_token": id_token})
         info_response.raise_for_status()
         identity = info_response.json()
@@ -408,6 +408,8 @@ def google_oauth_callback(
             max_age=30 * 86400, httponly=True, secure=True, samesite="lax", path="/",
         )
         return redirect
+    if not tokens.get("refresh_token"):
+        raise HTTPException(status_code=502, detail="Google uzoq muddatli ruxsat tokenini bermadi; qayta rozilik berish kerak.")
     scopes = tuple(str(tokens.get("scope", "")).split())
     if not scopes:
         raise HTTPException(status_code=502, detail="Google ruxsat bergan scope ro‘yxati bo‘sh.")
