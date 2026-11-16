@@ -1,8 +1,8 @@
 """Policy-driven autonomous research cycle.
 
 The scheduler is intentionally inert until explicitly enabled by the host.
-It discovers from configured sources, stores evidence, and creates review
-candidates; it never trains weights or publishes knowledge automatically.
+Online adapters are never used by offline cycles. Candidates remain quarantined;
+this module never trains weights or publishes knowledge automatically.
 """
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from hashlib import sha256
-from typing import Callable, Iterable, Protocol
+from typing import Iterable, Protocol
 import json
 
 
@@ -57,6 +57,15 @@ class FetchAdapter(Protocol):
         """Return (text, content_type, canonical_url)."""
 
 
+class OfflineEvidenceAdapter(Protocol):
+    def iter_cached(self, source: ResearchSource, limit: int
+                    ) -> Iterable[tuple[str, str, str, str, str]]:
+        """Return cached (url, title, text, content_type, canonical_url) tuples.
+
+        Implementations must read local storage only and must not perform network I/O.
+        """
+
+
 @dataclass
 class AutonomousResearchPolicy:
     enabled: bool = False
@@ -77,13 +86,16 @@ class AutonomousResearchPolicy:
 
 
 class AutonomousResearchEngine:
-    """Runs a bounded cycle and emits quarantined evidence candidates."""
+    """Runs bounded online or strictly local offline cycles."""
 
     def __init__(self, policy: AutonomousResearchPolicy,
-                 discoverer: DiscoveryAdapter, fetcher: FetchAdapter):
+                 discoverer: DiscoveryAdapter | None = None,
+                 fetcher: FetchAdapter | None = None,
+                 offline_store: OfflineEvidenceAdapter | None = None):
         self.policy = policy
         self.discoverer = discoverer
         self.fetcher = fetcher
+        self.offline_store = offline_store
         self._seen_hashes: set[str] = set()
         self._seen_urls: set[str] = set()
 
@@ -91,44 +103,46 @@ class AutonomousResearchEngine:
                   ) -> list[ResearchCandidate]:
         if not self.policy.enabled:
             return []
-        if not offline and not self.policy.online_enabled:
+        if offline and self.offline_store is None:
+            return []
+        if not offline and (not self.policy.online_enabled or
+                            self.discoverer is None or self.fetcher is None):
             return []
 
         output: list[ResearchCandidate] = []
-        byte_budget = self.policy.max_total_bytes_per_cycle
-        item_budget = self.policy.max_items_per_cycle
+        byte_budget = max(0, self.policy.max_total_bytes_per_cycle)
+        item_budget = max(0, self.policy.max_items_per_cycle)
         enabled_sources = [
             s for s in sources
             if s.enabled and s.category in self.policy.allowed_categories
-        ][:self.policy.max_sources_per_cycle]
+        ][:max(0, self.policy.max_sources_per_cycle)]
 
         for source in enabled_sources:
             if item_budget <= 0 or byte_budget <= 0:
                 break
-            per_source = min(source.max_items_per_cycle, item_budget)
-            for url, title in self.discoverer.discover(source, per_source):
+            per_source = min(max(0, source.max_items_per_cycle), item_budget)
+            if offline:
+                records = self.offline_store.iter_cached(source, per_source)
+            else:
+                records = self._fetch_online_records(source, per_source)
+            for url, title, text, content_type, canonical_url in records:
                 if item_budget <= 0 or byte_budget <= 0:
                     break
                 if url in self._seen_urls:
                     continue
-                self._seen_urls.add(url)
-                try:
-                    text, content_type, canonical_url = self.fetcher.fetch(url)
-                except Exception:
-                    # A failed source must not stop other sources in the cycle.
-                    continue
-                encoded = text.encode("utf-8", errors="replace")
                 if content_type not in source.allowed_content_types:
                     continue
+                encoded = text.encode("utf-8", errors="replace")
                 if len(encoded) > min(self.policy.max_bytes_per_item, byte_budget):
                     continue
+                self._seen_urls.add(url)
                 byte_budget -= len(encoded)
                 item_budget -= 1
                 digest = sha256(encoded).hexdigest()
                 if digest in self._seen_hashes:
                     continue
                 self._seen_hashes.add(digest)
-                lowered = (title + "\n" + text[:20000]).lower()
+                lowered = (title + "\\n" + text[:20000]).lower()
                 reasons = ["external source content is untrusted; human review required"]
                 if any(term in lowered for term in self.policy.prohibited_terms):
                     reasons.append("content matched a prohibited collection pattern")
@@ -145,10 +159,25 @@ class AutonomousResearchEngine:
                 ))
         return output
 
+    def _fetch_online_records(self, source: ResearchSource, limit: int):
+        """Fetch only through host-supplied online adapters."""
+        try:
+            discovered = self.discoverer.discover(source, limit)
+        except Exception:
+            return ()
+        records = []
+        for url, title in discovered:
+            try:
+                text, content_type, canonical_url = self.fetcher.fetch(url)
+            except Exception:
+                continue
+            records.append((url, title, text, content_type, canonical_url))
+        return records
+
 
 @dataclass
 class KnowledgePromotionGate:
-    """Only reviewed, licensed, non-sensitive candidates can be promoted."""
+    """Require source/licence verification and explicit sensitive-data review."""
 
     required_reviewers: int = 1
     approved_license_ids: set[str] = field(default_factory=set)
@@ -156,13 +185,19 @@ class KnowledgePromotionGate:
     def approve(self, candidate: ResearchCandidate, *, reviewer_ids: Iterable[str],
                 license_id: str, contains_personal_data: bool = False,
                 contains_customer_or_bank_data: bool = False,
-                source_verified: bool = False) -> bool:
+                source_verified: bool = False,
+                sensitive_data_reviewed: bool = False) -> bool:
         reviewers = {item.strip() for item in reviewer_ids if item.strip()}
         if candidate.status != CandidateStatus.QUARANTINED:
             return False
-        if len(reviewers) < self.required_reviewers:
+        if any("prohibited collection pattern" in reason
+               for reason in candidate.review_reasons):
+            return False
+        if len(reviewers) < max(1, self.required_reviewers):
             return False
         if not source_verified or license_id not in self.approved_license_ids:
+            return False
+        if not sensitive_data_reviewed:
             return False
         if contains_personal_data or contains_customer_or_bank_data:
             return False
