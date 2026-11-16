@@ -48,7 +48,7 @@ GOOGLE_PHOTOS_SESSIONS = "https://photospicker.googleapis.com/v1/sessions"
 GOOGLE_PHOTOS_MEDIA = "https://photospicker.googleapis.com/v1/mediaItems"
 GOOGLE_DOC_MIMES = {
     "application/vnd.google-apps.document": "text/plain",
-    "application/vnd.google-apps.spreadsheet": "text/csv",
+    "application/vnd.google-apps.spreadsheet": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     "application/vnd.google-apps.presentation": "text/plain",
 }
 
@@ -658,7 +658,8 @@ def google_drive_import_file(account_id: str, file_id: str, request: Request):
         if mime_type not in supported:
             raise HTTPException(status_code=415, detail="Bu fayl turi hozircha matnga aylantirish uchun qo‘llanmaydi.")
         content = _download_drive_file(access_token, file_id, mime_type)
-        extracted = extract_drive_text(str(metadata.get("name") or file_id), mime_type, content)
+        extraction_mime = GOOGLE_DOC_MIMES.get(mime_type, mime_type)
+        extracted = extract_drive_text(str(metadata.get("name") or file_id), extraction_mime, content)
         memory = _personal_memory_store(cfg)
         result = memory.quarantine(
             owner_email=cfg["FINZANJIR_OWNER_EMAIL"],
