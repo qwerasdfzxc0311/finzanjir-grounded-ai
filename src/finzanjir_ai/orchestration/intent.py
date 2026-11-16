@@ -117,6 +117,20 @@ def classify_query_intent(query: str) -> str:
     if any(re.search(pattern, normalized) for pattern in _ASSISTANT_IDENTITY_PATTERNS):
         return "assistant_identity"
     tokens = set(normalized.split())
+    web_search_markers = {
+        "internetdan", "internetda", "internet", "brauzer", "browser",
+        "youtube", "google", "kanal", "kanalini", "qidir", "qidirib",
+        "top", "topib", "izla", "izlab", "search", "find", "look",
+        "website", "websayt", "saytini", "havola", "link", "url",
+    }
+    search_action_markers = {
+        "top", "topib", "qidir", "qidirib", "izla", "izlab",
+        "search", "find", "look", "internetdan", "brauzer", "browser",
+    }
+    if tokens & web_search_markers and (
+        tokens & search_action_markers or tokens & {"youtube", "google", "website", "havola", "link"}
+    ):
+        return "web_search"
     author_markers = {
         "muallif", "muallifi", "muallifning", "yaratuvchi", "asoschi",
         "biografiya", "tarjimai", "hayoti", "qiziqishlari", "motivatsiya",
