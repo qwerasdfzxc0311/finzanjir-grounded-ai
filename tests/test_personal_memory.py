@@ -225,7 +225,7 @@ def test_xlsx_extraction_keeps_all_sheets(tmp_path):
     )
     assert "[Sheet: First]" in result["text"]
     assert "[Sheet: Second]" in result["text"]
-    assert "Beta\\t20" in result["text"]
+    assert "Beta\t20" in result["text"]
 
 
 def test_office_archive_rejects_path_traversal_entries():
