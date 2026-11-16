@@ -17,7 +17,7 @@ import time
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlencode, quote
+from urllib.parse import urlencode, quote, urlsplit
 
 from .drive_extract import MAX_DOWNLOAD_BYTES, UnsupportedDriveFormat, extract_drive_text
 from .personal_memory import PersonalMemoryStore
@@ -869,7 +869,6 @@ def google_gmail_import_message(account_id: str, message_id: str, request: Reque
         "message": "Xat shifrlangan shaxsiy xotira karantiniga saqlandi; avtomatik ravishda bilim bazasiga yoki treningga qo‘shilmadi.",
     }
 
-from urllib.parse import urlsplit
 
 
 def _picker_session_for_owner(
