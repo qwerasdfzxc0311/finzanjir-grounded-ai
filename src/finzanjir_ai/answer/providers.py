@@ -29,6 +29,10 @@ class LLMGateway:
         preference = self.environ.get("FINZANJIR_LLM_PROVIDER", "auto").strip().casefold()
         has_gemini = bool(self.environ.get("GEMINI_API_KEY"))
         has_router = bool(self.environ.get("OPENROUTER_API_KEY"))
+        # Explicit offline mode is a hard boundary: even configured credentials
+        # must never cause a hosted request from the core conversation path.
+        if preference in {"offline", "none", "disabled"}:
+            return ()
         if preference == "gemini":
             return ("gemini",) if has_gemini else ()
         if preference == "openrouter":
@@ -66,7 +70,9 @@ class LLMGateway:
     def generate_json(self, *, system: str, prompt: str, max_output_tokens: int = 1800) -> dict[str, Any] | None:
         providers = self.configured_providers()
         if not providers:
-            self.last_status = "not_configured"
+            preference = self.environ.get("FINZANJIR_LLM_PROVIDER", "auto").strip().casefold()
+            self.last_status = "offline_mode" if preference in {"offline", "none", "disabled"} else "not_configured"
+            self.last_provider_failures = []
             return None
 
         self.last_status = "provider_failed"
