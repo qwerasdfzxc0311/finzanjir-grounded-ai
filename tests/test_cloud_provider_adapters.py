@@ -71,8 +71,12 @@ def test_provider_adapters_use_independent_auth_payloads_and_parsers(
     assert seen["url"] == expected_endpoint
     assert seen["headers"][auth_header] in {"Bearer test-key", "test-key"}
     assert result == response.get("choices", [{}])[0].get("message", {}).get("content", result)
-    assert seen["body"]["model"] == environment[f"{name.upper()}_MODEL"]
-    assert seen["body"]["messages"][-1]["content"] == "Check this public statement" if name != "gemini" else seen["body"]["contents"][0]["parts"][0]["text"] == "Check this public statement"
+    if name == "gemini":
+        assert environment["GEMINI_MODEL"] in seen["url"]
+        assert seen["body"]["contents"][0]["parts"][0]["text"] == "Check this public statement"
+    else:
+        assert seen["body"]["model"] == environment[f"{name.upper()}_MODEL"]
+        assert seen["body"]["messages"][-1]["content"] == "Check this public statement"
 
 
 def test_anthropic_adapter_includes_required_version_header():
