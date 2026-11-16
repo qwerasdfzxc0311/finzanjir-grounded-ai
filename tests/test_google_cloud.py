@@ -126,6 +126,7 @@ def test_google_routes_fail_closed_without_server_configuration(monkeypatch):
         "FINZANJIR_TOKEN_ENCRYPTION_KEY",
         "FINZANJIR_GOOGLE_STATE_DB_PATH",
         "FINZANJIR_PERSONAL_MEMORY_DB_PATH",
+        "FINZANJIR_FRONTEND_URL",
     ):
         monkeypatch.delenv(key, raising=False)
     response = TestClient(app).get("/api/google/accounts")
