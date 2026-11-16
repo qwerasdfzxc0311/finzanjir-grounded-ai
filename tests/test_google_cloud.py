@@ -21,10 +21,11 @@ def make_store(tmp_path):
 
 def test_oauth_state_is_one_time_and_expires(tmp_path):
     store = make_store(tmp_path)
-    store.create_flow("random-state-value-123456", "verifier", "owner_login", None, now=100)
+    store.create_flow("random-state-value-123456", "verifier", "nonce-value", "owner_login", None, now=100)
     flow = store.consume_flow("random-state-value-123456", now=200)
     assert flow["purpose"] == "owner_login"
     assert flow["verifier"] == "verifier"
+    assert flow["nonce"] == "nonce-value"
     assert store.consume_flow("random-state-value-123456", now=200) is None
 
 
@@ -99,7 +100,7 @@ def test_oauth_url_uses_pkce_and_fixed_redirect_uri():
         "FINZANJIR_GOOGLE_CLIENT_ID": "client-id",
         "FINZANJIR_GOOGLE_REDIRECT_URI": "https://api.example.com/api/google/oauth/callback",
     }
-    url = _authorization_url(cfg, "state-value", "very-long-verifier", ("openid", "email"))
+    url = _authorization_url(cfg, "state-value", "very-long-verifier", "nonce-value", ("openid", "email"))
     assert "code_challenge_method=S256" in url
     assert "state=state-value" in url
     assert "redirect_uri=https%3A%2F%2Fapi.example.com" in url
