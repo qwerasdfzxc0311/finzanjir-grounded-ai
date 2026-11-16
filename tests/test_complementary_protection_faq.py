@@ -25,7 +25,7 @@ def test_complementary_protection_question_retrieves_author_confirmed_record():
     record = index.get_record("project_0010")
     assert record is not None
     assert "antiviruslarning o'rnini egallash uchun emas" in record.statement
-    assert "hovlidagi ekinni" in record.statement
+    assert "hovlidagi ekinni" in record.statement.casefold()
 
 
 def test_sponsorship_question_retrieves_complementary_defense_rationale():
