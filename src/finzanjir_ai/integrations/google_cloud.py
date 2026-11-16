@@ -59,6 +59,7 @@ def _config() -> dict[str, str]:
         "FINZANJIR_SESSION_SECRET",
         "FINZANJIR_TOKEN_ENCRYPTION_KEY",
         "FINZANJIR_GOOGLE_STATE_DB_PATH",
+        "FINZANJIR_PERSONAL_MEMORY_DB_PATH",
     )
     values = {key: os.getenv(key, "").strip() for key in keys}
     missing = [key for key, value in values.items() if not value]
