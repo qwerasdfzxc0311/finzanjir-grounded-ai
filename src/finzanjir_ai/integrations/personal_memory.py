@@ -174,8 +174,10 @@ class PersonalMemoryStore:
     def quarantine_media(
         self, *, owner_email: str, account_id: str, remote_media_id: str,
         file_name: str, mime_type: str, media_type: str, content: bytes,
-        metadata: dict[str, Any] | None = None,
+        metadata: dict[str, Any] | None = None, provider: str = "google_photos",
     ) -> dict[str, Any]:
+        if provider not in {"google_photos", "google_drive"}:
+            raise ValueError("unsupported personal media provider")
         if media_type not in {"photo", "video", "audio", "image", "document"}:
             raise ValueError("unsupported media type")
         if not content or len(content) > 100 * 1024 * 1024:
@@ -183,10 +185,10 @@ class PersonalMemoryStore:
         digest = hashlib.sha256(content).hexdigest()
         encrypted = self.cipher.encrypt(content)
         media_id = hashlib.sha256(
-            f"{owner_email.casefold()}|google_photos|{account_id}|{remote_media_id}".encode()
+            f"{owner_email.casefold()}|{provider}|{account_id}|{remote_media_id}".encode()
         ).hexdigest()
         safe_meta = {
-            "provider": "google_photos", "account_id": account_id,
+            "provider": provider, "account_id": account_id,
             "remote_media_id": remote_media_id, **(metadata or {}),
         }
         with self._db() as db:
@@ -195,7 +197,7 @@ class PersonalMemoryStore:
                     (media_id, owner_email, provider, account_id, remote_media_id,
                      file_name, mime_type, media_type, content_sha256,
                      media_ciphertext, metadata_json, status)
-                VALUES (?, ?, 'google_photos', ?, ?, ?, ?, ?, ?, ?, ?, 'quarantined')
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'quarantined')
                 ON CONFLICT(owner_email, provider, account_id, remote_media_id)
                 DO UPDATE SET file_name=excluded.file_name,
                     mime_type=excluded.mime_type, media_type=excluded.media_type,
@@ -204,7 +206,7 @@ class PersonalMemoryStore:
                     metadata_json=excluded.metadata_json, status='quarantined',
                     imported_at=CURRENT_TIMESTAMP
             """, (
-                media_id, owner_email.casefold(), account_id, remote_media_id,
+                media_id, owner_email.casefold(), provider, account_id, remote_media_id,
                 file_name[:255], mime_type[:200], media_type, digest, encrypted,
                 json.dumps(safe_meta, ensure_ascii=False, sort_keys=True),
             ))
