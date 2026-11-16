@@ -72,7 +72,7 @@
   }
 
   async function loadDrive(account, target, pageToken = null, append = false) {
-    message(target, "Drive fayllari olinmoqda...");
+    if (!append) message(target, "Drive fayllari olinmoqda...");
     try {
       const page = pageToken ? "?page_token=" + encodeURIComponent(pageToken) : "";
       const result = await request("/api/google/accounts/" + encodeURIComponent(account.account_id) + "/drive/files" + page);
@@ -110,6 +110,11 @@
       });
       if (!list.childElementCount) list.appendChild(element("p", "muted", "Drive fayllari topilmadi."));
       target.appendChild(list);
+      if (result.next_page_token) {
+        const next = button("Keyingi 100 ta fayl", () => loadDrive(account, target, result.next_page_token, true), true);
+        next.classList.add("cloud-next-page");
+        target.appendChild(next);
+      }
     } catch (error) {
       message(target, error.message, "status-error");
     }
