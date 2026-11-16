@@ -222,3 +222,19 @@ def test_xlsx_extraction_keeps_all_sheets(tmp_path):
     assert "[Sheet: First]" in result["text"]
     assert "[Sheet: Second]" in result["text"]
     assert "Beta\\t20" in result["text"]
+
+
+def test_office_archive_rejects_path_traversal_entries():
+    import io
+    import zipfile
+    from finzanjir_ai.integrations.drive_extract import extract_drive_text
+
+    archive = io.BytesIO()
+    with zipfile.ZipFile(archive, "w") as zipped:
+        zipped.writestr("../outside.xml", "<root/>")
+    with pytest.raises(ValueError, match="unsafe path"):
+        extract_drive_text(
+            "bad.xlsx",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            archive.getvalue(),
+        )
