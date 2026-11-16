@@ -19,6 +19,19 @@ def validate_media_content(mime_type: str, content: bytes) -> dict:
     if not content or len(content) > 100 * 1024 * 1024:
         raise ValueError("media must be between 1 byte and 100 MB")
     mime = mime_type.split(";", 1)[0].strip().lower()
+    if mime in {"image/heic", "image/heif", "image/avif"}:
+        if len(content) < 16 or content[4:8] != b"ftyp":
+            raise UnsupportedMedia("HEIC/HEIF/AVIF bytes failed ISO-BMFF validation")
+        brand = content[8:12]
+        accepted = {
+            "image/heic": {b"heic", b"heix", b"hevc", b"hevx", b"mif1"},
+            "image/heif": {b"heic", b"heix", b"mif1", b"msf1"},
+            "image/avif": {b"avif", b"avis", b"mif1"},
+        }
+        if brand not in accepted[mime]:
+            raise UnsupportedMedia("HEIC/HEIF/AVIF brand does not match MIME type")
+        return {"media_type": "photo", "container_checked": True}
+
     if mime.startswith("image/"):
         try:
             with warnings.catch_warnings():
@@ -34,19 +47,6 @@ def validate_media_content(mime_type: str, content: bytes) -> dict:
         if detected != mime and not (detected == "image/jpeg" and mime == "image/jpg"):
             raise UnsupportedMedia("image MIME type does not match its content")
         return {"media_type": "photo", "width_checked": True}
-
-    if mime in {"image/heic", "image/heif", "image/avif"}:
-        if len(content) < 16 or content[4:8] != b"ftyp":
-            raise UnsupportedMedia("HEIC/HEIF/AVIF bytes failed ISO-BMFF validation")
-        brand = content[8:12]
-        accepted = {
-            "image/heic": {b"heic", b"heix", b"hevc", b"hevx", b"mif1"},
-            "image/heif": {b"heic", b"heix", b"mif1", b"msf1"},
-            "image/avif": {b"avif", b"avis", b"mif1"},
-        }
-        if brand not in accepted[mime]:
-            raise UnsupportedMedia("HEIC/HEIF/AVIF brand does not match MIME type")
-        return {"media_type": "photo", "container_checked": True}
 
     if mime in {"audio/wav", "audio/x-wav"}:
         try:
