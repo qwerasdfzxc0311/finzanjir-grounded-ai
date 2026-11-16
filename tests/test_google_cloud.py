@@ -136,3 +136,11 @@ def test_google_routes_fail_closed_without_server_configuration(monkeypatch):
 def test_gmail_scope_is_explicit_read_only_only():
     assert SERVICE_SCOPES["gmail"] == ("https://www.googleapis.com/auth/gmail.readonly",)
     assert not any("send" in scope or "modify" in scope for scope in SERVICE_SCOPES["gmail"])
+
+
+
+def test_photos_picker_scope_is_explicit_and_not_legacy_library_scope():
+    assert SERVICE_SCOPES["photos"] == (
+        "https://www.googleapis.com/auth/photospicker.mediaitems.readonly",
+    )
+    assert not any("photoslibrary" in scope for scope in SERVICE_SCOPES["photos"])
