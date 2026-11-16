@@ -158,3 +158,26 @@ def test_media_store_rejects_empty_and_unsupported_kind(tmp_path):
         store.quarantine_media(**base, media_type="archive", content=b"data")
     with pytest.raises(ValueError):
         store.quarantine_media(**base, media_type="photo", content=b"")
+
+
+def test_owner_only_local_search_reads_encrypted_sources_without_external_search(tmp_path):
+    store = PersonalMemoryStore(str(tmp_path / "memory.sqlite"), Fernet.generate_key().decode())
+    store.quarantine(
+        owner_email="owner@example.com", account_id="drive-1",
+        remote_file_id="doc-1", file_name="research.txt",
+        mime_type="text/plain", modified_time=None,
+        extracted_text="FINZANJIR astronomy research includes Mars and the solar system.",
+    )
+    store.quarantine(
+        owner_email="other@example.com", account_id="drive-2",
+        remote_file_id="doc-2", file_name="private.txt",
+        mime_type="text/plain", modified_time=None,
+        extracted_text="FINZANJIR secret private material.",
+    )
+    results = store.search_sources("owner@example.com", "astronomy Mars")
+    assert len(results) == 1
+    assert results[0]["file_name"] == "research.txt"
+    assert "Mars" in results[0]["snippet"]
+    assert store.search_sources("other@example.com", "astronomy Mars") == []
+    with pytest.raises(ValueError):
+        store.search_sources("owner@example.com", " ")
