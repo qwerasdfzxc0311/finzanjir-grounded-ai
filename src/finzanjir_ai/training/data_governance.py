@@ -140,6 +140,11 @@ class TrainingDatasetBuilder:
         self._seen.add(fingerprint)
         return True
 
+    @property
+    def accepted_examples(self) -> tuple[AcceptedExample, ...]:
+        """Read-only snapshot for evaluation/splitting; callers cannot mutate the builder."""
+        return tuple(self._accepted)
+
     def _reject(self, reason: str) -> bool:
         self._rejected.append(reason)
         return False
