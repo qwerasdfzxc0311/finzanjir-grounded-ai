@@ -61,6 +61,33 @@
   <div id="runHistory" class="card" aria-live="polite"><p class="muted">Sinovlar tarixi yuklanmoqda...</p></div>
 </section>
 <section class="support-section"><div class="section-heading"><div><p class="eyebrow">NAZORAT ARXITEKTURASI</p><h2>16 qatlamli himoya modeli</h2></div></div><ol id="layers" class="layers"></ol></section>
+<section class="support-section cloud-memory-section" id="googleCloudPanel">
+  <div class="section-heading"><div><p class="eyebrow">SHAXSIY XOTIRA</p><h2>Google bulut hisoblari va xotira</h2>
+    <p class="muted">Faqat egasining tasdiqlangan Google sessiyasi orqali. Har bir fayl egasi tanlagandan keyin shifrlangan karantinga saqlanadi.</p></div></div>
+  <div id="googleCloudStatus" class="card" aria-live="polite"><p class="muted">Google ulanish holati tekshirilmoqda...</p></div>
+  <div id="googleCloudControls" class="card" hidden>
+    <div class="cloud-toolbar">
+      <button id="googleOwnerLogin" type="button">Google bilan kirish</button>
+      <button id="googleAddAccount" type="button">Yangi Google akkaunt ulash</button>
+      <button id="googleOwnerLogout" type="button" class="secondary-button">Chiqish</button>
+    </div>
+    <div class="cloud-service-options">
+      <label><input type="checkbox" id="googleServiceDrive" checked> Google Drive</label>
+      <label><input type="checkbox" id="googleServiceGmail"> Gmail (faqat o‘qish)</label>
+      <label><input type="checkbox" id="googleServicePhotos"> Google Photos Picker</label>
+    </div>
+    <div id="googleAccounts" class="cloud-account-list"></div>
+  </div>
+  <div id="googleMemoryWorkspace" class="card" hidden>
+    <h3>Yagona shaxsiy xotira</h3>
+    <div class="cloud-toolbar">
+      <input id="googleMemoryQuery" type="search" maxlength="256" placeholder="Saqlangan hujjatlardan qidirish">
+      <button id="googleMemorySearch" type="button">Qidirish</button>
+      <button id="googleMemoryRefresh" type="button" class="secondary-button">Xotirani yangilash</button>
+    </div>
+    <div id="googleMemoryResults" aria-live="polite"></div>
+  </div>
+</section>
 <noscript><p>Synthetic data mode</p><p>JavaScript yoqilgan bo‘lsa, oynalar va yagona tizim oqimi ko‘rsatiladi.</p></noscript>
 </main>
 <footer class="app-footer"><strong>FINZANJIR</strong><span>Sintetik prototip · Real bank yoki mijoz ma’lumotlari ishlatilmaydi</span></footer>
