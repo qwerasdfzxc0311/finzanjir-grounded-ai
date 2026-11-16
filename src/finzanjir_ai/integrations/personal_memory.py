@@ -252,7 +252,7 @@ class PersonalMemoryStore:
                 continue
             first = min((folded.find(term) for term in terms if folded.find(term) >= 0), default=0)
             start = max(0, first - 180)
-            snippet = text[start:start + 500].replace("\\n", " ")
+            snippet = text[start:start + 500].replace("\n", " ")
             matches.append({
                 "source_id": row["source_id"], "file_name": row["file_name"],
                 "mime_type": row["mime_type"], "content_sha256": row["content_sha256"],
