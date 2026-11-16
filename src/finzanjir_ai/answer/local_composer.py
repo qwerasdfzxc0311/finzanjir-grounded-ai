@@ -42,7 +42,6 @@ def compose_local_grounded_answer(
         return LocalComposition("", (), True, "local_composer_no_match")
 
     ranked: list[tuple[float, str, str]] = []
-    supporting: list[tuple[float, str, str]] = []
     seen: set[str] = set()
     for item in items:
         statement = str(getattr(item, "statement", "") or "").strip()
@@ -60,19 +59,12 @@ def compose_local_grounded_answer(
         if not query_tokens and len(items) == 1:
             direct_overlap = 1
         if direct_overlap == 0 and alias_overlap == 0:
-            # A high-confidence item already admitted to the grounded context
-            # may be a supporting fact expressed with different vocabulary.
-            # Keep it only when at least one directly matched fact anchors the answer.
-            if source_score >= 0.80:
-                supporting.append((0.20 * source_score, record_id, statement))
             continue
         score = direct_overlap / max(1, len(query_tokens))
         score += 0.20 * alias_overlap / max(1, len(query_tokens))
         ranked.append((score + 0.025 * source_score, record_id, statement))
         seen.add(normalized)
 
-    if ranked:
-        ranked.extend(entry for entry in supporting if entry[1] not in {value[1] for value in ranked})
     if not ranked:
         return LocalComposition("", (), True, "local_composer_no_match")
 
