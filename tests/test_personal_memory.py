@@ -196,3 +196,29 @@ def test_media_from_drive_and_photos_have_separate_source_ids(tmp_path):
     drive = store.quarantine_media(**common, provider="google_drive")
     assert photos["media_id"] != drive["media_id"]
     assert len(store.list_media("owner@example.com")) == 2
+
+
+def test_xlsx_extraction_keeps_all_sheets(tmp_path):
+    from openpyxl import Workbook
+    import io
+    from finzanjir_ai.integrations.drive_extract import extract_drive_text
+
+    workbook = Workbook()
+    first = workbook.active
+    first.title = "First"
+    first.append(["Name", "Value"])
+    first.append(["Alpha", 10])
+    second = workbook.create_sheet("Second")
+    second.append(["Item", "Count"])
+    second.append(["Beta", 20])
+    output = io.BytesIO()
+    workbook.save(output)
+    workbook.close()
+    result = extract_drive_text(
+        "takeout.xlsx",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        output.getvalue(),
+    )
+    assert "[Sheet: First]" in result["text"]
+    assert "[Sheet: Second]" in result["text"]
+    assert "Beta\\t20" in result["text"]
