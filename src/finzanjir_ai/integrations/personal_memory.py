@@ -189,7 +189,7 @@ class PersonalMemoryStore:
                 digest, json.dumps({"file_name": file_name[:255], "mime_type": mime_type[:200]}),
             ))
             db.execute("DELETE FROM personal_memory_terms WHERE source_id=?", (source_id,))
-            frequencies = Counter(re.findall(r"[\\w-]{2,}", extracted_text.casefold()))
+            frequencies = Counter(re.findall(r"[\w-]{2,}", extracted_text.casefold()))
             for term, frequency in frequencies.most_common(20000):
                 term_hash = hmac.new(self.index_key, term.encode("utf-8"), hashlib.sha256).hexdigest()
                 db.execute(
@@ -347,7 +347,7 @@ class PersonalMemoryStore:
             folded = text.casefold()
             first = min((folded.find(term) for term in terms if folded.find(term) >= 0), default=0)
             start_at = max(0, first - 180)
-            snippet = text[start_at:start_at + 500].replace("\\n", " ")
+            snippet = text[start_at:start_at + 500].replace("\n", " ")
             matches.append({
                 "source_id": row["source_id"], "file_name": row["file_name"],
                 "mime_type": row["mime_type"], "content_sha256": row["content_sha256"],
