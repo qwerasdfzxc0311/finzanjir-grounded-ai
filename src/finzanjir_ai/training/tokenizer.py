@@ -5,6 +5,18 @@ from dataclasses import dataclass
 import json
 from typing import Iterable, Sequence
 
+from finzanjir_ai.training.chat_format import (
+    ChatMessage,
+    IM_END,
+    IM_SEP,
+    IM_START,
+    parse_chat,
+    serialize_chat,
+)
+
+
+SPECIAL_TOKEN_TEXT = (IM_START, IM_SEP, IM_END)
+
 
 @dataclass(frozen=True)
 class ByteBPETokenizer:
@@ -14,7 +26,20 @@ class ByteBPETokenizer:
 
     @property
     def vocab_size(self) -> int:
+        """Base byte+BPE vocabulary size, excluding reserved chat tokens."""
         return 256 + len(self.merges)
+
+    @property
+    def special_token_ids(self) -> dict[str, int]:
+        """Stable reserved IDs immediately after this tokenizer's BPE vocabulary."""
+        return {
+            token: self.vocab_size + index
+            for index, token in enumerate(SPECIAL_TOKEN_TEXT)
+        }
+
+    @property
+    def total_vocab_size(self) -> int:
+        return self.vocab_size + len(SPECIAL_TOKEN_TEXT)
 
     @classmethod
     def train(cls, texts: Iterable[str], *, vocab_size: int = 16000) -> "ByteBPETokenizer":
@@ -75,13 +100,37 @@ class ByteBPETokenizer:
             tokens = output
         return tokens
 
-    def decode(self, token_ids: Sequence[int], *, errors: str = "strict") -> str:
+    def encode_chat(self, messages: Iterable[ChatMessage]) -> list[int]:
+        """Encode v1 chat structure with dedicated IDs; body text stays ordinary BPE."""
+        serialized = serialize_chat(messages)
+        markers = self.special_token_ids
+        token_ids: list[int] = []
+        cursor = 0
+        while cursor < len(serialized):
+            matches = [
+                (position, marker)
+                for marker in SPECIAL_TOKEN_TEXT
+                if (position := serialized.find(marker, cursor)) >= 0
+            ]
+            if not matches:
+                token_ids.extend(self.encode(serialized[cursor:]))
+                break
+            position, marker = min(matches, key=lambda item: item[0])
+            token_ids.extend(self.encode(serialized[cursor:position]))
+            token_ids.append(markers[marker])
+            cursor = position + len(marker)
+        return token_ids
+
+    def _byte_expansions(self) -> list[bytes]:
         expansions: list[bytes] = [bytes((value,)) for value in range(256)]
         for left, right in self.merges:
             if left >= len(expansions) or right >= len(expansions):
                 raise ValueError("invalid merge table")
             expansions.append(expansions[left] + expansions[right])
+        return expansions
 
+    def decode(self, token_ids: Sequence[int], *, errors: str = "strict") -> str:
+        expansions = self._byte_expansions()
         output = bytearray()
         for token_id in token_ids:
             if not isinstance(token_id, int) or isinstance(token_id, bool):
@@ -90,6 +139,31 @@ class ByteBPETokenizer:
                 raise ValueError(f"token ID out of range: {token_id}")
             output.extend(expansions[token_id])
         return bytes(output).decode("utf-8", errors=errors)
+
+    def decode_chat(self, token_ids: Sequence[int]) -> tuple[ChatMessage, ...]:
+        """Decode dedicated structural IDs and parse a complete v1 conversation."""
+        expansions = self._byte_expansions()
+        reverse_special = {value: key for key, value in self.special_token_ids.items()}
+        output: list[str] = []
+        byte_buffer = bytearray()
+
+        def flush_bytes() -> None:
+            if byte_buffer:
+                output.append(bytes(byte_buffer).decode("utf-8"))
+                byte_buffer.clear()
+
+        for token_id in token_ids:
+            if not isinstance(token_id, int) or isinstance(token_id, bool):
+                raise ValueError("token IDs must be integers")
+            if token_id in reverse_special:
+                flush_bytes()
+                output.append(reverse_special[token_id])
+            elif 0 <= token_id < len(expansions):
+                byte_buffer.extend(expansions[token_id])
+            else:
+                raise ValueError(f"token ID out of range: {token_id}")
+        flush_bytes()
+        return parse_chat("".join(output))
 
     def to_json(self) -> str:
         payload = {
