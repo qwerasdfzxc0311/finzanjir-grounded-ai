@@ -45,8 +45,16 @@ def _load_sources(raw: str) -> list[dict[str, Any]]:
             raise RuntimeError("Research source IDs must be unique and 1-80 characters")
         if not query or len(query) > 500:
             raise RuntimeError("Each research source requires a 1-500 character query")
-        if not isinstance(domains, list) or not domains:
-            raise RuntimeError("Each research source requires an explicit domain allowlist")
+        if not isinstance(domains, list) or not domains or not all(isinstance(domain, str) for domain in domains):
+            raise RuntimeError("Each research source requires an explicit string domain allowlist")
+        if not isinstance(item.get("enabled", False), bool):
+            raise RuntimeError("Research source enabled flag must be a boolean")
+        try:
+            interval = int(item.get("interval_minutes", 60))
+        except (TypeError, ValueError) as exc:
+            raise RuntimeError("Research source interval must be an integer") from exc
+        if interval < 60 or interval > 10080:
+            raise RuntimeError("Research source interval must be between 60 and 10080 minutes")
         seen.add(source_id)
     return sources
 
