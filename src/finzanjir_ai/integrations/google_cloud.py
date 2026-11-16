@@ -591,7 +591,7 @@ def _download_drive_file(access_token: str, file_id: str, mime_type: str, *, max
             response.raise_for_status()
             content_length = response.headers.get("content-length")
             if content_length and int(content_length) > max_bytes:
-                raise ValueError("Google Drive file exceeds the 10 MB import limit")
+                raise ValueError("Google Drive file exceeds the configured import size limit")
             for chunk in response.iter_bytes():
                 total += len(chunk)
                 if total > max_bytes:
