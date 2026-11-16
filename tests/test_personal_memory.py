@@ -242,3 +242,25 @@ def test_office_archive_rejects_path_traversal_entries():
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             archive.getvalue(),
         )
+
+
+def test_legacy_plaintext_picker_url_is_migrated_to_encrypted_column(tmp_path):
+    import sqlite3
+
+    path = tmp_path / "legacy.sqlite"
+    with sqlite3.connect(path) as db:
+        db.execute("""
+            CREATE TABLE google_photos_picker_sessions (
+                session_id TEXT PRIMARY KEY, owner_email TEXT NOT NULL,
+                account_id TEXT NOT NULL, picker_uri TEXT NOT NULL,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                status TEXT NOT NULL DEFAULT 'created'
+            )
+        """)
+        db.execute(
+            "INSERT INTO google_photos_picker_sessions(session_id, owner_email, account_id, picker_uri) VALUES(?,?,?,?)",
+            ("old-session", "owner@example.com", "account-1", "https://photos.google.com/picker/old"),
+        )
+    store = PersonalMemoryStore(str(path), Fernet.generate_key().decode())
+    assert store.get_picker_session("owner@example.com", "account-1", "old-session")["picker_uri"] == "https://photos.google.com/picker/old"
+    assert b"https://photos.google.com/picker/old" not in path.read_bytes()
