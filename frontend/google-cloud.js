@@ -189,6 +189,65 @@
     }
   }
 
+  async function loadPhotosItems(account, target, sessionId, pageToken = null, append = false) {
+    const page = pageToken ? "&page_token=" + encodeURIComponent(pageToken) : "";
+    const result = await request(
+      "/api/google/accounts/" + encodeURIComponent(account.account_id) +
+      "/photos/sessions/" + encodeURIComponent(sessionId) +
+      "/media-items?page_size=100" + page
+    );
+    if (!append) target.replaceChildren();
+    target.querySelector(".cloud-next-page")?.remove();
+    let list = target.querySelector(".cloud-memory-list");
+    if (!list) {
+      list = element("div", "cloud-memory-list");
+      target.appendChild(list);
+    }
+    result.media_items.forEach(item => {
+      const row = element("div", "cloud-memory-row");
+      const detail = element("span", "muted", item.type + " · " + item.mime_type);
+      const action = button("Shifrlab saqlash", async () => {
+        action.disabled = true;
+        action.textContent = "Saqlanmoqda...";
+        try {
+          await request(
+            "/api/google/accounts/" + encodeURIComponent(account.account_id) +
+            "/photos/sessions/" + encodeURIComponent(sessionId) +
+            "/media-items/" + encodeURIComponent(item.id) + "/import",
+            {method:"POST", body:"{}"}
+          );
+          action.textContent = "Saqlandi";
+        } catch (error) {
+          action.disabled = false;
+          action.textContent = "Qayta urinish";
+          detail.textContent = error.message;
+        }
+      }, true);
+      row.append(element("strong", "", item.filename || item.id), detail, action);
+      list.appendChild(row);
+    });
+    if (!list.childElementCount) list.appendChild(element("p", "muted", "Tanlangan media topilmadi."));
+    target.appendChild(list);
+    if (result.next_page_token) {
+      const next = button("Keyingi tanlangan media", () => loadPhotosItems(account, target, sessionId, result.next_page_token, true), true);
+      next.classList.add("cloud-next-page");
+      target.appendChild(next);
+    }
+    if (!target.querySelector(".cloud-close-photos")) {
+      const close = button("Photos sessiyasini yopish", async () => {
+        await request(
+          "/api/google/accounts/" + encodeURIComponent(account.account_id) +
+          "/photos/sessions/" + encodeURIComponent(sessionId),
+          {method:"DELETE"}
+        );
+        photoSessions.delete(account.account_id);
+        message(target, "Google Photos sessiyasi yopildi.");
+      }, true);
+      close.classList.add("cloud-close-photos");
+      target.appendChild(close);
+    }
+  }
+
   async function pollPhotos(account, target, sessionId) {
     message(target, "Google Photos tanlovi tekshirilmoqda...");
     try {
@@ -201,46 +260,7 @@
         target.appendChild(button("Yana tekshirish", () => pollPhotos(account, target, sessionId), true));
         return;
       }
-      const result = await request(
-        "/api/google/accounts/" + encodeURIComponent(account.account_id) +
-        "/photos/sessions/" + encodeURIComponent(sessionId) + "/media-items"
-      );
-      target.replaceChildren();
-      const list = element("div", "cloud-memory-list");
-      result.media_items.forEach(item => {
-        const row = element("div", "cloud-memory-row");
-        const detail = element("span", "muted", item.type + " · " + item.mime_type);
-        const action = button("Shifrlab saqlash", async () => {
-          action.disabled = true;
-          action.textContent = "Saqlanmoqda...";
-          try {
-            await request(
-              "/api/google/accounts/" + encodeURIComponent(account.account_id) +
-              "/photos/sessions/" + encodeURIComponent(sessionId) +
-              "/media-items/" + encodeURIComponent(item.id) + "/import",
-              {method:"POST", body:"{}"}
-            );
-            action.textContent = "Saqlandi";
-          } catch (error) {
-            action.disabled = false;
-            action.textContent = "Qayta urinish";
-            detail.textContent = error.message;
-          }
-        }, true);
-        row.append(element("strong", "", item.filename || item.id), detail, action);
-        list.appendChild(row);
-      });
-      if (!list.childElementCount) list.appendChild(element("p", "muted", "Tanlangan media topilmadi."));
-      target.appendChild(list);
-      target.appendChild(button("Photos sessiyasini yopish", async () => {
-        await request(
-          "/api/google/accounts/" + encodeURIComponent(account.account_id) +
-          "/photos/sessions/" + encodeURIComponent(sessionId),
-          {method:"DELETE"}
-        );
-        photoSessions.delete(account.account_id);
-        message(target, "Google Photos sessiyasi yopildi.");
-      }, true));
+      await loadPhotosItems(account, target, sessionId);
     } catch (error) {
       message(target, error.message, "status-error");
     }
