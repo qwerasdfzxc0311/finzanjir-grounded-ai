@@ -266,3 +266,42 @@ def test_followup_new_question_does_not_replay_previous_deterministic_answer(pri
         "signal_not_proof_localized",
         "bank_authority_localized",
     }
+
+
+def test_follow_up_uses_latest_topic_anchor_not_every_older_topic():
+    history = [
+        {"role": "user", "content": "Toshbaqa qancha yil umr ko'radi?"},
+        {"role": "assistant", "content": "Turiga qarab farq qiladi."},
+        {"role": "user", "content": "FINZANJIR muallifi kim?"},
+        {"role": "assistant", "content": "Muallif Salamat Smaylov."},
+        {"role": "user", "content": "U nima sababdan yaratgan?"},
+        {"role": "assistant", "content": "Loyiha motivatsiyasi haqida."},
+    ]
+    context = build_conversation_context("Onasi haqida nima yozilgan?", history)
+    assert context.is_follow_up is True
+    assert "FINZANJIR muallifi kim?" in context.contextual_query
+    assert "Toshbaqa qancha yil umr ko'radi?" not in context.contextual_query
+    assert "Onasi haqida nima yozilgan?" not in context.contextual_query
+
+
+def test_explicit_topic_switch_does_not_inherit_old_topic():
+    context = build_conversation_context(
+        "Boshqa mavzu: u qanday ishlaydi?",
+        [{"role": "user", "content": "FINZANJIR muallifi kim?"}],
+    )
+    assert context.is_follow_up is False
+    assert context.contextual_query == "Boshqa mavzu: u qanday ishlaydi?"
+    assert context.context_text == ""
+
+
+def test_short_correction_keeps_the_previous_topic_as_context():
+    context = build_conversation_context(
+        "Yo'q, men boshqa modulni nazarda tutdim.",
+        [
+            {"role": "user", "content": "FINZANJIR asosiy tizimmi?"},
+            {"role": "assistant", "content": "Ha, asosiy loyiha."},
+        ],
+    )
+    assert context.is_follow_up is True
+    assert "FINZANJIR asosiy tizimmi?" in context.contextual_query
+    assert "dalil emas" in context.contextual_query
