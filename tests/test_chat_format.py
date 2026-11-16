@@ -15,8 +15,8 @@ def test_chat_format_round_trips_multilingual_conversation():
     messages = (
         ChatMessage("system", "Answer from approved evidence."),
         ChatMessage("user", "Salom, FINZANJIR!"),
-        ChatMessage("assistant", "Сәлем! Qaraqalpaqsha: Сәлеметсиз бе?", end_of_turn=True),
         ChatMessage("tool", "source_id: doc-17"),
+        ChatMessage("assistant", "Сәлем! Qaraqalpaqsha: Сәлеметсиз бе?", end_of_turn=True),
     )
     assert parse_chat(serialize_chat(messages)) == messages
 
@@ -37,7 +37,7 @@ def test_only_assistant_can_end_a_turn():
     with pytest.raises(ValueError, match="only assistant"):
         serialize_chat([ChatMessage("user", "hello", end_of_turn=True)])
     with pytest.raises(ValueError, match="only assistant"):
-        parse_chat(f"{IM_START}tool{IM_SEP}\\nresult{IM_TURN_END}")
+        parse_chat(f"{IM_START}tool{IM_SEP}\nresult{IM_TURN_END}")
 
 
 def test_assistant_turn_end_round_trips_separately_from_message_end():
