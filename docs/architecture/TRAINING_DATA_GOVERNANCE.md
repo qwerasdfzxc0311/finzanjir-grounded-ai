@@ -43,3 +43,8 @@ The initial minimum-size threshold is supplied by the evaluator rather than hard
 ## Future model-training gate
 
 Only after the dataset is approved should the project select a tokenizer, architecture, training framework, compute budget and evaluation plan. A small from-scratch model is a research milestone; it is not equivalent to a frontier assistant. The non-neural offline core must remain useful if the model is absent.
+
+
+## Hosted-model output restriction
+
+Do not treat outputs, labels, rankings, corrections, preferences or synthetic examples from hosted model APIs as training targets for FINZANJIR's general-purpose model by default. Some major providers explicitly prohibit using their outputs to develop competing models. The intake builder therefore rejects `hosted_model_output` and unknown source types. A provider-specific written permission or clearly documented contractual exception would need a separate legal review before changing this gate.
