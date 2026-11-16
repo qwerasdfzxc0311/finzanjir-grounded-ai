@@ -75,7 +75,8 @@ def test_promotion_requires_license_source_sensitive_review_and_human_review():
     gate = KnowledgePromotionGate(required_reviewers=1, approved_license_ids={"CC-BY-4.0"})
     base = dict(reviewer_ids=["reviewer"], license_id="CC-BY-4.0", source_verified=True)
     assert not gate.approve(candidate, **base)
-    assert not gate.approve(candidate, **base, sensitive_data_reviewed=True, reviewer_ids=[])
+    assert not gate.approve(candidate, reviewer_ids=[], license_id="CC-BY-4.0",
+                            source_verified=True, sensitive_data_reviewed=True)
     assert gate.approve(candidate, **base, sensitive_data_reviewed=True)
 
 
