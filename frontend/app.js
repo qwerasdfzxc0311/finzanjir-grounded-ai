@@ -746,7 +746,25 @@ async function runShadowEvaluation() {
 document.querySelector("#runShadowEvaluation").addEventListener("click", runShadowEvaluation);
 
 
-const aiConversation = [];
+const AI_MEMORY_KEY = "finzanjir.ai.chat.v1";
+const aiConversation = (() => {
+  try {
+    const stored = JSON.parse(localStorage.getItem(AI_MEMORY_KEY) || "[]");
+    if (!Array.isArray(stored)) return [];
+    return stored.filter(item =>
+      item && ["user", "assistant"].includes(item.role) &&
+      typeof item.content === "string" && item.content.length <= 1200
+    ).slice(-12);
+  } catch (_) { return []; }
+})();
+function persistAIConversation() {
+  try {
+    // Device-local only. No chat transcript is uploaded to a cloud service.
+    localStorage.setItem(AI_MEMORY_KEY, JSON.stringify(aiConversation.slice(-12)));
+  } catch (_) {
+    // Storage denial/quota must never block the chat.
+  }
+}
 
 function generationModeLabel(mode) {
   const labels = {
@@ -823,6 +841,29 @@ function appendChatMessage(role, content, refs = [], mode = "", providerStatus =
   log.scrollTop = log.scrollHeight;
 }
 
+function appendExternalSources(sources) {
+  const log = document.querySelector("#aiChatLog");
+  if (!log) return;
+  const list = element("div", "chat-external-sources");
+  list.appendChild(element("strong", "", "Internet manbalari:"));
+  sources.slice(0, 8).forEach(source => {
+    try {
+      const url = new URL(source.url);
+      if (!["https:", "http:"].includes(url.protocol)) return;
+      const item = element("div", "chat-source-item");
+      const link = element("a", "chat-source-link", source.title || url.hostname);
+      link.href = url.href;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      item.appendChild(link);
+      if (source.snippet) item.appendChild(element("p", "chat-source-snippet", source.snippet));
+      list.appendChild(item);
+    } catch (_) { /* Ignore malformed source URLs. */ }
+  });
+  log.appendChild(list);
+  log.scrollTop = log.scrollHeight;
+}
+
 function renderWindowInteractive(windowId) {
   const target = document.querySelector("#windowInteractive");
   if (!target || !currentManifest) return;
@@ -835,7 +876,7 @@ function renderWindowInteractive(windowId) {
   target.appendChild(heading);
 
   if (windowId === "finzanjir_ai") {
-    const notice = element("p", "module-warning", "MUHIM: AI javobi xato, eskirgan yoki to‘liq bo‘lmasligi mumkin — uni 100% to‘g‘ri deb qabul qilmang. Muhim ma’lumot va qarorlarni asl hujjatlar hamda ishonchli manbalar bilan tekshiring. FINZANJIR konsepsiyasi, muallifning niyati yoki noaniq masalalar bo‘yicha zarur bo‘lsa muallif bilan aniqlashtiring. AI javoblari loyiha bilimlar bazasidagi dalillarga tayanadi; dalil yetarli bo‘lmasa, tizim buni ochiq aytishi kerak. Hozircha suhbat xotirasi ushbu sahifada oxirgi 12 ta xabar bilan cheklangan; serverda alohida doimiy chat tarixi bazasi yaratilmaydi.");
+    const notice = element("p", "module-warning", "MUHIM: AI javobi xato, eskirgan yoki to‘liq bo‘lmasligi mumkin — uni 100% to‘g‘ri deb qabul qilmang. Muhim ma’lumot va qarorlarni asl hujjatlar hamda ishonchli manbalar bilan tekshiring. FINZANJIR konsepsiyasi, muallifning niyati yoki noaniq masalalar bo‘yicha zarur bo‘lsa muallif bilan aniqlashtiring. AI javoblari loyiha bilimlar bazasidagi dalillarga tayanadi; dalil yetarli bo‘lmasa, tizim buni ochiq aytishi kerak. Suhbat xotirasi shu brauzer qurilmasida oxirgi 12 ta xabarni saqlaydi. Bu hozircha bulut xotirasi emas va boshqa qurilmaga avtomatik ko‘chmaydi.");
     const chat = element("div", "ai-chat-panel");
     const log = element("div", "ai-chat-log");
     log.id = "aiChatLog";
@@ -846,6 +887,7 @@ function renderWindowInteractive(windowId) {
         const item = element("article", "chat-message " + (message.role === "user" ? "chat-user" : "chat-assistant"));
         item.append(element("span", "chat-role", message.role === "user" ? "Siz" : "FINZANJIR AI"), element("p", "", message.content));
         if (message.refs?.length) item.appendChild(element("small", "chat-refs", "Bilim manbalari: " + message.refs.join(", ")));
+        if (message.externalSources?.length) appendExternalSources(message.externalSources);
         const modeLabel = generationModeLabel(message.mode);
         if (modeLabel) item.appendChild(element("small", "chat-refs", "Javob rejimi: " + modeLabel));
         const providerLabel = providerStatusLabel(message.providerStatus);
@@ -867,6 +909,7 @@ function renderWindowInteractive(windowId) {
     clearChat.type = "button";
     clearChat.addEventListener("click", () => {
       aiConversation.length = 0;
+      persistAIConversation();
       renderWindowInteractive("finzanjir_ai");
     });
     const form = element("form", "ai-chat-form");
@@ -887,6 +930,7 @@ function renderWindowInteractive(windowId) {
       const question = input.value.trim();
       if (!question || submit.disabled) return;
       aiConversation.push({role:"user", content:question});
+      persistAIConversation();
       appendChatMessage("user", question);
       input.value = "";
       submit.disabled = true;
@@ -913,15 +957,19 @@ function renderWindowInteractive(windowId) {
         if (!response.ok) throw new Error(body.detail || "AI javobini olish imkoni bo‘lmadi");
         const answer = body.answer || "Dalilga tayangan javob qaytmadi.";
         const refs = Array.isArray(body.knowledge_refs) ? body.knowledge_refs : [];
+        const externalSources = Array.isArray(body.external_sources) ? body.external_sources : [];
         const mode = body.generation_mode || "";
         const providerStatus = body.provider_status || "not_attempted";
         const providerDiagnostics = Array.isArray(body.provider_diagnostics) ? body.provider_diagnostics : [];
-        aiConversation.push({role:"assistant", content:answer, refs, mode, providerStatus, providerDiagnostics, confidence:body.confidence, abstained:body.abstained});
+        aiConversation.push({role:"assistant", content:answer, refs, mode, providerStatus, providerDiagnostics, confidence:body.confidence, abstained:body.abstained, externalSources});
         if (aiConversation.length > 12) aiConversation.splice(0, aiConversation.length - 12);
         appendChatMessage("assistant", answer, refs, mode, providerStatus, providerDiagnostics, body.confidence, body.abstained);
+        if (externalSources.length) appendExternalSources(externalSources);
+        persistAIConversation();
         if (body.abstained) appendChatMessage("assistant", "Eslatma: mavjud dalillar yetarli bo‘lmagani uchun javob cheklangan.");
       } catch (error) {
         aiConversation.push({role:"assistant", content:"Xatolik: " + error.message});
+        persistAIConversation();
         if (aiConversation.length > 12) aiConversation.splice(0, aiConversation.length - 12);
         appendChatMessage("assistant", "Xatolik: " + error.message);
       } finally {
