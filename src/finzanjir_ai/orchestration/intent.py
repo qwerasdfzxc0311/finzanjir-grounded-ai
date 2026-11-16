@@ -88,6 +88,11 @@ def is_project_overview_query(query: str) -> bool:
         "сигнал", "risk", "риск", "case", "fuqaro", "граждан", "murojaat",
         "ma'lumot", "malumot", "данные", "data", "law", "qonun", "закон",
         "detect", "aniqlash", "aniqlaydi", "qanday ishlaydi", "how",
+        # Purpose, sponsorship, foreign-copy and legality questions are specific
+        # project questions, not the one-sentence general project overview.
+        "kerak", "homiy", "homiylik", "sponsor", "sponsorship",
+        "nusxa", "nusxami", "davlat", "xorij", "qonuniy", "qonuniymi",
+        "legal", "законен", "копия", "страна",
     }
     if tokens & detail_markers:
         return False

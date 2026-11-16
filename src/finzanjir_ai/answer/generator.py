@@ -242,6 +242,49 @@ class GroundedAnswerGenerator:
         "kaa": "FINZANJIR — finanslıq alayaqlıqlar qáwipin hám gúmanlı pul aǵımların anıqlaw hám tallawǵa baǵdarlanǵan joybar. Onıń tiykarǵı maqseti — usı processte puqaralardıń nızamlı operaciyaları hám qarjılarına tiykarсыз zıyan jetpewine járdemlesiw. Bul joybardıń maqseti; barlıq rejelestirilgen múmkinshilikler házirgi prototipte tolıq iske asırılǵan degeni emes.",
     }
 
+    COMPLEMENTARY_PROTECTION_FAQ_ANSWERS = {
+        "project_0010": (
+            "FINZANJIR mavjud banklar, qo'riqlash va xavfsizlik vositalari, tahlil tizimlari yoki antiviruslarning o'rnini egallash uchun emas. "
+            "Ularning imkoniyatlarini to'ldirish, kuchaytirish va qonuniy hamkorlik doirasida turli xavf belgilarini o'zaro bog'lab, "
+            "vaziyatni kengroq tahlil qilishga yordam berish uchun mo'ljallangan.\n\n"
+            "Buni hovlidagi ekin misolida tushuntirish mumkin: sim tortilsa, mollar kirishi qiyinlashadi, ammo tovuq yoki boshqa mayda jonivorlar "
+            "kirishi mumkin. Devor qurilsa, himoya kuchayadi, lekin hasharotlar, kasalliklar va boshqa zararlar qolishi mumkin. "
+            "Har bir himoya vositasining o'z vazifasi va chegarasi bor. Ularni birgalikda qo'llash ekinning katta qismini saqlab qolish "
+            "imkoniyatini oshiradi. Moliyaviy xavfsizlikda ham bitta himoya qatlami barcha tahdidlarni to'xtata olmaydi. "
+            "FINZANJIR mavjud tizimlarni almashtirmasdan, ularni to'ldiruvchi qo'shimcha tahlil va himoya qatlami bo'lishi ko'zda tutilgan.\n\n"
+            "Bu loyiha maqsadi: barcha integratsiyalar hozir ishlayapti yoki huquqiy ruxsat olingan degani emas. FINZANJIR bank kartasini "
+            "o'zi bloklamaydi va bank qarorini almashtirmaydi."
+        ),
+        "project_0011": (
+            "FINZANJIRga homiylik qilish sababi — bitta himoya qatlamining mavjudligi boshqa himoya imkoniyatlarini rivojlantirishga ehtiyoj "
+            "yo'q degani emas. Faqat bitta vositaga ishonib qolib, qolgan himoya qatlamlarini kuchaytirmaslik to'g'ri yondashuv emas. "
+            "Hovlidagi ekin misolida sim, devor va boshqa choralar turli xavflarni kamaytiradi; ularni birgalikda qo'llash hosilning katta "
+            "qismini saqlash imkoniyatini oshiradi.\n\n"
+            "FINZANJIRni qo'llab-quvvatlash mavjud banklar yoki xavfsizlik tizimlariga qarshi chiqish emas. Bu umumiy xavfsizlik uchun "
+            "qo'shimcha himoya va tahlil qatlamini bosqichma-bosqich ishlab chiqish, sinash va takomillashtirishga ko'maklashishdir. "
+            "Homiylik shaffof maqsad, xarajatlar, xavfsizlik, qonuniylik tekshiruvi va natijalarni mustaqil baholash bilan bog'lanishi kerak. "
+            "Homiylik bank ma'lumotlariga avtomatik kirish yoki bank qarorlariga ta'sir qilish huquqini bermaydi."
+        ),
+        "project_0012": (
+            "Boshqa mamlakatlarda ham moliyaviy firibgarlikka qarshi kurash, bank xavfsizligi va tranzaksiyalarni tahlil qilish tizimlari mavjud. "
+            "Ammo bu FINZANJIR aynan ulardan nusxa olingan degani emas. FINZANJIRning maqsadi — mavjud tajribalarni o'rganish, ularning "
+            "imkoniyatlari va cheklovlarini tushunish hamda O'zbekiston sharoitiga mos, qonuniy va bir-birini to'ldiruvchi yechim yaratish. "
+            "Turli himoya vositalarining foydali tomonlarini birlashtirish ko'r-ko'rona nusxa ko'chirish emas.\n\n"
+            "Aniq xorijiy tizim bilan o'xshashlik haqida xulosa qilish uchun ishonchli manbalar asosida alohida taqqoslash kerak. "
+            "Dalilsiz FINZANJIRni birinchi, yagona, eng kuchli yoki boshqa tizimning nusxasi deb aytish to'g'ri emas."
+        ),
+        "project_0013": (
+            "FINZANJIRning maqsadi foydali bo'lishi mumkinligi uning barcha faoliyati avtomatik ravishda qonuniy degani emas. "
+            "Qonuniy ishlash qanday ma'lumot olinishi, kim qayta ishlashi, nima maqsadda ishlatilishi, qancha saqlanishi, kimga uzatilishi, "
+            "bank siri va shaxsiy ma'lumotlar qanday himoyalanishi hamda banklar bilan qanday huquqiy asosda hamkorlik qilinishiga bog'liq.\n\n"
+            "Amaliyotga joriy etishdan oldin O'zbekiston qonunchiligi, Markaziy bank talablari, to'lov tizimlari qoidalari, banklarning ichki "
+            "siyosati va zarur shartnomalar bo'yicha huquqiy tekshiruv o'tkazilishi kerak. Loyiha qonuniy, zarur va minimal ma'lumot bilan "
+            "ishlashni, bank qarorlarini bank vakolatida qoldirishni hamda shubhali signalni aybdorlik isboti yoki avtomatik bloklash buyrug'i "
+            "sifatida ishlatmaslikni ko'zlaydi. Tegishli huquqiy xulosa va kelishuvlar olinmaguncha, to'liq banklararo ishlash qonuniy deb "
+            "tasdiqlangan deb aytilmasligi kerak."
+        ),
+    }
+
     BANK_AUTHORITY_ANSWERS = {
         "uz": "Yo'q. FINZANJIR bank kartasini o'zi bloklamaydi va bank qarorini o'zgartirmaydi. Zarur bo'lsa, shubhali holat bo'yicha signal yoki tahlil natijasini bankning vakolatli ko'rib chiqishiga yetkazishi mumkin. Har qanday cheklov yoki qaror tegishli qonuniy asos va bankning vakolatli tartibida qabul qilinadi.",
         "ru": "Нет. FINZANJIR не блокирует банковские карты самостоятельно и не изменяет решения банка. При необходимости он может передать сигнал или результат анализа для рассмотрения уполномоченными сотрудниками банка. Любое ограничение или решение принимается банком в рамках соответствующих полномочий и законных оснований.",
@@ -519,6 +562,30 @@ class GroundedAnswerGenerator:
                 generation_mode="insufficient_evidence",
                 provider_status="not_attempted",
             )
+
+        # Author-approved FAQ answers are deterministic for Uzbek, but only
+        # when the current question and its matching grounded source record agree.
+        # Other supported languages continue through the grounded model path.
+        if language == "uz":
+            current_question = query.casefold().replace("’", "'").replace("ʻ", "'")
+            faq_record_id = None
+            if any(term in current_question for term in ("homiy", "sponsor", "moliyalashtir")):
+                faq_record_id = "project_0011"
+            elif any(term in current_question for term in ("qonuniy", "qonuni", "legal", "qonun")):
+                faq_record_id = "project_0013"
+            elif any(term in current_question for term in ("nusxa", "xorij", "boshqa davlat", "foreign", "copy")):
+                faq_record_id = "project_0012"
+            elif any(term in current_question for term in ("nima uchun kerak", "nimaga kerak", "kerak o'zi")):
+                faq_record_id = "project_0010"
+            if faq_record_id and any(item.record_id == faq_record_id for item in grounded_items):
+                return AnswerResult(
+                    answer=self.COMPLEMENTARY_PROTECTION_FAQ_ANSWERS[faq_record_id],
+                    confidence=confidence,
+                    abstained=False,
+                    citations=(faq_record_id,),
+                    generation_mode="complementary_protection_faq_localized",
+                    provider_status="not_attempted",
+                )
 
         if classify_query_intent(intent_query) == "project_overview" and any(item.record_id == "project_0001" for item in grounded_items):
             return AnswerResult(
