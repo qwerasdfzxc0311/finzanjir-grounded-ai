@@ -305,3 +305,25 @@ def test_short_correction_keeps_the_previous_topic_as_context():
     assert context.is_follow_up is True
     assert "FINZANJIR asosiy tizimmi?" in context.contextual_query
     assert "dalil emas" in context.contextual_query
+
+
+def test_latest_topic_anchor_survives_long_but_bounded_conversation():
+    history = [
+        {"role": "user", "content": "FINZANJIR muallifi kim?"},
+        {"role": "assistant", "content": "Muallif haqida tasdiqlangan javob."},
+        {"role": "user", "content": "U nima sababdan yaratgan?"},
+        {"role": "assistant", "content": "Motivatsiya haqidagi javob."},
+        {"role": "user", "content": "Yana boshqa savol: C modeli nima?"},
+        {"role": "assistant", "content": "C modeli haqida javob."},
+        {"role": "user", "content": "U qaysi ma'lumotlarni almashadi?"},
+        {"role": "assistant", "content": "Ma'lumot almashuvi haqidagi javob."},
+        {"role": "user", "content": "Uning xavfsizlik cheklovi nima?"},
+        {"role": "assistant", "content": "Cheklovlar haqidagi javob."},
+        {"role": "user", "content": "Unda ma'lumotlar qayerda saqlanadi?"},
+    ]
+    context = build_conversation_context("Ular qancha muddat saqlanadi?", history)
+    assert context.is_follow_up is True
+    assert "C modeli nima?" in context.contextual_query
+    assert "FINZANJIR muallifi kim?" not in context.contextual_query
+    assert "Muallif haqida tasdiqlangan javob." not in context.contextual_query
+    assert len(context.turns) <= 12
