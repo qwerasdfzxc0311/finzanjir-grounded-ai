@@ -18,6 +18,7 @@ def _example(**overrides):
         "verified": True,
         "permission_ref": "written-permission-001",
         "data_class": "licensed_nonpersonal",
+        "source_type": "author_provided",
     }
     values.update(overrides)
     return TrainingExample(**values)
@@ -106,3 +107,10 @@ def test_manifest_never_claims_training_has_started():
     manifest = TrainingDatasetBuilder(dataset_version="0.1.0").manifest()
     assert manifest["training_started"] is False
     assert manifest["model_training_enabled"] is False
+
+
+def test_builder_rejects_hosted_model_outputs_as_training_sources():
+    builder = TrainingDatasetBuilder(dataset_version="0.1.0")
+    assert builder.add(_example(source_type="hosted_model_output")) is False
+    assert builder.add(_example(source_type="unknown")) is False
+    assert builder.manifest()["total_examples"] == 0
