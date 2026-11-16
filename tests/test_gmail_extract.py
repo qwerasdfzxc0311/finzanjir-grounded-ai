@@ -1,6 +1,8 @@
 import base64
 
-from finzanjir_ai.integrations.gmail_extract import extract_gmail_message
+from finzanjir_ai.integrations.gmail_extract import (
+    collect_gmail_attachments, decode_gmail_attachment_data, extract_gmail_message,
+)
 
 
 def b64(text):
@@ -55,3 +57,36 @@ def test_gmail_snippet_fallback_and_empty_rejection():
         pass
     else:
         raise AssertionError("empty message was accepted")
+
+
+def test_collect_named_gmail_attachments_and_decode_inline_content():
+    message = {
+        "payload": {
+            "mimeType": "multipart/mixed",
+            "parts": [
+                {
+                    "filename": "notes.txt", "mimeType": "text/plain",
+                    "body": {"attachmentId": "attachment-1", "size": 5},
+                },
+                {
+                    "filename": "photo.jpg", "mimeType": "image/jpeg",
+                    "body": {"data": b64("image-bytes"), "size": 10},
+                },
+                {"mimeType": "text/plain", "body": {"data": b64("email body")}},
+            ],
+        }
+    }
+    attachments = collect_gmail_attachments(message)
+    assert [item["filename"] for item in attachments] == ["notes.txt", "photo.jpg"]
+    assert attachments[0]["attachment_id"] == "attachment-1"
+    assert decode_gmail_attachment_data(attachments[1]["inline_data"]) == b"image-bytes"
+    body = extract_gmail_message(message)
+    assert "email body" in body["text"]
+    assert "image-bytes" not in body["text"]
+
+
+def test_gmail_attachment_decode_has_separate_ten_megabyte_limit():
+    import pytest
+    huge = b64("x" * (10 * 1024 * 1024 + 1))
+    with pytest.raises(ValueError, match="10 MB"):
+        decode_gmail_attachment_data(huge)
