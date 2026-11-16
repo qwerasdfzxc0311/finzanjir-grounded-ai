@@ -459,9 +459,11 @@ def google_accounts(request: Request):
 
 
 def _require_same_origin(request: Request) -> None:
-    origin = request.headers.get("origin")
-    expected = f"{request.url.scheme}://{request.url.netloc}"
-    if not origin or origin.rstrip("/") != expected.rstrip("/"):
+    origin = request.headers.get("origin", "").rstrip("/")
+    allowed = {f"{request.url.scheme}://{request.url.netloc}".rstrip("/")}
+    configured = os.getenv("FINZANJIR_ALLOWED_ORIGINS", "")
+    allowed.update(item.strip().rstrip("/") for item in configured.split(",") if item.strip())
+    if not origin or origin not in allowed:
         raise HTTPException(status_code=403, detail="So‘rov manbasi tasdiqlanmadi.")
 
 
