@@ -38,7 +38,7 @@ def validate_media_content(mime_type: str, content: bytes) -> dict:
                 warnings.simplefilter("error", Image.DecompressionBombWarning)
                 with Image.open(io.BytesIO(content)) as image:
                     if image.width * image.height > MAX_IMAGE_PIXELS:
-                        raise ValueError("image exceeds the 40 megapixel safety limit")
+                        raise UnsupportedMedia("image exceeds the 40 megapixel safety limit")
                     detected = Image.MIME.get(image.format)
                     image.verify()
         except (UnidentifiedImageError, OSError, Image.DecompressionBombError,
