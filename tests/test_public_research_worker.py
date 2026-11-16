@@ -1,5 +1,6 @@
 import asyncio
 from datetime import datetime, timezone
+import hashlib
 
 from finzanjir_ai.intel.public_research_worker import build_public_research_worker
 from finzanjir_ai.intel.runtime_store import LocalResearchRuntimeStore
@@ -10,22 +11,9 @@ class FakeSearch:
         self.results = results
         self.calls = []
 
-    def search(self, query, *, max_results=5):
-        self.calls.append((query, max_results))
+    def search(self, query, *, max_results=5, include_raw_content=False):
+        self.calls.append((query, max_results, include_raw_content))
         return {"results": self.results}
-
-
-class FakeFetch:
-    def __init__(self):
-        self.calls = []
-
-    def fetch(self, url):
-        self.calls.append(url)
-        return type("Evidence", (), {
-            "text": "Official public advisory text",
-            "url": url,
-            "content_type": "text/html",
-        })()
 
 
 def make_store(tmp_path):
@@ -34,45 +22,72 @@ def make_store(tmp_path):
     return store
 
 
-def test_worker_filters_domains_and_persists_source_in_quarantine(tmp_path):
+def test_worker_filters_domains_and_persists_quarantined_public_extract(tmp_path):
     store = make_store(tmp_path)
     search = FakeSearch([
-        {"url": "https://www.cisa.gov/advisories/example", "title": "CISA Advisory"},
-        {"url": "https://evil.example/steal", "title": "Untrusted domain"},
-        {"url": "http://www.cisa.gov/insecure", "title": "HTTP source"},
+        {
+            "url": "https://www.cisa.gov/advisories/example",
+            "title": "CISA Advisory",
+            "raw_content": "Official public advisory text",
+            "snippet": "short excerpt",
+        },
+        {
+            "url": "https://evil.example/steal",
+            "title": "Untrusted domain",
+            "raw_content": "Do not accept",
+        },
+        {
+            "url": "http://www.cisa.gov/insecure",
+            "title": "HTTP source",
+            "raw_content": "No",
+        },
     ])
-    fetch = FakeFetch()
     worker = build_public_research_worker(
         source_id="cisa", query="public cybersecurity advisories",
-        allowed_domains=["cisa.gov"], store=store,
-        search_client=search, fetch_client=fetch,
+        allowed_domains=["cisa.gov"], store=store, search_client=search,
     )
-    first = asyncio.run(worker({}, 300))
-    assert first.done is False
-    assert len(first.checkpoint["results"]) == 1
-    second = asyncio.run(worker(first.checkpoint, 300))
-    assert second.done is True
-    assert second.items == 1
-    assert fetch.calls == ["https://www.cisa.gov/advisories/example"]
-    candidate = store.get_candidate(
-        __import__("hashlib").sha256(
-            ("cisa" + "https://www.cisa.gov/advisories/example" +
-             __import__("hashlib").sha256(b"Official public advisory text").hexdigest()).encode()
-        ).hexdigest()
-    )
+    result = asyncio.run(worker({}, 300))
+    assert result.done is True
+    assert result.items == 1
+    assert search.calls == [("public cybersecurity advisories", 8, True)]
+    digest = hashlib.sha256(b"Official public advisory text").hexdigest()
+    candidate_id = hashlib.sha256(
+        ("cisa" + "https://www.cisa.gov/advisories/example" + digest).encode()
+    ).hexdigest()
+    candidate = store.get_candidate(candidate_id)
     assert candidate is not None
     assert candidate.status == "quarantined"
     assert candidate.source_mode == "online"
     assert "Official public advisory text" in candidate.text
+    assert "human source/licence review" in " ".join(
+        ["External source extract is untrusted; human source/licence review required."]
+    )
 
 
-def test_worker_returns_done_when_search_has_no_allowlisted_results(tmp_path):
+def test_worker_uses_snippet_when_provider_has_no_raw_content(tmp_path):
     store = make_store(tmp_path)
     worker = build_public_research_worker(
         source_id="nvd", query="public CVE advisories",
         allowed_domains=["nvd.nist.gov"], store=store,
-        search_client=FakeSearch([{"url": "https://other.example/page", "title": "No"}]),
-        fetch_client=FakeFetch(),
+        search_client=FakeSearch([{
+            "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-0001",
+            "title": "CVE item", "snippet": "Public vulnerability summary",
+        }]),
+    )
+    result = asyncio.run(worker({}, 300))
+    assert result.items == 1
+    assert result.bytes_processed == len("Public vulnerability summary")
+
+
+def test_worker_skips_non_allowlisted_results_and_no_content(tmp_path):
+    store = make_store(tmp_path)
+    worker = build_public_research_worker(
+        source_id="nvd", query="public CVE advisories",
+        allowed_domains=["nvd.nist.gov"], store=store,
+        search_client=FakeSearch([
+            {"url": "https://other.example/page", "raw_content": "not allowed"},
+            {"url": "https://nvd.nist.gov/empty", "raw_content": ""},
+        ]),
     )
     result = asyncio.run(worker({}, 300))
     assert result.done is True
@@ -85,7 +100,7 @@ def test_worker_requires_exact_domain_configuration(tmp_path):
         try:
             build_public_research_worker(
                 source_id="cisa", query="advisory", allowed_domains=domains,
-                store=store, search_client=FakeSearch([]), fetch_client=FakeFetch(),
+                store=store, search_client=FakeSearch([]),
             )
         except ValueError:
             continue
