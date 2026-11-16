@@ -20,6 +20,7 @@ from finzanjir_ai.prototype.flow import build_system_flow
 from finzanjir_ai.orchestration.engine import FINZANJIRAI, get_finzanjir_ai
 from finzanjir_ai.orchestration.intent import classify_query_intent
 from finzanjir_ai.research.tavily import TavilySearchClient
+from finzanjir_ai.integrations.cloud_sources import cloud_connector_status
 from finzanjir_ai.risk.shadow import evaluate_shadow_batch, evaluate_detector_shadow_batch
 from finzanjir_ai.risk.scenarios import build_synthetic_case_signal_events
 from finzanjir_ai.risk.detectors import synthetic_signal_detector
@@ -157,6 +158,19 @@ def knowledge_index() -> KnowledgeIndex:
 def ai_engine() -> FINZANJIRAI:
     # Retrieval statistics are precomputed once for the canonical corpus.
     return FINZANJIRAI(knowledge_index())
+
+
+@app.get("/api/cloud/connectors")
+def cloud_connectors() -> dict[str, Any]:
+    """Expose safe connector readiness only; never expose credentials or files."""
+    configured = {
+        name for name in (
+            "FINZANJIR_DROPBOX_CLIENT_ID",
+            "FINZANJIR_MICROSOFT_CLIENT_ID",
+            "FINZANJIR_GOOGLE_CLIENT_ID",
+        ) if os.getenv(name)
+    }
+    return cloud_connector_status(configured)
 
 
 @app.get("/api/health")
