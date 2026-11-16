@@ -71,3 +71,8 @@ In addition to document extraction, an owner-selected Drive file can be imported
 ## Browser session and CORS requirements
 
 Owner sessions use HttpOnly/Secure cookies. Browser calls from the static frontend must use `credentials: "include"`; the API permits credentialed CORS only for the exact origins listed in `FINZANJIR_ALLOWED_ORIGINS` (comma-separated, no wildcard). The same allowlist is also checked by the server-side Origin/CSRF guard on state-changing actions. Add the exact deployed frontend origin(s) to that setting before enabling Google login. No wildcard credentialed CORS is permitted.
+
+Additional browser OAuth settings:
+- `FINZANJIR_FRONTEND_URL`: exact HTTPS frontend origin (no path/query).
+- `FINZANJIR_ALLOWED_ORIGINS`: comma-separated exact origin allowlist containing `FINZANJIR_FRONTEND_URL`.
+The OAuth callback redirects to this configured frontend. Without both values, Google OAuth fails closed. Credentialed CORS and the CSRF Origin check use this allowlist.
