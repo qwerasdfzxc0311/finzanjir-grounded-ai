@@ -10,12 +10,13 @@ from finzanjir_ai.training.chat_format import (
     IM_END,
     IM_SEP,
     IM_START,
+    IM_TURN_END,
     parse_chat,
     serialize_chat,
 )
 
 
-SPECIAL_TOKEN_TEXT = (IM_START, IM_SEP, IM_END)
+SPECIAL_TOKEN_TEXT = (IM_START, IM_SEP, IM_END, IM_TURN_END)
 
 
 @dataclass(frozen=True)
