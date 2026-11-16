@@ -31,7 +31,7 @@ def test_oauth_state_is_one_time_and_expires(tmp_path):
 
 def test_oauth_state_expired_or_unknown_is_rejected(tmp_path):
     store = make_store(tmp_path)
-    store.create_flow("random-state-value-123456", "verifier", "owner_login", None, now=100)
+    store.create_flow("random-state-value-123456", "verifier", "nonce-value", "owner_login", None, now=100)
     assert store.consume_flow("random-state-value-123456", now=701) is None
 
 
