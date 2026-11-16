@@ -49,7 +49,7 @@ class PersonalMemoryStore:
                     session_id TEXT PRIMARY KEY,
                     owner_email TEXT NOT NULL,
                     account_id TEXT NOT NULL,
-                    picker_uri TEXT NOT NULL,
+                    picker_uri_ciphertext BLOB NOT NULL,
                     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     status TEXT NOT NULL DEFAULT 'created',
                     UNIQUE(owner_email, account_id, session_id)
@@ -146,19 +146,27 @@ class PersonalMemoryStore:
         with self._db() as db:
             db.execute("""
                 INSERT INTO google_photos_picker_sessions
-                    (session_id, owner_email, account_id, picker_uri, status)
+                    (session_id, owner_email, account_id, picker_uri_ciphertext, status)
                 VALUES (?, ?, ?, ?, 'created')
-            """, (session_id, owner_email.casefold(), account_id, picker_uri))
+            """, (session_id, owner_email.casefold(), account_id,
+                  self.cipher.encrypt(picker_uri.encode("utf-8"))))
 
     def get_picker_session(self, owner_email: str, account_id: str,
                            session_id: str) -> dict[str, Any] | None:
         with self._db() as db:
             row = db.execute("""
-                SELECT session_id, picker_uri, status, created_at
+                SELECT session_id, picker_uri_ciphertext, status, created_at
                 FROM google_photos_picker_sessions
                 WHERE owner_email=? AND account_id=? AND session_id=?
             """, (owner_email.casefold(), account_id, session_id)).fetchone()
-        return dict(row) if row else None
+        if row is None:
+            return None
+        result = dict(row)
+        try:
+            result["picker_uri"] = self.cipher.decrypt(bytes(result.pop("picker_uri_ciphertext"))).decode("utf-8")
+        except (InvalidToken, UnicodeDecodeError, ValueError) as exc:
+            raise RuntimeError("Google Photos Picker session failed integrity/decryption check") from exc
+        return result
 
     def set_picker_session_status(self, owner_email: str, account_id: str,
                                   session_id: str, status: str) -> bool:
