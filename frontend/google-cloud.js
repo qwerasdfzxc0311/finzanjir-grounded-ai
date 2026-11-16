@@ -120,15 +120,21 @@
     }
   }
 
-  async function loadGmail(account, query, target) {
-    message(target, "Gmail xabarlari olinmoqda...");
+  async function loadGmail(account, query, target, pageToken = null, append = false) {
+    if (!append) message(target, "Gmail xabarlari olinmoqda...");
     try {
+      const page = pageToken ? "&page_token=" + encodeURIComponent(pageToken) : "";
       const result = await request(
         "/api/google/accounts/" + encodeURIComponent(account.account_id) +
-        "/gmail/messages?q=" + encodeURIComponent(query)
+        "/gmail/messages?q=" + encodeURIComponent(query) + page
       );
-      target.replaceChildren();
-      const list = element("div", "cloud-memory-list");
+      if (!append) target.replaceChildren();
+      target.querySelector(".cloud-next-page")?.remove();
+      let list = target.querySelector(".cloud-memory-list");
+      if (!list) {
+        list = element("div", "cloud-memory-list");
+        target.appendChild(list);
+      }
       result.messages.forEach(item => {
         const row = element("div", "cloud-memory-row");
         const detail = element("span", "muted", "Xabar ID: " + item.id);
@@ -154,6 +160,11 @@
       });
       if (!list.childElementCount) list.appendChild(element("p", "muted", "Xabar topilmadi."));
       target.appendChild(list);
+      if (result.next_page_token) {
+        const next = button("Keyingi xabarlar", () => loadGmail(account, query, target, result.next_page_token, true), true);
+        next.classList.add("cloud-next-page");
+        target.appendChild(next);
+      }
     } catch (error) {
       message(target, error.message, "status-error");
     }
