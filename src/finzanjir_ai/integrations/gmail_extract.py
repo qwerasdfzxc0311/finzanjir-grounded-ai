@@ -140,4 +140,10 @@ def collect_gmail_attachments(message: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 def decode_gmail_attachment_data(data: str) -> bytes:
-    return _decode_body(data)
+    try:
+        decoded = base64.urlsafe_b64decode(data + "=" * (-len(data) % 4))
+    except (ValueError, TypeError) as exc:
+        raise ValueError("Gmail attachment is not valid base64url") from exc
+    if len(decoded) > 10 * 1024 * 1024:
+        raise ValueError("Gmail attachment exceeds the 10 MB limit")
+    return decoded
