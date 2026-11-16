@@ -35,6 +35,7 @@ IDENTITY_SCOPES = ("openid", "email", "profile")
 SERVICE_SCOPES = {
     "drive": ("https://www.googleapis.com/auth/drive.readonly",),
     "gmail": ("https://www.googleapis.com/auth/gmail.readonly",),
+    "photos": ("https://www.googleapis.com/auth/photospicker.mediaitems.readonly",),
 }
 GOOGLE_AUTH = "https://accounts.google.com/o/oauth2/v2/auth"
 GOOGLE_TOKEN = "https://oauth2.googleapis.com/token"
@@ -42,6 +43,8 @@ GOOGLE_TOKEN_INFO = "https://oauth2.googleapis.com/tokeninfo"
 GOOGLE_REVOKE = "https://oauth2.googleapis.com/revoke"
 GOOGLE_DRIVE_FILES = "https://www.googleapis.com/drive/v3/files"
 GOOGLE_GMAIL_MESSAGES = "https://gmail.googleapis.com/gmail/v1/users/me/messages"
+GOOGLE_PHOTOS_SESSIONS = "https://photospicker.googleapis.com/v1/sessions"
+GOOGLE_PHOTOS_MEDIA = "https://photospicker.googleapis.com/v1/mediaItems"
 GOOGLE_DOC_MIMES = {
     "application/vnd.google-apps.document": "text/plain",
     "application/vnd.google-apps.spreadsheet": "text/csv",
@@ -368,7 +371,7 @@ def google_oauth_start(
         owner_session_id = _read_session(request, cfg, store)
         selected = tuple(dict.fromkeys(item.strip().lower() for item in services.split(",") if item.strip()))
         if not selected or any(item not in SERVICE_SCOPES for item in selected):
-            raise HTTPException(status_code=422, detail="Hozircha Google Drive va Gmail xizmatlari tanlanishi mumkin.")
+            raise HTTPException(status_code=422, detail="Hozircha Google Drive, Gmail va Google Photos xizmatlari tanlanishi mumkin.")
         for service in selected:
             scopes.extend(SERVICE_SCOPES[service])
     elif services != "drive":
@@ -787,3 +790,258 @@ def google_gmail_import_message(account_id: str, message_id: str, request: Reque
         "extractor": extracted["extractor"],
         "message": "Xat shifrlangan shaxsiy xotira karantiniga saqlandi; avtomatik ravishda bilim bazasiga yoki treningga qo‘shilmadi.",
     }
+
+from urllib.parse import urlsplit
+
+
+def _picker_session_for_owner(
+    memory: PersonalMemoryStore, owner_email: str, account_id: str, session_id: str
+) -> dict[str, Any]:
+    session = memory.get_picker_session(owner_email, account_id, session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Google Photos tanlash sessiyasi topilmadi.")
+    return session
+
+
+@router.post("/accounts/{account_id}/photos/sessions")
+def google_photos_create_session(account_id: str, request: Request):
+    try:
+        cfg = _config()
+        store = _store(cfg)
+        memory = _personal_memory_store(cfg)
+    except (GoogleConfigError, OSError, ValueError) as exc:
+        raise HTTPException(status_code=503, detail="Google Photos xotira ombori sozlanmagan.") from exc
+    _require_same_origin(request)
+    _read_session(request, cfg, store)
+    secret = store.account_secret(cfg["FINZANJIR_OWNER_EMAIL"], account_id)
+    if not secret:
+        raise HTTPException(status_code=404, detail="Google akkaunt ulanmagan.")
+    refresh_token, scopes = secret
+    if SERVICE_SCOPES["photos"][0] not in scopes:
+        raise HTTPException(status_code=403, detail="Bu akkauntga Google Photos ruxsati berilmagan.")
+    try:
+        access_token = _google_access_token(cfg, refresh_token)
+        with httpx.Client(timeout=20, follow_redirects=False) as client:
+            response = client.post(
+                GOOGLE_PHOTOS_SESSIONS,
+                headers={"Authorization": "Bearer " + access_token},
+                json={},
+            )
+            response.raise_for_status()
+            body = response.json()
+        session_id = str(body.get("id") or "").split("/")[-1]
+        picker_uri = str(body.get("pickerUri") or "")
+        if not session_id or not picker_uri.startswith("https://"):
+            raise ValueError("Google Photos Picker returned an invalid session")
+        memory.save_picker_session(
+            cfg["FINZANJIR_OWNER_EMAIL"], account_id, session_id, picker_uri
+        )
+    except (httpx.HTTPError, KeyError, ValueError) as exc:
+        raise HTTPException(status_code=502, detail="Google Photos tanlash sessiyasini yaratib bo‘lmadi.") from exc
+    return {
+        "session_id": session_id,
+        "picker_uri": picker_uri,
+        "status": "created",
+        "instruction": "Google Photos rasm yoki videolarini o‘zingiz tanlang. Tanlov tugagach, FINZANJIR sessiya holatini tekshiradi.",
+    }
+
+
+@router.get("/accounts/{account_id}/photos/sessions/{session_id}")
+def google_photos_get_session(account_id: str, session_id: str, request: Request):
+    try:
+        cfg = _config()
+        store = _store(cfg)
+        memory = _personal_memory_store(cfg)
+    except (GoogleConfigError, OSError, ValueError) as exc:
+        raise HTTPException(status_code=503, detail="Google Photos xotira ombori sozlanmagan.") from exc
+    _read_session(request, cfg, store)
+    _picker_session_for_owner(memory, cfg["FINZANJIR_OWNER_EMAIL"], account_id, session_id)
+    secret = store.account_secret(cfg["FINZANJIR_OWNER_EMAIL"], account_id)
+    if not secret:
+        raise HTTPException(status_code=404, detail="Google akkaunt ulanmagan.")
+    if SERVICE_SCOPES["photos"][0] not in secret[1]:
+        raise HTTPException(status_code=403, detail="Google Photos ruxsati yo‘q.")
+    try:
+        access_token = _google_access_token(cfg, secret[0])
+        with httpx.Client(timeout=20, follow_redirects=False) as client:
+            response = client.get(
+                GOOGLE_PHOTOS_SESSIONS + "/" + quote(session_id, safe=""),
+                headers={"Authorization": "Bearer " + access_token},
+            )
+            response.raise_for_status()
+            body = response.json()
+    except httpx.HTTPError as exc:
+        raise HTTPException(status_code=502, detail="Google Photos sessiyasini tekshirish muvaffaqiyatsiz.") from exc
+    ready = bool(body.get("mediaItemsSet"))
+    memory.set_picker_session_status(
+        cfg["FINZANJIR_OWNER_EMAIL"], account_id, session_id,
+        "ready" if ready else "created",
+    )
+    return {
+        "session_id": session_id, "media_items_set": ready,
+        "polling_config": body.get("pollingConfig", {}),
+        "status": "ready" if ready else "waiting_for_user_selection",
+    }
+
+
+@router.get("/accounts/{account_id}/photos/sessions/{session_id}/media-items")
+def google_photos_list_selected(account_id: str, session_id: str, request: Request,
+                                page_token: str | None = Query(default=None, max_length=2048),
+                                page_size: int = Query(default=50, ge=1, le=100)):
+    try:
+        cfg = _config()
+        store = _store(cfg)
+        memory = _personal_memory_store(cfg)
+    except (GoogleConfigError, OSError, ValueError) as exc:
+        raise HTTPException(status_code=503, detail="Google Photos xotira ombori sozlanmagan.") from exc
+    _read_session(request, cfg, store)
+    local_session = _picker_session_for_owner(memory, cfg["FINZANJIR_OWNER_EMAIL"], account_id, session_id)
+    if local_session["status"] != "ready":
+        raise HTTPException(status_code=409, detail="Avval Google Photos tanlovi tugaganini tekshiring.")
+    secret = store.account_secret(cfg["FINZANJIR_OWNER_EMAIL"], account_id)
+    if not secret or SERVICE_SCOPES["photos"][0] not in secret[1]:
+        raise HTTPException(status_code=403, detail="Google Photos ruxsati yo‘q.")
+    try:
+        access_token = _google_access_token(cfg, secret[0])
+        params = {"sessionId": session_id, "pageSize": page_size}
+        if page_token:
+            params["pageToken"] = page_token
+        with httpx.Client(timeout=20, follow_redirects=False) as client:
+            response = client.get(
+                GOOGLE_PHOTOS_MEDIA, params=params,
+                headers={"Authorization": "Bearer " + access_token},
+            )
+            response.raise_for_status()
+            body = response.json()
+    except httpx.HTTPError as exc:
+        raise HTTPException(status_code=502, detail="Tanlangan Google Photos media ro‘yxatini olish muvaffaqiyatsiz.") from exc
+    items = []
+    for item in body.get("mediaItems", []):
+        media_file = item.get("mediaFile") or {}
+        metadata = media_file.get("mediaFileMetadata") or {}
+        items.append({
+            "id": item.get("id"),
+            "type": item.get("type"),
+            "create_time": item.get("createTime"),
+            "filename": media_file.get("filename"),
+            "mime_type": media_file.get("mimeType"),
+            "metadata": metadata,
+        })
+    return {"session_id": session_id, "media_items": items,
+            "next_page_token": body.get("nextPageToken")}
+
+
+@router.post("/accounts/{account_id}/photos/sessions/{session_id}/media-items/{media_id}/import")
+def google_photos_import_selected_media(account_id: str, session_id: str,
+                                        media_id: str, request: Request):
+    try:
+        cfg = _config()
+        store = _store(cfg)
+        memory = _personal_memory_store(cfg)
+    except (GoogleConfigError, OSError, ValueError) as exc:
+        raise HTTPException(status_code=503, detail="Google Photos xotira ombori sozlanmagan.") from exc
+    _require_same_origin(request)
+    _read_session(request, cfg, store)
+    local_session = _picker_session_for_owner(memory, cfg["FINZANJIR_OWNER_EMAIL"], account_id, session_id)
+    if local_session["status"] != "ready":
+        raise HTTPException(status_code=409, detail="Google Photos tanlovi hali tugamagan.")
+    secret = store.account_secret(cfg["FINZANJIR_OWNER_EMAIL"], account_id)
+    if not secret or SERVICE_SCOPES["photos"][0] not in secret[1]:
+        raise HTTPException(status_code=403, detail="Google Photos ruxsati yo‘q.")
+    try:
+        access_token = _google_access_token(cfg, secret[0])
+        page_token = None
+        selected = None
+        for _ in range(10):
+            params = {"sessionId": session_id, "pageSize": 100}
+            if page_token:
+                params["pageToken"] = page_token
+            with httpx.Client(timeout=20, follow_redirects=False) as client:
+                response = client.get(
+                    GOOGLE_PHOTOS_MEDIA, params=params,
+                    headers={"Authorization": "Bearer " + access_token},
+                )
+                response.raise_for_status()
+                body = response.json()
+            selected = next((item for item in body.get("mediaItems", [])
+                             if item.get("id") == media_id), None)
+            if selected:
+                break
+            page_token = body.get("nextPageToken")
+            if not page_token:
+                break
+        if not selected:
+            raise HTTPException(status_code=404, detail="Bu media aynan shu Google Photos sessiyasida tanlanmagan.")
+        media_file = selected.get("mediaFile") or {}
+        base_url = str(media_file.get("baseUrl") or "")
+        parsed = urlsplit(base_url)
+        if (parsed.scheme != "https" or not parsed.hostname
+                or not parsed.hostname.endswith(".googleusercontent.com")
+                or parsed.username or parsed.password or parsed.port not in (None, 443)):
+            raise HTTPException(status_code=502, detail="Google Photos media manzili xavfsiz emas.")
+        mime_type = str(media_file.get("mimeType") or "")
+        media_kind = "photo" if selected.get("type") == "PHOTO" else "video"
+        suffix = "=d" if media_kind == "photo" else "=dv"
+        chunks = []
+        total = 0
+        with httpx.Client(timeout=httpx.Timeout(90, connect=10), follow_redirects=False) as client:
+            with client.stream("GET", base_url + suffix,
+                               headers={"Authorization": "Bearer " + access_token}) as response:
+                response.raise_for_status()
+                for chunk in response.iter_bytes():
+                    total += len(chunk)
+                    if total > 100 * 1024 * 1024:
+                        raise ValueError("Google Photos media exceeds 100 MB")
+                    chunks.append(chunk)
+        content = b"".join(chunks)
+        result = memory.quarantine_media(
+            owner_email=cfg["FINZANJIR_OWNER_EMAIL"], account_id=account_id,
+            remote_media_id=media_id,
+            file_name=str(media_file.get("filename") or media_id),
+            mime_type=mime_type, media_type=media_kind, content=content,
+            metadata={
+                "picker_session_id": session_id,
+                "create_time": selected.get("createTime"),
+                "media_file_metadata": media_file.get("mediaFileMetadata", {}),
+                "google_photos_type": selected.get("type"),
+            },
+        )
+    except HTTPException:
+        raise
+    except (httpx.HTTPError, KeyError, ValueError, RuntimeError) as exc:
+        raise HTTPException(status_code=502, detail="Tanlangan media faylni shifrlab saqlash muvaffaqiyatsiz: " + type(exc).__name__) from exc
+    return {
+        **result, "file_name": str(media_file.get("filename") or media_id),
+        "mime_type": mime_type, "bytes_stored": len(content),
+        "message": "Media shifrlangan shaxsiy xotira karantiniga saqlandi; hali AI tomonidan tahlil qilinmadi.",
+    }
+
+
+@router.delete("/accounts/{account_id}/photos/sessions/{session_id}")
+def google_photos_delete_session(account_id: str, session_id: str, request: Request):
+    try:
+        cfg = _config()
+        store = _store(cfg)
+        memory = _personal_memory_store(cfg)
+    except (GoogleConfigError, OSError, ValueError) as exc:
+        raise HTTPException(status_code=503, detail="Google Photos xotira ombori sozlanmagan.") from exc
+    _require_same_origin(request)
+    _read_session(request, cfg, store)
+    _picker_session_for_owner(memory, cfg["FINZANJIR_OWNER_EMAIL"], account_id, session_id)
+    secret = store.account_secret(cfg["FINZANJIR_OWNER_EMAIL"], account_id)
+    if not secret or SERVICE_SCOPES["photos"][0] not in secret[1]:
+        raise HTTPException(status_code=403, detail="Google Photos ruxsati yo‘q.")
+    try:
+        access_token = _google_access_token(cfg, secret[0])
+        with httpx.Client(timeout=20, follow_redirects=False) as client:
+            response = client.delete(
+                GOOGLE_PHOTOS_SESSIONS + "/" + quote(session_id, safe=""),
+                headers={"Authorization": "Bearer " + access_token},
+            )
+            response.raise_for_status()
+    except httpx.HTTPError as exc:
+        raise HTTPException(status_code=502, detail="Google Photos sessiyasini yopish muvaffaqiyatsiz.") from exc
+    memory.set_picker_session_status(
+        cfg["FINZANJIR_OWNER_EMAIL"], account_id, session_id, "deleted"
+    )
+    return {"status": "deleted", "session_id": session_id}
