@@ -46,3 +46,11 @@ No write, delete, move, upload, public-link, or share permission is included.
 ## Activation gate
 
 Cloud account linking is not production-ready until the identity and token-security design is implemented and independently reviewed. Provider application registrations and redirect URIs must then be configured as Render secrets/environment settings by the account owner. The first release should be read-only and user-selected-folder only.
+
+
+## Gmail read-only import
+
+An optional `gmail` service can be selected explicitly during account linking with the `gmail.readonly` scope. FINZANJIR can list message IDs using a bounded Gmail search query and import only a message the owner selects. The message body and limited headers are extracted, encrypted, and saved in the same private quarantine with provider provenance `google_gmail`. HTML-only bodies are converted to text while script/style content is excluded. Attachments are not downloaded by this first implementation.
+
+Gmail read access is a restricted Google OAuth scope and may require Google verification/security assessment before public use. It is never requested by the default Drive-only connection. No compose, send, modify, delete, label, or mailbox settings scopes are requested. See the official Gmail API documentation for read-only scope and message list/get methods: https://developers.google.com/workspace/gmail/api/auth/scopes and https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages.
+
