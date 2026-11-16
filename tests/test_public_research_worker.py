@@ -105,3 +105,31 @@ def test_worker_requires_exact_domain_configuration(tmp_path):
         except ValueError:
             continue
         raise AssertionError(f"unsafe domain config was accepted: {domains}")
+
+
+def test_supervisor_executes_real_research_handler_and_audits_quarantine(tmp_path):
+    from finzanjir_ai.intel.cycle_supervisor import AutonomousCycleSupervisor, WorkCyclePolicy
+
+    store = make_store(tmp_path)
+    worker = build_public_research_worker(
+        source_id="cisa", query="public CISA advisories",
+        allowed_domains=["cisa.gov"], store=store,
+        search_client=FakeSearch([{
+            "url": "https://www.cisa.gov/advisories/test",
+            "title": "CISA test advisory",
+            "raw_content": "Public advisory evidence.",
+        }]),
+    )
+    supervisor = AutonomousCycleSupervisor(
+        store, WorkCyclePolicy(work_seconds=10, rest_minutes=10, lease_seconds=60)
+    )
+    result = asyncio.run(supervisor.run_cycle("job-1", worker))
+    assert result["status"] == "completed"
+    assert result["items"] == 1
+    assert store.audit_events("job-1")[0]["status"] == "completed"
+    assert store.get_candidate(
+        hashlib.sha256(
+            ("cisa" + "https://www.cisa.gov/advisories/test" +
+             hashlib.sha256(b"Public advisory evidence.").hexdigest()).encode()
+        ).hexdigest()
+    ) is not None
