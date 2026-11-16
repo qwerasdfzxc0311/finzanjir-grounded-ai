@@ -27,7 +27,7 @@ from .media_validation import UnsupportedMedia, validate_media_content
 import httpx
 from cryptography.fernet import Fernet, InvalidToken
 from fastapi import APIRouter, HTTPException, Query, Request, Response
-from fastapi.responses import RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 
 router = APIRouter(prefix="/api/google", tags=["google-cloud"])
 MAX_GOOGLE_ACCOUNTS = 100
@@ -493,9 +493,9 @@ def google_owner_logout(request: Request):
     _require_same_origin(request)
     session_id = _read_session(request, cfg, store)
     store.revoke_session(session_id)
-    redirect = RedirectResponse(cfg["FINZANJIR_FRONTEND_URL"] + "/?google=disconnected", status_code=303)
-    redirect.delete_cookie(SESSION_COOKIE, path="/", secure=True, httponly=True, samesite="lax")
-    return redirect
+    response = JSONResponse({"status": "logged_out"})
+    response.delete_cookie(SESSION_COOKIE, path="/", secure=True, httponly=True, samesite="lax")
+    return response
 
 
 @router.post("/accounts/{account_id}/disconnect")
