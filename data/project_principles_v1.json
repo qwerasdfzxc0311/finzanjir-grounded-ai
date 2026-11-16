@@ -289,6 +289,152 @@
         "status": "author_confirmed",
         "scope": "detection_limits_and_future_expansion"
       }
+    },
+    {
+      "id": "project_0010",
+      "concept_id": "finzanjir_complementary_protection_layer",
+      "canonical_concept_id": "finzanjir_complementary_protection_layer",
+      "statement": "FINZANJIR mavjud banklar, qo'riqlash va xavfsizlik vositalari, tahlil tizimlari yoki antiviruslarning o'rnini egallash uchun emas, balki ularni to'ldirish, imkoniyatlarini kuchaytirish va qonuniy hamkorlik doirasida turli xavf belgilarini o'zaro bog'lab kengroq tahlil qilishga yordam berish uchun mo'ljallangan. Bitta himoya qatlami barcha tahdidlarni to'xtata olmaydi. Hovlidagi ekinni himoya qilish misolida, sim mollarni to'sishi mumkin, ammo tovuq yoki boshqa mayda jonivorlar kirishi mumkin; devor himoyani kuchaytiradi, lekin hasharotlar, kasalliklar va boshqa zararlar qoladi. Har bir himoya usulining o'z vazifasi va chegarasi bor. Ularni bir-birini to'ldiradigan tarzda qo'llash ekinning katta qismini saqlab qolish imkoniyatini oshiradi. Moliyaviy xavfsizlikda ham mavjud banklar va himoya tizimlari o'z vakolatida qoladi, FINZANJIR esa qo'shimcha tahlil va himoya qatlamidir. Bu loyiha maqsadi; barcha integratsiyalar hozir ishlayapti yoki huquqiy ruxsat olingan degani emas.",
+      "aliases": [
+        "FINZANJIR nima uchun kerak",
+        "FINZANJIR nima uchun kerak o'zi",
+        "boshqa bank tizimlari bor FINZANJIR nima qiladi",
+        "FINZANJIR mavjud tizimlarni almashtiradimi",
+        "FINZANJIR bank yoki antivirus o'rnini bosadimi",
+        "mavjud himoya tizimlarini kuchaytirish",
+        "qo'shimcha himoya qatlami",
+        "sim devor ekin hovli misoli",
+        "ekin mollar tovuq hasharot himoya o'xshatish",
+        "why is FINZANJIR needed",
+        "does FINZANJIR replace banks or antivirus",
+        "зачем нужен FINZANJIR",
+        "FINZANJIR басқа жүйелерді алмастыра ма",
+        "FINZANJIR ne ushın kerek"
+      ],
+      "evidence": {
+        "status": "project_source",
+        "verification": "author_confirmed",
+        "scope": "author_stated_complementary_protection_layer"
+      },
+      "provenance": [
+        {
+          "source_type": "author_provided_current_conversation",
+          "source_id": "2026-11-16_user_confirmed_complementary_defense_principle",
+          "authority": "project_author",
+          "version": "1.0"
+        }
+      ],
+      "reconciliation": {
+        "status": "author_confirmed",
+        "scope": "author_stated_complementary_protection_layer"
+      }
+    },
+    {
+      "id": "project_0011",
+      "concept_id": "finzanjir_sponsorship_and_support_rationale",
+      "canonical_concept_id": "finzanjir_sponsorship_and_support_rationale",
+      "statement": "Bitta himoya qatlamining mavjudligi boshqa himoya imkoniyatlarini rivojlantirishga ehtiyoj yo'q degani emas. Faqat bitta vositaga tayanib qolish, qolgan himoya qatlamlarini kuchaytirmaslik to'g'ri yondashuv emas. Hovlidagi ekin misolida sim, devor va boshqa himoya choralarining har biri ayrim xavflarni kamaytiradi, ammo alohida holda barcha xavflarni bartaraf eta olmaydi; ular bir-birini to'ldirsa, ekinni saqlab qolish imkoniyati ortadi. FINZANJIRni homiylik va qo'llab-quvvatlash mavjud bank yoki xavfsizlik tizimlariga qarshi chiqish emas, balki umumiy xavfsizlik uchun qo'shimcha himoya va tahlil qatlamini bosqichma-bosqich ishlab chiqish, sinash va takomillashtirishga ko'maklashishdir. Homiylik shaffof maqsad, xarajatlar, xavfsizlik, qonuniylik tekshiruvi, natijalarni o'lchash va mustaqil baholash bilan bog'lanishi kerak; homiylik bank ma'lumotlariga avtomatik kirish yoki bank qarorlariga ta'sir huquqini bermaydi.",
+      "aliases": [
+        "FINZANJIRga nima uchun homiylik qilish kerak",
+        "FINZANJIRni nima uchun qo'llab-quvvatlash kerak",
+        "nega FINZANJIRga mablag' ajratish kerak",
+        "mavjud tizimlar yetarli bo'lsa yana nima uchun",
+        "bitta himoya qatlamiga ishonib qolish",
+        "bitta himoya tizimi yetarlimi",
+        "homiylik sababi",
+        "homiylik va rivojlantirish",
+        "why sponsor FINZANJIR",
+        "why support another protection layer",
+        "зачем финансировать FINZANJIR",
+        "FINZANJIRdi qollap quwatlaw ne ushın"
+      ],
+      "evidence": {
+        "status": "project_source",
+        "verification": "author_confirmed",
+        "scope": "author_stated_sponsorship_rationale"
+      },
+      "provenance": [
+        {
+          "source_type": "author_provided_current_conversation",
+          "source_id": "2026-11-16_user_confirmed_complementary_defense_principle",
+          "authority": "project_author",
+          "version": "1.0"
+        }
+      ],
+      "reconciliation": {
+        "status": "author_confirmed",
+        "scope": "author_stated_sponsorship_rationale"
+      }
+    },
+    {
+      "id": "project_0012",
+      "concept_id": "finzanjir_independent_origin_and_foreign_comparison",
+      "canonical_concept_id": "finzanjir_independent_origin_and_foreign_comparison",
+      "statement": "Moliyaviy firibgarlikka qarshi kurash, bank xavfsizligi, tranzaksiyalarni tahlil qilish va shubhali faoliyatni aniqlash yo'nalishlarida boshqa mamlakatlarda ham turli tizimlar va yondashuvlar mavjud. Ularning mavjudligi FINZANJIR aynan ulardan nusxa olinganini anglatmaydi. FINZANJIRning muallif tasdiqlagan maqsadi mavjud himoya tajribalarini o'rganish, ularning vazifalari va cheklovlarini tushunish hamda O'zbekiston sharoitiga mos, qonuniy va o'zaro to'ldiruvchi yechim ishlab chiqishdir. Turli himoya usullarining foydali jihatlarini birlashtirish ko'r-ko'rona nusxa ko'chirish emas. Aniq xorijiy tizim bilan texnik yoki funksional o'xshashlik haqida gapirish uchun ishonchli manbalar asosida alohida taqqoslash kerak; dalilsiz birinchi, yagona, eng kuchli yoki nusxa degan xulosa chiqarilmasin.",
+      "aliases": [
+        "FINZANJIR boshqa davlatlarda bormi",
+        "FINZANJIR boshqa davlatlarda ham bormi",
+        "FINZANJIR nusxami",
+        "FINZANJIR xorijiy tizimlardan nusxa olinganmi",
+        "FINZANJIR qaysi davlatdan ko'chirilgan",
+        "FINZANJIR o'ziga xosmi",
+        "foreign systems copy",
+        "is FINZANJIR a copy",
+        "FINZANJIR boshqa tizimlardan farqi",
+        "FINZANJIR басқа еллерде бар ма",
+        "FINZANJIR nusqa ma"
+      ],
+      "evidence": {
+        "status": "project_source",
+        "verification": "author_confirmed",
+        "scope": "author_stated_origin_and_comparison_boundary"
+      },
+      "provenance": [
+        {
+          "source_type": "author_provided_current_conversation",
+          "source_id": "2026-11-16_user_confirmed_complementary_defense_principle",
+          "authority": "project_author",
+          "version": "1.0"
+        }
+      ],
+      "reconciliation": {
+        "status": "author_confirmed",
+        "scope": "author_stated_origin_and_comparison_boundary"
+      }
+    },
+    {
+      "id": "project_0013",
+      "concept_id": "finzanjir_legal_operation_boundary",
+      "canonical_concept_id": "finzanjir_legal_operation_boundary",
+      "statement": "FINZANJIRning maqsadi va foydali bo'lishi mumkinligi uning barcha faoliyati avtomatik ravishda qonuniy degani emas. Tizimning qonuniy ishlashi qanday ma'lumot olinishi, kim tomonidan qayta ishlanishi, nima maqsadda ishlatilishi, qancha muddat saqlanishi, kimga uzatilishi, bank siri va shaxsiy ma'lumotlar qanday himoyalanishi hamda banklar va vakolatli organlar bilan qanday huquqiy asosda hamkorlik qilinishiga bog'liq. Amaliyotga joriy etishdan oldin O'zbekiston qonunchiligi, Markaziy bank talablari, to'lov tizimlari qoidalari, banklarning ichki siyosati va zarur shartnomalar bo'yicha huquqiy tekshiruv o'tkazilishi kerak. Loyiha tamoyili qonuniy, zarur va minimal ma'lumot bilan ishlash, bank qarorlarini bankning vakolatida qoldirish va shubhali signalni aybdorlik isboti yoki avtomatik bloklash buyrug'i sifatida ishlatmaslikdir. Tegishli huquqiy xulosa va kelishuvlar olinmaguncha, FINZANJIRning to'liq banklararo ishlashi qonuniy deb tasdiqlangan deb aytilmasligi kerak.",
+      "aliases": [
+        "FINZANJIR qonuniymi",
+        "FINZANJIRni ishlatish qonuniymi",
+        "FINZANJIR bank ma'lumotlarini qonuniy tahlil qila oladimi",
+        "FINZANJIR banklar bilan ishlashi mumkinmi",
+        "FINZANJIR qonuniy ishlashi uchun nima kerak",
+        "bank siri shaxsiy ma'lumot qonuniy asos FINZANJIR",
+        "is FINZANJIR legal",
+        "законен ли FINZANJIR",
+        "FINZANJIR nızamlı ma"
+      ],
+      "evidence": {
+        "status": "project_source",
+        "verification": "author_confirmed",
+        "scope": "author_stated_legal_boundary"
+      },
+      "provenance": [
+        {
+          "source_type": "author_provided_current_conversation",
+          "source_id": "2026-11-16_user_confirmed_complementary_defense_principle",
+          "authority": "project_author",
+          "version": "1.0"
+        }
+      ],
+      "reconciliation": {
+        "status": "author_confirmed",
+        "scope": "author_stated_legal_boundary"
+      }
     }
   ]
 }
