@@ -123,8 +123,10 @@ def test_personal_memory_keeps_drive_and_gmail_sources_separate(tmp_path):
 
 def test_google_photos_picker_session_is_owner_and_account_bound(tmp_path):
     store = PersonalMemoryStore(str(tmp_path / "memory.sqlite"), Fernet.generate_key().decode())
+    path = tmp_path / "memory.sqlite"
     store.save_picker_session("owner@example.com", "account-a", "session-1",
                               "https://photos.google.com/picker/session-1")
+    assert b"https://photos.google.com/picker/session-1" not in path.read_bytes()
     assert store.get_picker_session("owner@example.com", "account-a", "session-1")["status"] == "created"
     assert store.get_picker_session("other@example.com", "account-a", "session-1") is None
     assert store.get_picker_session("owner@example.com", "account-b", "session-1") is None
