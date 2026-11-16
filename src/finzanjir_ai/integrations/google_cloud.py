@@ -21,6 +21,7 @@ from urllib.parse import urlencode, quote
 
 from .drive_extract import MAX_DOWNLOAD_BYTES, UnsupportedDriveFormat, extract_drive_text
 from .personal_memory import PersonalMemoryStore
+from .gmail_extract import extract_gmail_message
 
 import httpx
 from cryptography.fernet import Fernet, InvalidToken
@@ -33,12 +34,14 @@ SESSION_COOKIE = "finzanjir_owner_session"
 IDENTITY_SCOPES = ("openid", "email", "profile")
 SERVICE_SCOPES = {
     "drive": ("https://www.googleapis.com/auth/drive.readonly",),
+    "gmail": ("https://www.googleapis.com/auth/gmail.readonly",),
 }
 GOOGLE_AUTH = "https://accounts.google.com/o/oauth2/v2/auth"
 GOOGLE_TOKEN = "https://oauth2.googleapis.com/token"
 GOOGLE_TOKEN_INFO = "https://oauth2.googleapis.com/tokeninfo"
 GOOGLE_REVOKE = "https://oauth2.googleapis.com/revoke"
 GOOGLE_DRIVE_FILES = "https://www.googleapis.com/drive/v3/files"
+GOOGLE_GMAIL_MESSAGES = "https://gmail.googleapis.com/gmail/v1/users/me/messages"
 GOOGLE_DOC_MIMES = {
     "application/vnd.google-apps.document": "text/plain",
     "application/vnd.google-apps.spreadsheet": "text/csv",
@@ -365,7 +368,7 @@ def google_oauth_start(
         owner_session_id = _read_session(request, cfg, store)
         selected = tuple(dict.fromkeys(item.strip().lower() for item in services.split(",") if item.strip()))
         if not selected or any(item not in SERVICE_SCOPES for item in selected):
-            raise HTTPException(status_code=422, detail="Hozircha faqat Google Drive xizmati tanlanishi mumkin.")
+            raise HTTPException(status_code=422, detail="Hozircha Google Drive va Gmail xizmatlari tanlanishi mumkin.")
         for service in selected:
             scopes.extend(SERVICE_SCOPES[service])
     elif services != "drive":
@@ -685,3 +688,102 @@ def google_personal_memory_read(source_id: str, request: Request):
     if source is None:
         raise HTTPException(status_code=404, detail="Shaxsiy xotira manbasi topilmadi.")
     return source
+
+
+@router.get("/accounts/{account_id}/gmail/messages")
+def google_gmail_messages(
+    account_id: str,
+    request: Request,
+    q: str = Query(default="in:anywhere", max_length=256),
+    page_token: str | None = Query(default=None, max_length=2048),
+    max_results: int = Query(default=25, ge=1, le=50),
+):
+    try:
+        cfg = _config()
+        store = _store(cfg)
+    except (GoogleConfigError, OSError, ValueError) as exc:
+        raise HTTPException(status_code=503, detail="Google xotira ombori sozlanmagan.") from exc
+    _read_session(request, cfg, store)
+    secret = store.account_secret(cfg["FINZANJIR_OWNER_EMAIL"], account_id)
+    if not secret:
+        raise HTTPException(status_code=404, detail="Google akkaunt ulanmagan.")
+    refresh_token, scopes = secret
+    if SERVICE_SCOPES["gmail"][0] not in scopes:
+        raise HTTPException(status_code=403, detail="Bu akkaunt uchun Gmail o‘qish ruxsati berilmagan.")
+    try:
+        access_token = _google_access_token(cfg, refresh_token)
+        params = {"q": q, "maxResults": max_results}
+        if page_token:
+            params["pageToken"] = page_token
+        with httpx.Client(timeout=20, follow_redirects=False) as client:
+            response = client.get(
+                GOOGLE_GMAIL_MESSAGES, params=params,
+                headers={"Authorization": "Bearer " + access_token},
+            )
+            response.raise_for_status()
+            body = response.json()
+    except httpx.HTTPError as exc:
+        raise HTTPException(status_code=502, detail="Gmail xabarlar ro‘yxatini olish muvaffaqiyatsiz bo‘ldi.") from exc
+    return {
+        "account_id": account_id,
+        "messages": body.get("messages", []),
+        "next_page_token": body.get("nextPageToken"),
+        "result_size_estimate": body.get("resultSizeEstimate"),
+        "read_only": True,
+    }
+
+
+@router.post("/accounts/{account_id}/gmail/messages/{message_id}/import")
+def google_gmail_import_message(account_id: str, message_id: str, request: Request):
+    try:
+        cfg = _config()
+        store = _store(cfg)
+    except (GoogleConfigError, OSError, ValueError) as exc:
+        raise HTTPException(status_code=503, detail="Google xotira ombori sozlanmagan.") from exc
+    _require_same_origin(request)
+    _read_session(request, cfg, store)
+    secret = store.account_secret(cfg["FINZANJIR_OWNER_EMAIL"], account_id)
+    if not secret:
+        raise HTTPException(status_code=404, detail="Google akkaunt ulanmagan.")
+    refresh_token, scopes = secret
+    if SERVICE_SCOPES["gmail"][0] not in scopes:
+        raise HTTPException(status_code=403, detail="Bu akkaunt uchun Gmail o‘qish ruxsati berilmagan.")
+    try:
+        access_token = _google_access_token(cfg, refresh_token)
+        with httpx.Client(timeout=25, follow_redirects=False) as client:
+            response = client.get(
+                GOOGLE_GMAIL_MESSAGES + "/" + quote(message_id, safe=""),
+                params={"format": "full"},
+                headers={"Authorization": "Bearer " + access_token},
+            )
+            response.raise_for_status()
+            message = response.json()
+        extracted = extract_gmail_message(message)
+        headers = extracted["headers"]
+        memory = _personal_memory_store(cfg)
+        result = memory.quarantine(
+            owner_email=cfg["FINZANJIR_OWNER_EMAIL"],
+            account_id=account_id,
+            remote_file_id=message_id,
+            file_name=(headers.get("subject") or message_id)[:255],
+            mime_type="message/rfc822",
+            modified_time=str(message.get("internalDate") or ""),
+            extracted_text=extracted["text"],
+            provider="google_gmail",
+            metadata={
+                "extractor": extracted["extractor"],
+                "message_id": message_id,
+                "thread_id": message.get("threadId"),
+                "headers": headers,
+                "source_link": "https://mail.google.com/mail/u/0/#all/" + quote(message_id, safe=""),
+            },
+        )
+    except HTTPException:
+        raise
+    except (httpx.HTTPError, KeyError, ValueError, RuntimeError) as exc:
+        raise HTTPException(status_code=502, detail="Gmail xabarini xavfsiz import qilish bajarilmadi: " + type(exc).__name__) from exc
+    return {
+        **result, "subject": headers.get("subject", ""),
+        "extractor": extracted["extractor"],
+        "message": "Xat shifrlangan shaxsiy xotira karantiniga saqlandi; avtomatik ravishda bilim bazasiga yoki treningga qo‘shilmadi.",
+    }
