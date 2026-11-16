@@ -232,7 +232,7 @@ class PersonalMemoryStore:
         file_name: str, mime_type: str, media_type: str, content: bytes,
         metadata: dict[str, Any] | None = None, provider: str = "google_photos",
     ) -> dict[str, Any]:
-        if provider not in {"google_photos", "google_drive"}:
+        if provider not in {"google_photos", "google_drive", "google_gmail"}:
             raise ValueError("unsupported personal media provider")
         if media_type not in {"photo", "video", "audio", "image", "document"}:
             raise ValueError("unsupported media type")
