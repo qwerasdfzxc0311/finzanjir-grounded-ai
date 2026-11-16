@@ -1057,12 +1057,14 @@ def google_photos_import_selected_media(account_id: str, session_id: str,
                         raise ValueError("Google Photos media exceeds 100 MB")
                     chunks.append(chunk)
         content = b"".join(chunks)
+        validation = validate_media_content(mime_type, content)
         result = memory.quarantine_media(
             owner_email=cfg["FINZANJIR_OWNER_EMAIL"], account_id=account_id,
             remote_media_id=media_id,
             file_name=str(media_file.get("filename") or media_id),
             mime_type=mime_type, media_type=media_kind, content=content,
             metadata={
+                "validation": validation,
                 "picker_session_id": session_id,
                 "create_time": selected.get("createTime"),
                 "media_file_metadata": media_file.get("mediaFileMetadata", {}),
