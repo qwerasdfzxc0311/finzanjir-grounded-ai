@@ -67,6 +67,7 @@ def _config() -> dict[str, str]:
         "FINZANJIR_TOKEN_ENCRYPTION_KEY",
         "FINZANJIR_GOOGLE_STATE_DB_PATH",
         "FINZANJIR_PERSONAL_MEMORY_DB_PATH",
+        "FINZANJIR_FRONTEND_URL",
     )
     values = {key: os.getenv(key, "").strip() for key in keys}
     missing = [key for key, value in values.items() if not value]
@@ -80,6 +81,18 @@ def _config() -> dict[str, str]:
         raise GoogleConfigError("Token encryption key must be a valid Fernet key") from exc
     if not values["FINZANJIR_GOOGLE_REDIRECT_URI"].startswith("https://"):
         raise GoogleConfigError("Google OAuth redirect URI must use HTTPS")
+    frontend = urlsplit(values["FINZANJIR_FRONTEND_URL"])
+    if (frontend.scheme != "https" or not frontend.netloc or frontend.path not in {"", "/"}
+            or frontend.query or frontend.fragment or frontend.username or frontend.password):
+        raise GoogleConfigError("Frontend URL must be an HTTPS origin without path or query")
+    allowed_origins = {
+        item.strip().rstrip("/")
+        for item in os.getenv("FINZANJIR_ALLOWED_ORIGINS", "").split(",")
+        if item.strip()
+    }
+    if values["FINZANJIR_FRONTEND_URL"].rstrip("/") not in allowed_origins:
+        raise GoogleConfigError("Frontend URL must be included in FINZANJIR_ALLOWED_ORIGINS")
+    values["FINZANJIR_FRONTEND_URL"] = values["FINZANJIR_FRONTEND_URL"].rstrip("/")
     values["FINZANJIR_OWNER_EMAIL"] = values["FINZANJIR_OWNER_EMAIL"].casefold()
     return values
 
@@ -420,7 +433,7 @@ def google_oauth_callback(
         raise HTTPException(status_code=403, detail="Bu Google akkaunt FINZANJIR egasi sifatida ruxsat etilmagan.")
     if flow["purpose"] == "owner_login":
         session_id = store.create_session(cfg["FINZANJIR_OWNER_EMAIL"])
-        redirect = RedirectResponse("/?google=connected", status_code=303)
+        redirect = RedirectResponse(cfg["FINZANJIR_FRONTEND_URL"] + "/?google=connected", status_code=303)
         redirect.set_cookie(
             SESSION_COOKIE, _session_cookie(session_id, cfg["FINZANJIR_SESSION_SECRET"]),
             max_age=30 * 86400, httponly=True, secure=True, samesite="lax", path="/",
@@ -439,7 +452,7 @@ def google_oauth_callback(
         )
     except OverflowError as exc:
         raise HTTPException(status_code=409, detail="100 ta Google akkaunt limiti to‘ldi.") from exc
-    redirect = RedirectResponse("/?google_account=added", status_code=303)
+    redirect = RedirectResponse(cfg["FINZANJIR_FRONTEND_URL"] + "/?google_account=added", status_code=303)
     redirect.headers["Cache-Control"] = "no-store"
     return redirect
 
@@ -477,7 +490,7 @@ def google_owner_logout(request: Request):
     _require_same_origin(request)
     session_id = _read_session(request, cfg, store)
     store.revoke_session(session_id)
-    redirect = RedirectResponse("/?google=disconnected", status_code=303)
+    redirect = RedirectResponse(cfg["FINZANJIR_FRONTEND_URL"] + "/?google=disconnected", status_code=303)
     redirect.delete_cookie(SESSION_COOKIE, path="/", secure=True, httponly=True, samesite="lax")
     return redirect
 
