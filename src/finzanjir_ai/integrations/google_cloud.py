@@ -22,6 +22,7 @@ from urllib.parse import urlencode, quote
 from .drive_extract import MAX_DOWNLOAD_BYTES, UnsupportedDriveFormat, extract_drive_text
 from .personal_memory import PersonalMemoryStore
 from .gmail_extract import extract_gmail_message
+from .media_validation import UnsupportedMedia, validate_media_content
 
 import httpx
 from cryptography.fernet import Fernet, InvalidToken
@@ -574,7 +575,7 @@ def _google_access_token(cfg: dict[str, str], refresh_token: str) -> str:
     return token
 
 
-def _download_drive_file(access_token: str, file_id: str, mime_type: str) -> bytes:
+def _download_drive_file(access_token: str, file_id: str, mime_type: str, *, max_bytes: int = MAX_DOWNLOAD_BYTES) -> bytes:
     encoded_id = quote(file_id, safe="")
     headers = {"Authorization": "Bearer " + access_token}
     if mime_type in GOOGLE_DOC_MIMES:
@@ -589,11 +590,11 @@ def _download_drive_file(access_token: str, file_id: str, mime_type: str) -> byt
         with client.stream("GET", url, params=params, headers=headers) as response:
             response.raise_for_status()
             content_length = response.headers.get("content-length")
-            if content_length and int(content_length) > MAX_DOWNLOAD_BYTES:
+            if content_length and int(content_length) > max_bytes:
                 raise ValueError("Google Drive file exceeds the 10 MB import limit")
             for chunk in response.iter_bytes():
                 total += len(chunk)
-                if total > MAX_DOWNLOAD_BYTES:
+                if total > max_bytes:
                     raise ValueError("Google Drive file exceeds the 10 MB import limit")
                 chunks.append(chunk)
     return b"".join(chunks)
