@@ -35,6 +35,19 @@ def validate_media_content(mime_type: str, content: bytes) -> dict:
             raise UnsupportedMedia("image MIME type does not match its content")
         return {"media_type": "photo", "width_checked": True}
 
+    if mime in {"image/heic", "image/heif", "image/avif"}:
+        if len(content) < 16 or content[4:8] != b"ftyp":
+            raise UnsupportedMedia("HEIC/HEIF/AVIF bytes failed ISO-BMFF validation")
+        brand = content[8:12]
+        accepted = {
+            "image/heic": {b"heic", b"heix", b"hevc", b"hevx", b"mif1"},
+            "image/heif": {b"heic", b"heix", b"mif1", b"msf1"},
+            "image/avif": {b"avif", b"avis", b"mif1"},
+        }
+        if brand not in accepted[mime]:
+            raise UnsupportedMedia("HEIC/HEIF/AVIF brand does not match MIME type")
+        return {"media_type": "photo", "container_checked": True}
+
     if mime in {"audio/wav", "audio/x-wav"}:
         try:
             with wave.open(io.BytesIO(content), "rb") as audio:
@@ -44,6 +57,10 @@ def validate_media_content(mime_type: str, content: bytes) -> dict:
             raise UnsupportedMedia("WAV bytes failed format validation") from exc
         return {"media_type": "audio"}
 
+    if mime in {"audio/aac", "audio/aacp"}:
+        if len(content) < 7 or content[0] != 0xFF or content[1] & 0xF6 != 0xF0:
+            raise UnsupportedMedia("AAC bytes failed ADTS validation")
+        return {"media_type": "audio"}
     if mime in {"audio/mpeg", "audio/mp3"}:
         if not (content.startswith(b"ID3") or
                 (len(content) > 1 and content[0] == 0xFF and content[1] & 0xE0 == 0xE0)):
@@ -62,6 +79,11 @@ def validate_media_content(mime_type: str, content: bytes) -> dict:
         if len(content) < 12 or content[4:8] != b"ftyp":
             raise UnsupportedMedia("MP4/MOV bytes failed container validation")
         return {"media_type": "video" if mime.startswith("video/") else "audio"}
+    if mime in {"video/3gpp", "video/3gpp2"}:
+        if len(content) < 12 or content[4:8] != b"ftyp":
+            raise UnsupportedMedia("3GPP video bytes failed container validation")
+        return {"media_type": "video"}
+
     if mime in {"video/x-matroska", "video/webm"}:
         if not content.startswith(bytes.fromhex("1A45DFA3")):
             raise UnsupportedMedia("Matroska/WebM bytes failed container validation")
