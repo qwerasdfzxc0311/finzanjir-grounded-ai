@@ -29,8 +29,8 @@ def test_normalizer_accepts_reviewed_language_aliases_without_mutating_original(
 def test_character_ngrams_are_deterministic_and_typo_tolerant():
     first = character_ngrams("firibgarlik")
     second = character_ngrams("firibgarlik")
-    near = set(character_ngrams("firibgarlik"))
-    typo = set(character_ngrams("firibgarlik"))
+    near = set(character_ngrams("salomat"))
+    typo = set(character_ngrams("salom"))
     assert first == second
     assert near & typo
     with pytest.raises(ValueError):
