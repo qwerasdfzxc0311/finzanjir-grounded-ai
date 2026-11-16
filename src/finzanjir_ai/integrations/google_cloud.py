@@ -17,7 +17,10 @@ import time
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlencode
+from urllib.parse import urlencode, quote
+
+from .drive_extract import MAX_DOWNLOAD_BYTES, UnsupportedDriveFormat, extract_drive_text
+from .personal_memory import PersonalMemoryStore
 
 import httpx
 from cryptography.fernet import Fernet, InvalidToken
@@ -36,6 +39,11 @@ GOOGLE_TOKEN = "https://oauth2.googleapis.com/token"
 GOOGLE_TOKEN_INFO = "https://oauth2.googleapis.com/tokeninfo"
 GOOGLE_REVOKE = "https://oauth2.googleapis.com/revoke"
 GOOGLE_DRIVE_FILES = "https://www.googleapis.com/drive/v3/files"
+GOOGLE_DOC_MIMES = {
+    "application/vnd.google-apps.document": "text/plain",
+    "application/vnd.google-apps.spreadsheet": "text/csv",
+    "application/vnd.google-apps.presentation": "text/plain",
+}
 
 
 class GoogleConfigError(RuntimeError):
