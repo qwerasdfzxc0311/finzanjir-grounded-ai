@@ -161,3 +161,42 @@ def test_gateway_logs_safe_http_status_for_request_rejection(caplog, monkeypatch
     assert "not-a-real-test-secret" not in caplog.text
     assert "private prompt" not in caplog.text
     assert "private user text" not in caplog.text
+
+
+def test_explicit_offline_policy_disables_all_hosted_providers_even_with_keys():
+    gateway = LLMGateway(environ={
+        "FINZANJIR_LLM_PROVIDER": "offline",
+        "GEMINI_API_KEY": "must-not-be-used",
+        "OPENROUTER_API_KEY": "must-not-be-used",
+    })
+    assert gateway.configured_providers() == ()
+    assert gateway.generate_json(system="system", prompt="prompt") is None
+    assert gateway.last_status == "offline_mode"
+    assert gateway.last_provider_failures == []
+
+
+def test_offline_query_expansion_never_calls_network(monkeypatch):
+    gateway = LLMGateway(environ={
+        "FINZANJIR_LLM_PROVIDER": "offline",
+        "GEMINI_API_KEY": "must-not-be-used",
+        "OPENROUTER_API_KEY": "must-not-be-used",
+    })
+
+    def forbidden_network_call(*_args, **_kwargs):
+        raise AssertionError("offline mode attempted a hosted provider call")
+
+    monkeypatch.setattr(gateway, "_generate_with", forbidden_network_call)
+    assert gateway.expand_question("FINZANJIR nima uchun kerak?") == ()
+    assert gateway.last_status == "offline_mode"
+
+
+def test_none_and_disabled_are_explicit_offline_aliases():
+    for policy in ("none", "disabled"):
+        gateway = LLMGateway(environ={
+            "FINZANJIR_LLM_PROVIDER": policy,
+            "GEMINI_API_KEY": "must-not-be-used",
+        })
+        assert gateway.configured_providers() == ()
+        assert gateway.generate_json(system="system", prompt="prompt") is None
+        assert gateway.last_status == "offline_mode"
+
