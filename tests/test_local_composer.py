@@ -43,7 +43,9 @@ def test_composer_selects_relevant_grounded_statements_and_citations():
     assert result.generation_mode == "local_composed_grounded"
     assert "FINZANJIR shubhali pul oqimlarini tahlil qilishga qaratilgan loyiha." in result.answer
     assert "Astronomiya" not in result.answer
-    assert result.citations == ("risk-1",)
+    assert "risk-1" in result.citations
+    assert "risk-2" in result.citations
+    assert "unrelated" not in result.citations
 
 
 def test_composer_uses_aliases_but_preserves_original_source_text():
