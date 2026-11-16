@@ -70,7 +70,17 @@ class AutonomousCycleSupervisor:
         ):
             return {"status": "not_claimed", "job_id": job_id}
 
-        checkpoint = self.store.get_checkpoint(job_id)
+        try:
+            checkpoint = self.store.get_checkpoint(job_id)
+        except (ValueError, TypeError):
+            finished = self.clock()
+            self.store.finish_job(
+                job_id, started_at=started, finished_at=finished, status="failed",
+                detail="Checkpoint buzilgan; avtomatik qayta yozilmadi.",
+                next_run_delay_minutes=self.policy.rest_minutes,
+            )
+            return {"job_id": job_id, "status": "failed", "checkpoint_retained": True,
+                    "detail": "Checkpoint buzilgan; operator tekshiruvi kerak."}
         deadline = self.monotonic() + self.policy.work_seconds
         items = 0
         byte_count = 0
@@ -101,7 +111,12 @@ class AutonomousCycleSupervisor:
                 status = "failed"
                 detail = "Ishchi manfiy hisoblagich qaytardi."
                 break
-            self.store.save_checkpoint(job_id, result.checkpoint, now=self.clock())
+            try:
+                self.store.save_checkpoint(job_id, result.checkpoint, now=self.clock())
+            except (TypeError, ValueError) as exc:
+                status = "failed"
+                detail = f"Checkpoint saqlanmadi: {type(exc).__name__}"
+                break
             checkpoint = result.checkpoint
             items += result.items
             byte_count += result.bytes_processed
