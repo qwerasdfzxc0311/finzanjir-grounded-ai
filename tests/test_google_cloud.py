@@ -1,5 +1,6 @@
 import hashlib
 import time
+from urllib.parse import parse_qs, urlsplit
 
 import pytest
 from cryptography.fernet import Fernet
