@@ -44,6 +44,31 @@ class PersonalMemoryStore:
                 );
                 CREATE INDEX IF NOT EXISTS idx_personal_memory_owner_status
                 ON personal_memory_sources(owner_email, status, imported_at);
+                CREATE TABLE IF NOT EXISTS google_photos_picker_sessions (
+                    session_id TEXT PRIMARY KEY,
+                    owner_email TEXT NOT NULL,
+                    account_id TEXT NOT NULL,
+                    picker_uri TEXT NOT NULL,
+                    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    status TEXT NOT NULL DEFAULT 'created',
+                    UNIQUE(owner_email, account_id, session_id)
+                );
+                CREATE TABLE IF NOT EXISTS personal_memory_media (
+                    media_id TEXT PRIMARY KEY,
+                    owner_email TEXT NOT NULL,
+                    provider TEXT NOT NULL,
+                    account_id TEXT NOT NULL,
+                    remote_media_id TEXT NOT NULL,
+                    file_name TEXT NOT NULL,
+                    mime_type TEXT NOT NULL,
+                    media_type TEXT NOT NULL,
+                    content_sha256 TEXT NOT NULL,
+                    media_ciphertext BLOB NOT NULL,
+                    metadata_json TEXT NOT NULL,
+                    status TEXT NOT NULL DEFAULT 'quarantined',
+                    imported_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(owner_email, provider, account_id, remote_media_id)
+                );
             """)
         try:
             os.chmod(self.path, 0o600)
@@ -112,6 +137,108 @@ class PersonalMemoryStore:
         return {
             "source_id": source_id, "content_sha256": digest,
             "status": "quarantined", "requires_owner_review": True,
+        }
+
+
+    def save_picker_session(self, owner_email: str, account_id: str,
+                            session_id: str, picker_uri: str) -> None:
+        with self._db() as db:
+            db.execute("""
+                INSERT INTO google_photos_picker_sessions
+                    (session_id, owner_email, account_id, picker_uri, status)
+                VALUES (?, ?, ?, ?, 'created')
+            """, (session_id, owner_email.casefold(), account_id, picker_uri))
+
+    def get_picker_session(self, owner_email: str, account_id: str,
+                           session_id: str) -> dict[str, Any] | None:
+        with self._db() as db:
+            row = db.execute("""
+                SELECT session_id, picker_uri, status, created_at
+                FROM google_photos_picker_sessions
+                WHERE owner_email=? AND account_id=? AND session_id=?
+            """, (owner_email.casefold(), account_id, session_id)).fetchone()
+        return dict(row) if row else None
+
+    def set_picker_session_status(self, owner_email: str, account_id: str,
+                                  session_id: str, status: str) -> bool:
+        if status not in {"created", "ready", "deleted", "expired"}:
+            raise ValueError("invalid picker session status")
+        with self._db() as db:
+            changed = db.execute("""
+                UPDATE google_photos_picker_sessions SET status=?
+                WHERE owner_email=? AND account_id=? AND session_id=?
+            """, (status, owner_email.casefold(), account_id, session_id)).rowcount
+        return changed == 1
+
+    def quarantine_media(
+        self, *, owner_email: str, account_id: str, remote_media_id: str,
+        file_name: str, mime_type: str, media_type: str, content: bytes,
+        metadata: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        if media_type not in {"photo", "video", "audio", "image", "document"}:
+            raise ValueError("unsupported media type")
+        if not content or len(content) > 100 * 1024 * 1024:
+            raise ValueError("media must be between 1 byte and 100 MB")
+        digest = hashlib.sha256(content).hexdigest()
+        encrypted = self.cipher.encrypt(content)
+        media_id = hashlib.sha256(
+            f"{owner_email.casefold()}|google_photos|{account_id}|{remote_media_id}".encode()
+        ).hexdigest()
+        safe_meta = {
+            "provider": "google_photos", "account_id": account_id,
+            "remote_media_id": remote_media_id, **(metadata or {}),
+        }
+        with self._db() as db:
+            db.execute("""
+                INSERT INTO personal_memory_media
+                    (media_id, owner_email, provider, account_id, remote_media_id,
+                     file_name, mime_type, media_type, content_sha256,
+                     media_ciphertext, metadata_json, status)
+                VALUES (?, ?, 'google_photos', ?, ?, ?, ?, ?, ?, ?, ?, 'quarantined')
+                ON CONFLICT(owner_email, provider, account_id, remote_media_id)
+                DO UPDATE SET file_name=excluded.file_name,
+                    mime_type=excluded.mime_type, media_type=excluded.media_type,
+                    content_sha256=excluded.content_sha256,
+                    media_ciphertext=excluded.media_ciphertext,
+                    metadata_json=excluded.metadata_json, status='quarantined',
+                    imported_at=CURRENT_TIMESTAMP
+            """, (
+                media_id, owner_email.casefold(), account_id, remote_media_id,
+                file_name[:255], mime_type[:200], media_type, digest, encrypted,
+                json.dumps(safe_meta, ensure_ascii=False, sort_keys=True),
+            ))
+        return {"media_id": media_id, "content_sha256": digest,
+                "status": "quarantined", "requires_owner_review": True}
+
+    def list_media(self, owner_email: str, *, limit: int = 100) -> list[dict[str, Any]]:
+        if not 1 <= limit <= 200:
+            raise ValueError("limit must be between 1 and 200")
+        with self._db() as db:
+            rows = db.execute("""
+                SELECT media_id, provider, account_id, file_name, mime_type,
+                       media_type, content_sha256, status, imported_at
+                FROM personal_memory_media WHERE owner_email=?
+                ORDER BY imported_at DESC LIMIT ?
+            """, (owner_email.casefold(), limit)).fetchall()
+        return [dict(row) for row in rows]
+
+    def read_media(self, owner_email: str, media_id: str) -> dict[str, Any] | None:
+        with self._db() as db:
+            row = db.execute("""
+                SELECT * FROM personal_memory_media
+                WHERE owner_email=? AND media_id=?
+            """, (owner_email.casefold(), media_id)).fetchone()
+        if row is None:
+            return None
+        try:
+            content = self.cipher.decrypt(bytes(row["media_ciphertext"]))
+        except (InvalidToken, ValueError) as exc:
+            raise RuntimeError("Personal media failed integrity/decryption check") from exc
+        return {
+            "media_id": row["media_id"], "file_name": row["file_name"],
+            "mime_type": row["mime_type"], "media_type": row["media_type"],
+            "content_sha256": row["content_sha256"], "status": row["status"],
+            "metadata": json.loads(row["metadata_json"]), "content": content,
         }
 
     def list_sources(self, owner_email: str, *, limit: int = 100) -> list[dict[str, Any]]:
