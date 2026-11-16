@@ -544,3 +544,143 @@ def google_drive_files(
         "next_page_token": body.get("nextPageToken"),
         "read_only": True,
     }
+
+def _personal_memory_store(cfg: dict[str, str]) -> PersonalMemoryStore:
+    return PersonalMemoryStore(
+        cfg["FINZANJIR_PERSONAL_MEMORY_DB_PATH"],
+        cfg["FINZANJIR_TOKEN_ENCRYPTION_KEY"],
+    )
+
+
+def _google_access_token(cfg: dict[str, str], refresh_token: str) -> str:
+    with httpx.Client(timeout=httpx.Timeout(20, connect=5), follow_redirects=False) as client:
+        response = client.post(GOOGLE_TOKEN, data={
+            "client_id": cfg["FINZANJIR_GOOGLE_CLIENT_ID"],
+            "client_secret": cfg["FINZANJIR_GOOGLE_CLIENT_SECRET"],
+            "refresh_token": refresh_token,
+            "grant_type": "refresh_token",
+        })
+        response.raise_for_status()
+        token = response.json().get("access_token")
+    if not token:
+        raise ValueError("Google did not return an access token")
+    return token
+
+
+def _download_drive_file(access_token: str, file_id: str, mime_type: str) -> bytes:
+    encoded_id = quote(file_id, safe="")
+    headers = {"Authorization": "Bearer " + access_token}
+    if mime_type in GOOGLE_DOC_MIMES:
+        url = "https://www.googleapis.com/drive/v3/files/" + encoded_id + "/export"
+        params = {"mimeType": GOOGLE_DOC_MIMES[mime_type]}
+    else:
+        url = "https://www.googleapis.com/drive/v3/files/" + encoded_id
+        params = {"alt": "media"}
+    chunks: list[bytes] = []
+    total = 0
+    with httpx.Client(timeout=httpx.Timeout(30, connect=5), follow_redirects=False) as client:
+        with client.stream("GET", url, params=params, headers=headers) as response:
+            response.raise_for_status()
+            content_length = response.headers.get("content-length")
+            if content_length and int(content_length) > MAX_DOWNLOAD_BYTES:
+                raise ValueError("Google Drive file exceeds the 10 MB import limit")
+            for chunk in response.iter_bytes():
+                total += len(chunk)
+                if total > MAX_DOWNLOAD_BYTES:
+                    raise ValueError("Google Drive file exceeds the 10 MB import limit")
+                chunks.append(chunk)
+    return b"".join(chunks)
+
+
+@router.post("/accounts/{account_id}/drive/files/{file_id}/import")
+def google_drive_import_file(account_id: str, file_id: str, request: Request):
+    """Import one owner-selected Drive file into encrypted quarantine, never auto-KB."""
+    try:
+        cfg = _config()
+        store = _store(cfg)
+    except (GoogleConfigError, OSError, ValueError) as exc:
+        raise HTTPException(status_code=503, detail="Google xotira ombori sozlanmagan.") from exc
+    _require_same_origin(request)
+    _read_session(request, cfg, store)
+    secret = store.account_secret(cfg["FINZANJIR_OWNER_EMAIL"], account_id)
+    if not secret:
+        raise HTTPException(status_code=404, detail="Google akkaunt ulanmagan.")
+    refresh_token, scopes = secret
+    if SERVICE_SCOPES["drive"][0] not in scopes:
+        raise HTTPException(status_code=403, detail="Bu akkauntda Google Drive o‘qish ruxsati yo‘q.")
+    try:
+        access_token = _google_access_token(cfg, refresh_token)
+        with httpx.Client(timeout=20, follow_redirects=False) as client:
+            metadata_response = client.get(
+                GOOGLE_DRIVE_FILES + "/" + quote(file_id, safe=""),
+                params={"fields": "id,name,mimeType,modifiedTime,size,trashed"},
+                headers={"Authorization": "Bearer " + access_token},
+            )
+            metadata_response.raise_for_status()
+            metadata = metadata_response.json()
+        if metadata.get("trashed") or metadata.get("id") != file_id:
+            raise HTTPException(status_code=404, detail="Drive fayli mavjud emas yoki savatda.")
+        if int(metadata.get("size") or 0) > MAX_DOWNLOAD_BYTES:
+            raise HTTPException(status_code=413, detail="Fayl 10 MB import limitidan katta.")
+        mime_type = str(metadata.get("mimeType") or "")
+        supported = set(GOOGLE_DOC_MIMES) | {
+            "text/plain", "text/markdown", "text/csv", "application/json",
+            "application/xml", "application/pdf",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        }
+        if mime_type not in supported:
+            raise HTTPException(status_code=415, detail="Bu fayl turi hozircha matnga aylantirish uchun qo‘llanmaydi.")
+        content = _download_drive_file(access_token, file_id, mime_type)
+        extracted = extract_drive_text(str(metadata.get("name") or file_id), mime_type, content)
+        memory = _personal_memory_store(cfg)
+        result = memory.quarantine(
+            owner_email=cfg["FINZANJIR_OWNER_EMAIL"],
+            account_id=account_id,
+            remote_file_id=file_id,
+            file_name=str(metadata.get("name") or file_id),
+            mime_type=mime_type,
+            modified_time=metadata.get("modifiedTime"),
+            extracted_text=extracted["text"],
+            metadata={
+                "extractor": extracted["extractor"],
+                "source_link": "https://drive.google.com/open?id=" + quote(file_id, safe=""),
+            },
+        )
+    except HTTPException:
+        raise
+    except UnsupportedDriveFormat as exc:
+        raise HTTPException(status_code=415, detail=str(exc)) from exc
+    except (httpx.HTTPError, KeyError, ValueError, RuntimeError) as exc:
+        raise HTTPException(status_code=502, detail="Drive faylini xavfsiz import qilish bajarilmadi: " + type(exc).__name__) from exc
+    return {
+        **result, "file_name": str(metadata.get("name") or file_id),
+        "mime_type": mime_type, "extracted_characters": len(extracted["text"]),
+        "message": "Fayl shifrlangan shaxsiy xotira karantiniga saqlandi; asosiy bilim bazasiga avtomatik qo‘shilmadi.",
+    }
+
+
+@router.get("/memory/sources")
+def google_personal_memory_sources(request: Request, limit: int = Query(default=100, ge=1, le=200)):
+    try:
+        cfg = _config()
+        store = _store(cfg)
+        memory = _personal_memory_store(cfg)
+    except (GoogleConfigError, OSError, ValueError) as exc:
+        raise HTTPException(status_code=503, detail="Shaxsiy xotira ombori sozlanmagan.") from exc
+    _read_session(request, cfg, store)
+    return {"sources": memory.list_sources(cfg["FINZANJIR_OWNER_EMAIL"], limit=limit)}
+
+
+@router.get("/memory/sources/{source_id}")
+def google_personal_memory_read(source_id: str, request: Request):
+    try:
+        cfg = _config()
+        store = _store(cfg)
+        memory = _personal_memory_store(cfg)
+    except (GoogleConfigError, OSError, ValueError) as exc:
+        raise HTTPException(status_code=503, detail="Shaxsiy xotira ombori sozlanmagan.") from exc
+    _read_session(request, cfg, store)
+    source = memory.read_source(cfg["FINZANJIR_OWNER_EMAIL"], source_id)
+    if source is None:
+        raise HTTPException(status_code=404, detail="Shaxsiy xotira manbasi topilmadi.")
+    return source
