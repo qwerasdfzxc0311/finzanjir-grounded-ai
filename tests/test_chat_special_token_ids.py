@@ -51,7 +51,7 @@ def test_special_token_ids_are_reserved_after_base_vocabulary():
     ids = tokenizer.special_token_ids
     assert tuple(ids) == SPECIAL_TOKEN_TEXT
     assert tuple(ids.values()) == tuple(range(tokenizer.vocab_size, tokenizer.total_vocab_size))
-    assert len(set(ids.values())) == 3
+    assert len(set(ids.values())) == 4
 
 
 def test_chat_round_trip_uses_special_ids_and_preserves_multilingual_content():
