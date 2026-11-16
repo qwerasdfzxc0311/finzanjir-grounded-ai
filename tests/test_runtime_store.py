@@ -29,10 +29,13 @@ def test_due_job_claim_is_exclusive_and_pause_resume_preserves_active_lease(tmp_
     assert ledger.claim_job("job-1", now=NOW, lease_seconds=600)
     assert not ledger.claim_job("job-1", now=NOW)
     ledger.pause("job-1")
-    assert ledger.due_jobs(now=NOW + timedelta(hours=1)) == []
-    ledger.resume("job-1", now=NOW + timedelta(hours=1))
-    assert ledger.due_jobs(now=NOW + timedelta(hours=1)) == []
-    assert len(ledger.due_jobs(now=NOW + timedelta(hours=1, seconds=1))) == 1
+    paused_at = NOW + timedelta(minutes=5)
+    assert ledger.due_jobs(now=paused_at) == []
+    ledger.resume("job-1", now=paused_at)
+    # Resume must preserve the still-active lease; only after it expires may
+    # another worker claim the job.
+    assert ledger.due_jobs(now=paused_at) == []
+    assert len(ledger.due_jobs(now=NOW + timedelta(minutes=10, seconds=1))) == 1
 
 
 def test_expired_lease_can_be_reclaimed(tmp_path):
