@@ -1199,3 +1199,17 @@ def google_gateway_status(request: Request):
         "memory_source_count": len(memory.list_sources(cfg["FINZANJIR_OWNER_EMAIL"], limit=200)),
         "memory_media_count": len(memory.list_media(cfg["FINZANJIR_OWNER_EMAIL"], limit=200)),
     }
+
+
+@router.get("/memory/audit")
+def google_personal_memory_audit(
+    request: Request, limit: int = Query(default=100, ge=1, le=200)
+):
+    try:
+        cfg = _config()
+        store = _store(cfg)
+        memory = _personal_memory_store(cfg)
+    except (GoogleConfigError, OSError, ValueError) as exc:
+        raise HTTPException(status_code=503, detail="Shaxsiy xotira auditi sozlanmagan.") from exc
+    _read_session(request, cfg, store)
+    return {"events": memory.audit_events(cfg["FINZANJIR_OWNER_EMAIL"], limit=limit)}
