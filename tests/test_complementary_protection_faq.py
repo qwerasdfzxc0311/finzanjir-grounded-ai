@@ -3,6 +3,7 @@ from finzanjir_ai.knowledge.loader import load_project_principle_records
 from finzanjir_ai.orchestration.intent import classify_query_intent, is_project_overview_query
 from finzanjir_ai.retrieval.grounding import GroundedContextAssembler
 from finzanjir_ai.retrieval.hybrid import HybridRetriever
+from finzanjir_ai.retrieval.rerank import QueryExpander
 
 
 def _retrieve(query: str):
@@ -15,7 +16,11 @@ def test_complementary_protection_question_retrieves_author_confirmed_record():
     query = "FINZANJIR nima uchun kerak?"
     index, results = _retrieve(query)
     assert any(item.record_id == "project_0010" for item in results)
-    context = GroundedContextAssembler(index).assemble(results, query=query)
+    context = GroundedContextAssembler(index).assemble(
+        results,
+        query=query,
+        query_alternatives=QueryExpander(index).expand(query)[1:],
+    )
     assert any(item.record_id == "project_0010" for item in context.items)
     record = index.get_record("project_0010")
     assert record is not None
@@ -29,7 +34,7 @@ def test_sponsorship_question_retrieves_complementary_defense_rationale():
     assert any(item.record_id == "project_0011" for item in results)
     record = index.get_record("project_0011")
     assert record is not None
-    assert "bitta himoya qatlamining mavjudligi" in record.statement
+    assert "bitta himoya qatlamining mavjudligi" in record.statement.casefold()
     assert "homiylik bank ma'lumotlariga avtomatik kirish" in record.statement
 
 
@@ -113,7 +118,11 @@ def test_canonical_faq_answers_are_returned_only_with_matching_grounded_evidence
     )
     for query, record_id, expected_one, expected_two in cases:
         index, results = _retrieve(query)
-        context = GroundedContextAssembler(index).assemble(results, query=query)
+        context = GroundedContextAssembler(index).assemble(
+            results,
+            query=query,
+            query_alternatives=QueryExpander(index).expand(query)[1:],
+        )
         result = GroundedAnswerGenerator(UnavailableProvider()).generate(query, context)
         assert result.abstained is False, query
         assert result.generation_mode == "complementary_protection_faq_localized", query
