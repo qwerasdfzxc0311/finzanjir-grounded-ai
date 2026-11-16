@@ -281,7 +281,7 @@ def test_follow_up_uses_latest_topic_anchor_not_every_older_topic():
     assert context.is_follow_up is True
     assert "FINZANJIR muallifi kim?" in context.contextual_query
     assert "Toshbaqa qancha yil umr ko'radi?" not in context.contextual_query
-    assert "Onasi haqida nima yozilgan?" not in context.contextual_query
+    assert "Onasi haqida nima yozilgan?" not in context.context_text
 
 
 def test_explicit_topic_switch_does_not_inherit_old_topic():
