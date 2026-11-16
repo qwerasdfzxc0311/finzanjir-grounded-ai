@@ -654,6 +654,7 @@ def google_drive_import_file(account_id: str, file_id: str, request: Request):
             "text/plain", "text/markdown", "text/csv", "application/json",
             "application/xml", "application/pdf",
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         }
         if mime_type not in supported:
             raise HTTPException(status_code=415, detail="Bu fayl turi hozircha matnga aylantirish uchun qo‘llanmaydi.")
