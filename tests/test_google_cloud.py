@@ -103,6 +103,7 @@ def test_oauth_url_uses_pkce_and_fixed_redirect_uri():
     url = _authorization_url(cfg, "state-value", "very-long-verifier", "nonce-value", ("openid", "email"))
     assert "code_challenge_method=S256" in url
     assert "state=state-value" in url
+    assert "nonce=nonce-value" in url
     assert "redirect_uri=https%3A%2F%2Fapi.example.com" in url
 
 
