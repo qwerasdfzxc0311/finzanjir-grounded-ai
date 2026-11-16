@@ -52,13 +52,26 @@ def normalize_conversation_history(history: Any) -> tuple[dict[str, str], ...]:
     return tuple(normalized[-MAX_CONVERSATION_TURNS:])
 
 
+_TOPIC_SWITCH_RE = re.compile(
+    r"^(?:endi boshqa mavzu|boshqa mavzu|alohida savol|"
+    r"now another topic|new topic|unrelated question|"
+    r"другая тема|отдельный вопрос)\b",
+    re.IGNORECASE,
+)
+_CORRECTION_RE = re.compile(
+    r"^(?:yo['ʻ’]?q|нет|no|aksincha|to['ʻ’]?g['ʻ’]?risi)\b|"
+    r"\b(?:men .{0,40} nazarda tutdim|I meant|я имел в виду)\b",
+    re.IGNORECASE,
+)
+
+
 def is_context_dependent_query(query: str) -> bool:
     value = str(query or "").strip().casefold()
-    if not value:
+    if not value or _TOPIC_SWITCH_RE.search(value):
         return False
     if re.fullmatch(r"(?:nega|nima uchun|nima sababdan|why|почему|не үшін)[?!.,\s]*", value):
         return True
-    return bool(_FOLLOW_UP_RE.search(value))
+    return bool(_FOLLOW_UP_RE.search(value) or _CORRECTION_RE.search(value))
 
 
 def build_conversation_context(query: str, history: Any) -> ConversationContext:
@@ -79,7 +92,17 @@ def build_conversation_context(query: str, history: Any) -> ConversationContext:
     elif re.search(r"(?<!\w)(?:ikkinchi|second|второй|екінші|ekinshi)(?!\w)", current, re.IGNORECASE):
         selected = turns[2:4]
     else:
-        selected = turns[-4:]
+        # Anchor the follow-up to the latest independent user question, not
+        # every earlier topic in the chat. Keep that anchor plus recent turns.
+        anchor_index = None
+        for index, item in enumerate(turns):
+            if item["role"] == "user" and not is_context_dependent_query(item["content"]):
+                anchor_index = index
+        if anchor_index is None:
+            selected = turns[-4:]
+        else:
+            recent_start = max(anchor_index + 1, len(turns) - 3)
+            selected = [turns[anchor_index], *turns[recent_start:]]
     role_labels = {
         "user": "Foydalanuvchi",
         "assistant": "Oldingi AI javobi (ishonchsiz kontekst)",
