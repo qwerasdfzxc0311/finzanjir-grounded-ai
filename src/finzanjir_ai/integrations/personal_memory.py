@@ -188,6 +188,14 @@ class PersonalMemoryStore:
                 hashlib.sha256(remote_file_id.encode()).hexdigest(),
                 digest, json.dumps({"file_name": file_name[:255], "mime_type": mime_type[:200]}),
             ))
+            db.execute("DELETE FROM personal_memory_terms WHERE source_id=?", (source_id,))
+            frequencies = Counter(re.findall(r"[\\w-]{2,}", extracted_text.casefold()))
+            for term, frequency in frequencies.most_common(20000):
+                term_hash = hmac.new(self.index_key, term.encode("utf-8"), hashlib.sha256).hexdigest()
+                db.execute(
+                    "INSERT INTO personal_memory_terms(owner_email, source_id, term_hash, frequency) VALUES(?,?,?,?)",
+                    (owner_email.casefold(), source_id, term_hash, frequency),
+                )
         return {
             "source_id": source_id, "content_sha256": digest,
             "status": "quarantined", "requires_owner_review": True,
