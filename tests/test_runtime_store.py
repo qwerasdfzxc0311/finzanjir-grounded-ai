@@ -22,16 +22,17 @@ def test_jobs_are_disabled_by_default_and_hourly_minimum_enforced(tmp_path):
         ledger.register_job("too-fast", "source-1", interval_minutes=30, now=NOW)
 
 
-def test_due_job_claim_is_exclusive_and_pause_resume_works(tmp_path):
+def test_due_job_claim_is_exclusive_and_pause_resume_preserves_active_lease(tmp_path):
     ledger = store(tmp_path)
     ledger.register_job("job-1", "source-1", enabled=True, now=NOW)
     assert len(ledger.due_jobs(now=NOW)) == 1
-    assert ledger.claim_job("job-1", now=NOW)
+    assert ledger.claim_job("job-1", now=NOW, lease_seconds=600)
     assert not ledger.claim_job("job-1", now=NOW)
     ledger.pause("job-1")
     assert ledger.due_jobs(now=NOW + timedelta(hours=1)) == []
     ledger.resume("job-1", now=NOW + timedelta(hours=1))
-    assert len(ledger.due_jobs(now=NOW + timedelta(hours=1))) == 1
+    assert ledger.due_jobs(now=NOW + timedelta(hours=1)) == []
+    assert len(ledger.due_jobs(now=NOW + timedelta(hours=1, seconds=1))) == 1
 
 
 def test_expired_lease_can_be_reclaimed(tmp_path):
@@ -89,3 +90,8 @@ def test_job_registration_does_not_reenable_existing_disabled_job(tmp_path):
     ledger.set_enabled("job-1", False)
     updated = ledger.register_job("job-1", "source-1", enabled=True, now=NOW)
     assert not updated.enabled
+
+
+def test_in_memory_database_is_rejected_to_preserve_runtime_state():
+    with pytest.raises(ValueError):
+        LocalResearchRuntimeStore(":memory:")
