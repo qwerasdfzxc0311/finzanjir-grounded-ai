@@ -667,6 +667,68 @@ def google_drive_import_file(account_id: str, file_id: str, request: Request):
     }
 
 
+
+@router.post("/accounts/{account_id}/drive/files/{file_id}/import-media")
+def google_drive_import_media(account_id: str, file_id: str, request: Request):
+    """Import a selected image/audio/video file into encrypted private media storage."""
+    try:
+        cfg = _config()
+        store = _store(cfg)
+        memory = _personal_memory_store(cfg)
+    except (GoogleConfigError, OSError, ValueError) as exc:
+        raise HTTPException(status_code=503, detail="Google media xotira ombori sozlanmagan.") from exc
+    _require_same_origin(request)
+    _read_session(request, cfg, store)
+    secret = store.account_secret(cfg["FINZANJIR_OWNER_EMAIL"], account_id)
+    if not secret:
+        raise HTTPException(status_code=404, detail="Google akkaunt ulanmagan.")
+    if SERVICE_SCOPES["drive"][0] not in secret[1]:
+        raise HTTPException(status_code=403, detail="Bu akkauntda Google Drive o‘qish ruxsati yo‘q.")
+    try:
+        access_token = _google_access_token(cfg, secret[0])
+        with httpx.Client(timeout=20, follow_redirects=False) as client:
+            response = client.get(
+                GOOGLE_DRIVE_FILES + "/" + quote(file_id, safe=""),
+                params={"fields": "id,name,mimeType,modifiedTime,size,trashed"},
+                headers={"Authorization": "Bearer " + access_token},
+            )
+            response.raise_for_status()
+            metadata = response.json()
+        if metadata.get("trashed") or metadata.get("id") != file_id:
+            raise HTTPException(status_code=404, detail="Drive media fayli topilmadi yoki savatda.")
+        mime_type = str(metadata.get("mimeType") or "")
+        if not (mime_type.startswith("image/") or mime_type.startswith("audio/") or mime_type.startswith("video/")):
+            raise HTTPException(status_code=415, detail="Faqat rasm, audio va video fayllar qabul qilinadi.")
+        max_bytes = 100 * 1024 * 1024
+        if int(metadata.get("size") or 0) > max_bytes:
+            raise HTTPException(status_code=413, detail="Media fayl 100 MB import limitidan katta.")
+        content = _download_drive_file(access_token, file_id, mime_type, max_bytes=max_bytes)
+        validation = validate_media_content(mime_type, content)
+        result = memory.quarantine_media(
+            owner_email=cfg["FINZANJIR_OWNER_EMAIL"],
+            account_id=account_id, remote_media_id=file_id,
+            file_name=str(metadata.get("name") or file_id),
+            mime_type=mime_type, media_type=validation["media_type"],
+            content=content, provider="google_drive",
+            metadata={
+                "modified_time": metadata.get("modifiedTime"),
+                "source_link": "https://drive.google.com/open?id=" + quote(file_id, safe=""),
+                "validation": validation,
+            },
+        )
+    except HTTPException:
+        raise
+    except UnsupportedMedia as exc:
+        raise HTTPException(status_code=415, detail=str(exc)) from exc
+    except (httpx.HTTPError, KeyError, ValueError, RuntimeError) as exc:
+        raise HTTPException(status_code=502, detail="Drive media faylini xavfsiz import qilish bajarilmadi: " + type(exc).__name__) from exc
+    return {
+        **result, "file_name": str(metadata.get("name") or file_id),
+        "mime_type": mime_type, "bytes_stored": len(content),
+        "message": "Media shifrlangan shaxsiy xotira karantiniga saqlandi; hali AI tomonidan tahlil qilinmadi.",
+    }
+
+
 @router.get("/memory/sources")
 def google_personal_memory_sources(request: Request, limit: int = Query(default=100, ge=1, le=200)):
     try:
