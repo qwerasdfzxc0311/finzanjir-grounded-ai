@@ -18,6 +18,7 @@ from starlette.staticfiles import StaticFiles
 from finzanjir_ai.knowledge.index import KnowledgeIndex
 from finzanjir_ai.prototype.flow import build_system_flow
 from finzanjir_ai.orchestration.engine import FINZANJIRAI, get_finzanjir_ai
+from finzanjir_ai.orchestration.intent import classify_query_intent
 from finzanjir_ai.research.tavily import TavilySearchClient
 from finzanjir_ai.risk.shadow import evaluate_shadow_batch, evaluate_detector_shadow_batch
 from finzanjir_ai.risk.scenarios import build_synthetic_case_signal_events
@@ -183,6 +184,31 @@ def answer(request: AIAnswerRequest) -> dict[str, Any]:
     if not question:
         raise HTTPException(status_code=422, detail="Question must not be empty")
 
+    if classify_query_intent(question) == "web_search":
+        try:
+            research = TavilySearchClient().search(question, max_results=5)
+        except RuntimeError as exc:
+            raise HTTPException(status_code=503, detail="Internet qidiruvi hozir sozlanmagan yoki vaqtincha mavjud emas.") from exc
+        except httpx.HTTPError as exc:
+            raise HTTPException(status_code=502, detail="Internet qidiruv xizmati vaqtincha javob bermadi.") from exc
+        sources = research.get("results", [])
+        summary = (
+            "Internet qidiruvi natijalari. Quyidagi sahifalar tashqi manbalardir; ular FINZANJIRning tasdiqlangan loyiha hujjatlari hisoblanmaydi."
+            if sources else "Internet qidiruvi bajarildi, ammo mos natijalar topilmadi."
+        )
+        return {
+            "answer": summary,
+            "confidence": 0.0,
+            "abstained": not bool(sources),
+            "generation_mode": "web_search",
+            "provider_status": "not_attempted",
+            "provider_diagnostics": [],
+            "knowledge_refs": [],
+            "provenance": [],
+            "runtime_refs": list(request.runtime_refs),
+            "external_sources": sources,
+        }
+
     scope = request.working_memory_scope or (request.runtime_refs[0] if request.runtime_refs else "conversation")
     engine = get_finzanjir_ai(knowledge_index())
     result = engine.answer(
@@ -206,6 +232,7 @@ def answer(request: AIAnswerRequest) -> dict[str, Any]:
             for source in item.provenance
         ],
         "runtime_refs": list(result.runtime_context.runtime_refs),
+        "external_sources": [],
     }
 
 
