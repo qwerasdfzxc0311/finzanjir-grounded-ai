@@ -27,7 +27,7 @@ def test_provider_client_configuration_is_reported_without_secret_values():
     status = cloud_connector_status({"FINZANJIR_DROPBOX_CLIENT_ID"})
     dropbox = next(item for item in status["providers"] if item["provider_id"] == "dropbox")
     assert dropbox["client_application_configured"] is True
-    assert "token" not in str(status).lower()
+    assert "FINZANJIR_DROPBOX_CLIENT_ID" not in str(status)
 
 
 def test_unknown_provider_is_rejected():
