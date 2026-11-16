@@ -5,11 +5,10 @@ It does not create threads, timers, network clients, or background workers.
 """
 from __future__ import annotations
 
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Iterable
-import json
 import os
 import sqlite3
 
@@ -56,9 +55,10 @@ class LocalResearchRuntimeStore:
 
     def __init__(self, path: str | Path):
         self.path = str(path)
-        if self.path != ":memory:":
-            Path(self.path).parent.mkdir(parents=True, exist_ok=True)
-        with self._connect() as db:
+        if self.path == ":memory:":
+            raise ValueError("a persistent filesystem path is required")
+        Path(self.path).parent.mkdir(parents=True, exist_ok=True)
+        with self._connection() as db:
             db.executescript("""
                 CREATE TABLE IF NOT EXISTS research_jobs (
                     job_id TEXT PRIMARY KEY,
@@ -91,14 +91,19 @@ class LocalResearchRuntimeStore:
                     source_mode TEXT NOT NULL
                 );
             """)
-        if self.path != ":memory:":
-            try:
-                os.chmod(self.path, 0o600)
-            except OSError:
-                pass
+        try:
+            os.chmod(self.path, 0o600)
+        except OSError:
+            pass
 
-    def _connect(self):
-        return sqlite3.connect(self.path, timeout=5)
+    @contextmanager
+    def _connection(self):
+        db = sqlite3.connect(self.path, timeout=5)
+        try:
+            with db:
+                yield db
+        finally:
+            db.close()
 
     def register_job(self, job_id: str, source_id: str, *,
                      interval_minutes: int = 360, enabled: bool = False,
@@ -108,7 +113,7 @@ class LocalResearchRuntimeStore:
         if interval_minutes < 60:
             raise ValueError("research jobs may not run more frequently than hourly")
         next_run = _stamp(now)
-        with self._connect() as db:
+        with self._connection() as db:
             db.execute("""
                 INSERT INTO research_jobs
                     (job_id, source_id, interval_minutes, enabled, paused, next_run_at, lease_until)
@@ -120,7 +125,7 @@ class LocalResearchRuntimeStore:
         return self.get_job(job_id)
 
     def get_job(self, job_id: str) -> ResearchJob:
-        with self._connect() as db:
+        with self._connection() as db:
             row = db.execute("""
                 SELECT job_id, source_id, interval_minutes, enabled, paused, next_run_at, lease_until
                 FROM research_jobs WHERE job_id=?
@@ -130,7 +135,7 @@ class LocalResearchRuntimeStore:
         return ResearchJob(row[0], row[1], row[2], bool(row[3]), bool(row[4]), row[5], row[6])
 
     def set_enabled(self, job_id: str, enabled: bool) -> ResearchJob:
-        with self._connect() as db:
+        with self._connection() as db:
             changed = db.execute(
                 "UPDATE research_jobs SET enabled=? WHERE job_id=?",
                 (int(enabled), job_id),
@@ -140,9 +145,10 @@ class LocalResearchRuntimeStore:
         return self.get_job(job_id)
 
     def pause(self, job_id: str) -> ResearchJob:
-        with self._connect() as db:
+        # Keep any active lease: the host must cancel its worker before releasing it.
+        with self._connection() as db:
             changed = db.execute(
-                "UPDATE research_jobs SET paused=1, lease_until=NULL WHERE job_id=?",
+                "UPDATE research_jobs SET paused=1 WHERE job_id=?",
                 (job_id,),
             ).rowcount
         if not changed:
@@ -150,9 +156,10 @@ class LocalResearchRuntimeStore:
         return self.get_job(job_id)
 
     def resume(self, job_id: str, *, now: datetime | None = None) -> ResearchJob:
-        with self._connect() as db:
+        # An existing lease remains effective until the worker finishes or it expires.
+        with self._connection() as db:
             changed = db.execute(
-                "UPDATE research_jobs SET paused=0, next_run_at=?, lease_until=NULL WHERE job_id=?",
+                "UPDATE research_jobs SET paused=0, next_run_at=? WHERE job_id=?",
                 (_stamp(now), job_id),
             ).rowcount
         if not changed:
@@ -163,7 +170,7 @@ class LocalResearchRuntimeStore:
         if limit < 1:
             return []
         instant = _stamp(now)
-        with self._connect() as db:
+        with self._connection() as db:
             rows = db.execute("""
                 SELECT job_id, source_id, interval_minutes, enabled, paused, next_run_at, lease_until
                 FROM research_jobs
@@ -179,24 +186,21 @@ class LocalResearchRuntimeStore:
         if lease_seconds < 1 or lease_seconds > 3600:
             raise ValueError("lease_seconds must be between 1 and 3600")
         instant = _utc(now)
-        with self._connect() as db:
+        with self._connection() as db:
             db.execute("BEGIN IMMEDIATE")
             row = db.execute("""
                 SELECT enabled, paused, next_run_at, lease_until
                 FROM research_jobs WHERE job_id=?
             """, (job_id,)).fetchone()
             if row is None:
-                db.rollback()
                 raise KeyError(job_id)
             lease_expired = row[3] is None or row[3] <= _stamp(instant)
             if not row[0] or row[1] or row[2] > _stamp(instant) or not lease_expired:
-                db.rollback()
                 return False
             lease_until = _stamp(instant + timedelta(seconds=lease_seconds))
             db.execute("UPDATE research_jobs SET lease_until=? WHERE job_id=?",
                        (lease_until, job_id))
-            db.commit()
-            return True
+        return True
 
     def finish_job(self, job_id: str, *, started_at: datetime,
                    finished_at: datetime | None = None, status: str,
@@ -210,14 +214,13 @@ class LocalResearchRuntimeStore:
         finish = _utc(finished_at)
         if finish < start:
             raise ValueError("finished_at cannot precede started_at")
-        with self._connect() as db:
+        with self._connection() as db:
             db.execute("BEGIN IMMEDIATE")
             row = db.execute(
                 "SELECT interval_minutes FROM research_jobs WHERE job_id=?",
                 (job_id,),
             ).fetchone()
             if row is None:
-                db.rollback()
                 raise KeyError(job_id)
             next_run = _stamp(finish + timedelta(minutes=row[0]))
             db.execute("""
@@ -229,13 +232,12 @@ class LocalResearchRuntimeStore:
             db.execute("""
                 UPDATE research_jobs SET next_run_at=?, lease_until=NULL WHERE job_id=?
             """, (next_run, job_id))
-            db.commit()
         return self.get_job(job_id)
 
     def save_candidate(self, candidate: ResearchCandidate, *, source_mode: str) -> None:
         if source_mode not in {"offline_cache", "online"}:
             raise ValueError("source_mode must be offline_cache or online")
-        with self._connect() as db:
+        with self._connection() as db:
             db.execute("""
                 INSERT OR IGNORE INTO quarantined_candidates
                     (candidate_id, source_id, url, title, text, content_hash,
@@ -246,7 +248,7 @@ class LocalResearchRuntimeStore:
                   candidate.discovered_at, candidate.status.value, source_mode))
 
     def get_candidate(self, candidate_id: str) -> StoredCandidate | None:
-        with self._connect() as db:
+        with self._connection() as db:
             row = db.execute("""
                 SELECT candidate_id, source_id, url, title, text, content_hash,
                        discovered_at, status, source_mode
@@ -255,7 +257,7 @@ class LocalResearchRuntimeStore:
         return StoredCandidate(*row) if row else None
 
     def audit_events(self, job_id: str, *, limit: int = 50) -> list[dict]:
-        with self._connect() as db:
+        with self._connection() as db:
             rows = db.execute("""
                 SELECT event_id, job_id, started_at, finished_at, status, items, bytes, detail
                 FROM research_audit WHERE job_id=? ORDER BY event_id DESC LIMIT ?
