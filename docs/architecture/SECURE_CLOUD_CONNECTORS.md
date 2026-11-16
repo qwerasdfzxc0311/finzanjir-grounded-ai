@@ -76,3 +76,5 @@ Additional browser OAuth settings:
 - `FINZANJIR_FRONTEND_URL`: exact HTTPS frontend origin (no path/query).
 - `FINZANJIR_ALLOWED_ORIGINS`: comma-separated exact origin allowlist containing `FINZANJIR_FRONTEND_URL`.
 The OAuth callback redirects to this configured frontend. Without both values, Google OAuth fails closed. Credentialed CORS and the CSRF Origin check use this allowlist.
+
+XLSX and DOCX archives are inspected before parsing: at most 2,000 ZIP entries, 100 MiB total expanded content, 50 MiB per entry, a 200:1 compression-ratio ceiling and no absolute or parent-traversal paths. Google Sheets are exported as XLSX so all worksheets can be read, subject to a 100-sheet and 100,000-cell cap.
