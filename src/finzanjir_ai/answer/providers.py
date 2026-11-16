@@ -25,7 +25,13 @@ class LLMGateway:
         self.last_status = "not_attempted"
         self.last_provider_failures: list[dict[str, str]] = []
 
+    def offline_mode(self) -> bool:
+        preference = self.environ.get("FINZANJIR_LLM_PROVIDER", "auto").strip().casefold()
+        return preference in {"offline", "none", "disabled", "local", "off"}
+
     def configured_providers(self) -> tuple[str, ...]:
+        if self.offline_mode():
+            return ()
         preference = self.environ.get("FINZANJIR_LLM_PROVIDER", "auto").strip().casefold()
         has_gemini = bool(self.environ.get("GEMINI_API_KEY"))
         has_router = bool(self.environ.get("OPENROUTER_API_KEY"))
@@ -64,6 +70,10 @@ class LLMGateway:
         )
 
     def generate_json(self, *, system: str, prompt: str, max_output_tokens: int = 1800) -> dict[str, Any] | None:
+        if self.offline_mode():
+            self.last_status = "offline_mode"
+            self.last_provider_failures = []
+            return None
         providers = self.configured_providers()
         if not providers:
             self.last_status = "not_configured"
@@ -102,6 +112,8 @@ class LLMGateway:
         return None
 
     def _generate_with(self, provider: str, system: str, prompt: str, max_output_tokens: int) -> str:
+        if self.offline_mode():
+            raise RuntimeError("Offline mode prevents hosted provider calls")
         timeout = httpx.Timeout(28.0, connect=6.0)
         if provider == "gemini":
             model = self.environ.get("GEMINI_MODEL", "gemini-3.8-flash")
@@ -171,6 +183,9 @@ class LLMGateway:
         return True
 
     def expand_question(self, question: str) -> tuple[str, ...]:
+        if self.offline_mode():
+            self.last_status = "offline_mode"
+            return ()
         if not self.can_send_text(question):
             self.last_status = "blocked_sensitive"
             return ()
