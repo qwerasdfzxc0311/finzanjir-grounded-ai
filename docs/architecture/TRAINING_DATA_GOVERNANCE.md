@@ -11,7 +11,9 @@ Every example must have:
 - stable source ID and traceable HTTPS or local source URI;
 - verified source status;
 - an explicit training-compatible license;
-- an explicit data class of `public` or `licensed_nonpersonal`.
+- an explicit data class of `public` or `licensed_nonpersonal`;
+- a source type of `public_domain`, `licensed_corpus` or `author_provided`.
+Unknown source types and `hosted_model_output` are rejected.
 
 The initial license allow-list is deliberately narrow: CC0-1.0, CC-BY-4.0, public domain, author-granted permission, and custom training grants. Author-granted and custom grants require a permission reference. Attribution and other license obligations must be preserved in the manifest and any downstream model card.
 
