@@ -148,7 +148,7 @@
               {method:"POST", body:"{}"}
             );
             action.textContent = "Saqlandi";
-            detail.textContent = saved.subject || saved.message;
+            detail.textContent = (saved.subject || "Xat") + " · ilovalar saqlandi: " + (saved.attachments_imported || []).length + " · o‘tkazib yuborildi: " + (saved.attachments_skipped || []).length;
           } catch (error) {
             action.disabled = false;
             action.textContent = "Qayta urinish";
