@@ -105,3 +105,17 @@ def test_personal_memory_rejects_oversized_extracted_text(tmp_path):
             mime_type="text/plain", modified_time=None,
             extracted_text="x" * 2_000_001,
         )
+
+
+def test_personal_memory_keeps_drive_and_gmail_sources_separate(tmp_path):
+    store = PersonalMemoryStore(str(tmp_path / "memory.sqlite"), Fernet.generate_key().decode())
+    common = dict(
+        owner_email="owner@example.com", account_id="acc-1",
+        remote_file_id="same-remote-id", file_name="source",
+        mime_type="text/plain", modified_time=None,
+        extracted_text="Private source text",
+    )
+    drive = store.quarantine(**common, provider="google_drive")
+    gmail = store.quarantine(**common, provider="google_gmail")
+    assert drive["source_id"] != gmail["source_id"]
+    assert len(store.list_sources("owner@example.com")) == 2
