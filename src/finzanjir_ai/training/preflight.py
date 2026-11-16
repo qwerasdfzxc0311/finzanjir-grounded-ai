@@ -31,10 +31,10 @@ class ModelTrainingConfig:
             raise ValueError("vocab_size must be at least 256")
         if self.context_length < 128:
             raise ValueError("context_length must be at least 128")
-        if self.hidden_size < 64 or self.hidden_size % self.attention_heads:
-            raise ValueError("hidden_size must be >=64 and divisible by attention_heads")
         if self.layer_count < 1 or self.attention_heads < 1:
             raise ValueError("layer_count and attention_heads must be positive")
+        if self.hidden_size < 64 or self.hidden_size % self.attention_heads:
+            raise ValueError("hidden_size must be >=64 and divisible by attention_heads")
         if self.pretrained_weights:
             raise ValueError("FINZANJIR first model must start from random initialization")
 
@@ -65,6 +65,7 @@ class TrainingPreflight:
     validation_examples: int
     test_examples: int
     validation_missing_languages: tuple[str, ...]
+    train_missing_languages: tuple[str, ...]
     test_missing_languages: tuple[str, ...]
 
 
@@ -177,6 +178,9 @@ def training_preflight(
     if not required:
         raise ValueError("required_languages must not be empty")
 
+    train_missing = tuple(
+        lang for lang in required if plan.train.counts_by_language.get(lang, 0) == 0
+    )
     validation_missing = tuple(
         lang for lang in required if plan.validation.counts_by_language.get(lang, 0) == 0
     )
@@ -184,8 +188,19 @@ def training_preflight(
         lang for lang in required if plan.test.counts_by_language.get(lang, 0) == 0
     )
     reasons: list[str] = []
+    try:
+        validate_no_source_leakage(plan)
+    except ValueError:
+        reasons.append("source_leakage_detected")
     if not readiness.ready:
         reasons.append("dataset_not_ready")
+    split_total = len(plan.train.examples) + len(plan.validation.examples) + len(plan.test.examples)
+    if split_total != readiness.total_examples:
+        reasons.append("dataset_split_count_mismatch")
+    if not plan.train.examples or not plan.validation.examples or not plan.test.examples:
+        reasons.append("empty_dataset_partition")
+    if train_missing:
+        reasons.append("train_language_coverage_incomplete")
     if validation_missing:
         reasons.append("validation_language_coverage_incomplete")
     if test_missing:
@@ -205,5 +220,6 @@ def training_preflight(
         validation_examples=len(plan.validation.examples),
         test_examples=len(plan.test.examples),
         validation_missing_languages=validation_missing,
+        train_missing_languages=train_missing,
         test_missing_languages=test_missing,
     )
