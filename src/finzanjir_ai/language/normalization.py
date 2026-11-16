@@ -39,7 +39,7 @@ def normalize_multilingual_text(
     value = value.replace("ё", "е")
     value = re.sub(r"[​-‏‪-‮﻿]", "", value)
     value = re.sub(r"[_/\\|]+", " ", value)
-    value = re.sub(r"[^w'\s]", " ", value, flags=re.UNICODE)
+    value = re.sub(r"[^\w'\s]", " ", value, flags=re.UNICODE)
     value = re.sub(r"\s+", " ", value).strip()
     corrections = dict(_DEFAULT_ALIASES)
     if aliases:
