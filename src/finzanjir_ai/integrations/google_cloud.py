@@ -208,9 +208,12 @@ class GoogleAccountStore:
         account_id = hashlib.sha256((owner_email + ":" + google_email).encode()).hexdigest()[:32]
         with self._db() as db:
             existing = db.execute(
-                "SELECT account_id FROM google_accounts WHERE owner_email=? AND google_email=?",
+                "SELECT account_id, scopes_json FROM google_accounts WHERE owner_email=? AND google_email=?",
                 (owner_email, google_email),
             ).fetchone()
+            combined_scopes = set(scopes)
+            if existing:
+                combined_scopes.update(json.loads(existing["scopes_json"]))
             if not existing:
                 count = db.execute(
                     "SELECT COUNT(*) FROM google_accounts WHERE owner_email=? AND status='connected'",
@@ -230,14 +233,14 @@ class GoogleAccountStore:
                     last_seen_at=excluded.last_seen_at,
                     status='connected'
             """, (account_id, owner_email, google_email, display_name[:200],
-                  encrypted, json.dumps(sorted(set(scopes))), stamp, stamp))
+                  encrypted, json.dumps(sorted(combined_scopes)), stamp, stamp))
             db.execute(
                 "INSERT INTO google_cloud_audit(owner_email,account_id,action,occurred_at,detail_json) VALUES(?,?,?,?,?)",
                 (owner_email, account_id, "account_connected", stamp,
-                 json.dumps({"google_email": google_email, "scopes": sorted(set(scopes))})),
+                 json.dumps({"google_email": google_email, "scopes": sorted(combined_scopes)})),
             )
         return {"account_id": account_id, "google_email": google_email,
-                "display_name": display_name[:200], "scopes": sorted(set(scopes)),
+                "display_name": display_name[:200], "scopes": sorted(combined_scopes),
                 "status": "connected", "connected_at": stamp}
 
     def list_accounts(self, owner_email: str) -> list[dict[str, Any]]:
