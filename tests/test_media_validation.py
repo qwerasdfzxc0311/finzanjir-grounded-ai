@@ -48,3 +48,14 @@ def test_mp4_and_webm_container_headers_are_checked():
 def test_media_size_is_bounded():
     with pytest.raises(ValueError):
         validate_media_content("audio/mpeg", b"x" * (100 * 1024 * 1024 + 1))
+
+
+def test_heic_avif_aac_and_3gpp_are_checked_by_container_brand():
+    heic = b"\\x00\\x00\\x00\\x18ftypheic" + b"\\x00" * 20
+    avif = b"\\x00\\x00\\x00\\x18ftypavif" + b"\\x00" * 20
+    aac = b"\\xff\\xf1" + b"\\x00" * 12
+    video = b"\\x00\\x00\\x00\\x18ftyp3gp4" + b"\\x00" * 20
+    assert validate_media_content("image/heic", heic)["media_type"] == "photo"
+    assert validate_media_content("image/avif", avif)["media_type"] == "photo"
+    assert validate_media_content("audio/aac", aac)["media_type"] == "audio"
+    assert validate_media_content("video/3gpp", video)["media_type"] == "video"
