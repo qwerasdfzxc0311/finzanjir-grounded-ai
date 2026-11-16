@@ -7,6 +7,7 @@ from typing import Iterable
 IM_START = "<|im_start|>"
 IM_END = "<|im_end|>"
 IM_SEP = "<|im_sep|>"
+IM_TURN_END = "<|assistant_end|>"
 ALLOWED_ROLES = frozenset({"system", "user", "assistant", "tool"})
 
 
@@ -14,6 +15,7 @@ ALLOWED_ROLES = frozenset({"system", "user", "assistant", "tool"})
 class ChatMessage:
     role: str
     content: str
+    end_of_turn: bool = False
 
 
 def _escape_content(content: str) -> str:
@@ -23,6 +25,7 @@ def _escape_content(content: str) -> str:
         .replace(IM_START, "<\\|im_start|>")
         .replace(IM_END, "<\\|im_end|>")
         .replace(IM_SEP, "<\\|im_sep|>")
+        .replace(IM_TURN_END, "<\\|assistant_end|>")
     )
 
 
@@ -32,15 +35,15 @@ def _unescape_content(content: str) -> str:
         content.replace("<\\|im_start|>", IM_START)
         .replace("<\\|im_end|>", IM_END)
         .replace("<\\|im_sep|>", IM_SEP)
+        .replace("<\\|assistant_end|>", IM_TURN_END)
         .replace("\\\\", "\\")
     )
 
 
 def serialize_chat(messages: Iterable[ChatMessage]) -> str:
-    """Serialize a conversation to FINZANJIR Chat Format v1.
+    """Serialize a complete FINZANJIR conversation.
 
-    This is a plain-text format proposal, not yet a tokenizer special-token
-    implementation and not a training-data ingestion pipeline.
+    IM_END closes a message; IM_TURN_END closes an assistant turn.
     """
     blocks: list[str] = []
     for message in messages:
@@ -50,9 +53,12 @@ def serialize_chat(messages: Iterable[ChatMessage]) -> str:
             raise TypeError("message content must be text")
         if not message.content:
             raise ValueError("message content must not be empty")
+        if message.end_of_turn and message.role != "assistant":
+            raise ValueError("only assistant messages may end an assistant turn")
+        ending = IM_TURN_END if message.end_of_turn else IM_END
         blocks.append(
             f"{IM_START}{message.role}{IM_SEP}\n"
-            f"{_escape_content(message.content)}{IM_END}"
+            f"{_escape_content(message.content)}{ending}"
         )
     if not blocks:
         raise ValueError("conversation must contain at least one message")
@@ -60,7 +66,7 @@ def serialize_chat(messages: Iterable[ChatMessage]) -> str:
 
 
 def parse_chat(serialized: str) -> tuple[ChatMessage, ...]:
-    """Parse a complete v1 conversation; reject malformed or partial input."""
+    """Parse a complete conversation; reject malformed or partial input."""
     if not isinstance(serialized, str) or not serialized:
         raise ValueError("serialized conversation must be non-empty text")
 
@@ -82,14 +88,23 @@ def parse_chat(serialized: str) -> tuple[ChatMessage, ...]:
         content_start = sep + len(IM_SEP) + 1
         if content_start > len(serialized) or serialized[sep + len(IM_SEP):content_start] != "\n":
             raise ValueError("message header must end with a newline")
-        end = serialized.find(IM_END, content_start)
-        if end < 0:
+
+        endings = [
+            (position, marker)
+            for marker in (IM_END, IM_TURN_END)
+            if (position := serialized.find(marker, content_start)) >= 0
+        ]
+        if not endings:
             raise ValueError("message is missing end marker")
+        end, ending = min(endings, key=lambda item: item[0])
+        end_of_turn = ending == IM_TURN_END
+        if end_of_turn and role != "assistant":
+            raise ValueError("only assistant messages may use assistant turn end")
         content = _unescape_content(serialized[content_start:end])
         if not content:
             raise ValueError("message content must not be empty")
-        messages.append(ChatMessage(role=role, content=content))
-        cursor = end + len(IM_END)
+        messages.append(ChatMessage(role=role, content=content, end_of_turn=end_of_turn))
+        cursor = end + len(ending)
         if cursor < len(serialized) and serialized[cursor] != "\n":
             raise ValueError(f"unexpected data after message at offset {cursor}")
     if not messages:

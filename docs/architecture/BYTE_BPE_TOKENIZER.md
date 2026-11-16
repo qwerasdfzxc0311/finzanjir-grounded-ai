@@ -10,15 +10,16 @@ This is a small research implementation. It is deliberately **not** compatible w
 
 ## Vocabulary and special chat IDs
 
-The existing base byte+BPE vocabulary remains unchanged: byte IDs are 0–255 and learned merge IDs begin at 256. Three reserved chat-format v1 IDs are assigned immediately after the base vocabulary, in this fixed order:
+The existing base byte+BPE vocabulary remains unchanged: byte IDs are 0–255 and learned merge IDs begin at 256. Four reserved chat-format v1 IDs are assigned immediately after the base vocabulary, in this fixed order:
 
 1. `<|im_start|>`
 2. `<|im_sep|>`
 3. `<|im_end|>`
+4. `<|assistant_end|>`
 
-Use `encode_chat` and `decode_chat` for structured conversations. Plain `encode` treats marker-looking strings as ordinary UTF-8 text and never activates special IDs. Within chat bodies, literal marker strings are escaped by the chat serializer, so only framing markers become special IDs. `vocab_size` continues to mean the base byte+BPE vocabulary; `total_vocab_size` includes the three reserved IDs.
+Use `encode_chat` and `decode_chat` for structured conversations. Plain `encode` treats marker-looking strings as ordinary UTF-8 text and never activates special IDs. Within chat bodies, literal marker strings are escaped by the chat serializer, so only framing markers become special IDs. `vocab_size` continues to mean the base byte+BPE vocabulary; `total_vocab_size` includes the four reserved IDs.
 
-The special IDs are derived from the trained merge count and are not stored separately in the v1 tokenizer JSON. This keeps existing v1 tokenizer files readable and preserves their BPE IDs. A future model checkpoint must store the exact tokenizer JSON and special-token mapping together; changing the merge table changes the derived special IDs.
+The four special IDs are derived from the trained merge count and are not stored separately in the v1 tokenizer JSON. This keeps existing v1 tokenizer files readable and preserves their BPE IDs. A future model checkpoint must store the exact tokenizer JSON and special-token mapping together; changing the merge table changes the derived special IDs.
 
 ## Safety and data boundary
 
