@@ -86,7 +86,7 @@ class GoogleAccountStore:
             db.executescript("""
                 PRAGMA journal_mode=WAL;
                 CREATE TABLE IF NOT EXISTS google_oauth_flows (
-                    state_hash TEXT PRIMARY KEY, verifier TEXT NOT NULL,
+                    state_hash TEXT PRIMARY KEY, verifier TEXT NOT NULL, nonce TEXT NOT NULL,
                     purpose TEXT NOT NULL, owner_session_id TEXT,
                     created_at INTEGER NOT NULL, expires_at INTEGER NOT NULL
                 );
@@ -125,7 +125,7 @@ class GoogleAccountStore:
         finally:
             db.close()
 
-    def create_flow(self, state: str, verifier: str, purpose: str,
+    def create_flow(self, state: str, verifier: str, nonce: str, purpose: str,
                     owner_session_id: str | None, now: int | None = None) -> None:
         stamp = int(time.time() if now is None else now)
         if purpose not in {"owner_login", "add_account"}:
@@ -133,8 +133,8 @@ class GoogleAccountStore:
         with self._db() as db:
             db.execute("DELETE FROM google_oauth_flows WHERE expires_at < ?", (stamp,))
             db.execute(
-                "INSERT INTO google_oauth_flows VALUES (?, ?, ?, ?, ?, ?)",
-                (_digest(state), verifier, purpose, owner_session_id, stamp, stamp + 600),
+                "INSERT INTO google_oauth_flows VALUES (?, ?, ?, ?, ?, ?, ?)",
+                (_digest(state), verifier, nonce, purpose, owner_session_id, stamp, stamp + 600),
             )
 
     def consume_flow(self, state: str, now: int | None = None) -> dict[str, Any] | None:
@@ -292,7 +292,7 @@ def _read_session(request: Request, cfg: dict[str, str], store: GoogleAccountSto
 
 
 def _authorization_url(cfg: dict[str, str], state: str, verifier: str,
-                       scopes: tuple[str, ...]) -> str:
+                       nonce: str, scopes: tuple[str, ...]) -> str:
     challenge = base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest()).decode().rstrip("=")
     params = {
         "client_id": cfg["FINZANJIR_GOOGLE_CLIENT_ID"],
@@ -300,6 +300,7 @@ def _authorization_url(cfg: dict[str, str], state: str, verifier: str,
         "response_type": "code",
         "scope": " ".join(scopes),
         "state": state,
+        "nonce": nonce,
         "code_challenge": challenge,
         "code_challenge_method": "S256",
         "access_type": "offline",
@@ -361,10 +362,10 @@ def google_oauth_start(
             scopes.extend(SERVICE_SCOPES[service])
     elif services != "drive":
         raise HTTPException(status_code=422, detail="Avval egasining Google akkaunti tasdiqlanishi kerak.")
-    state, verifier = secrets.token_urlsafe(32), secrets.token_urlsafe(48)
-    store.create_flow(state, verifier, purpose, owner_session_id)
+    state, verifier, nonce = secrets.token_urlsafe(32), secrets.token_urlsafe(48), secrets.token_urlsafe(32)
+    store.create_flow(state, verifier, nonce, purpose, owner_session_id)
     return RedirectResponse(
-        _authorization_url(cfg, state, verifier, tuple(scopes)),
+        _authorization_url(cfg, state, verifier, nonce, tuple(scopes)),
         status_code=302,
         headers={"Cache-Control": "no-store"},
     )
@@ -398,6 +399,8 @@ def google_oauth_callback(
     except (httpx.HTTPError, KeyError, ValueError, TypeError) as exc:
         raise HTTPException(status_code=502, detail="Google OAuth javobini xavfsiz tekshirish muvaffaqiyatsiz bo‘ldi.") from exc
     email = str(identity.get("email", "")).casefold()
+    if identity.get("nonce") != flow["nonce"]:
+        raise HTTPException(status_code=401, detail="Google ID token nonce mos kelmadi.")
     if email != cfg["FINZANJIR_OWNER_EMAIL"] and flow["purpose"] == "owner_login":
         raise HTTPException(status_code=403, detail="Bu Google akkaunt FINZANJIR egasi sifatida ruxsat etilmagan.")
     if flow["purpose"] == "owner_login":
