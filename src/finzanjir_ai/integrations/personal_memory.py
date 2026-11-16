@@ -173,6 +173,12 @@ class PersonalMemoryStore:
                 VALUES (?, ?, ?, ?, 'created')
             """, (session_id, owner_email.casefold(), account_id,
                   self.cipher.encrypt(picker_uri.encode("utf-8"))))
+            db.execute("""
+                INSERT INTO personal_memory_audit
+                    (owner_email, action, provider, account_id, remote_ref_hash, detail_json)
+                VALUES (?, 'photos_picker_created', 'google_photos', ?, ?, '{}')
+            """, (owner_email.casefold(), account_id,
+                  hashlib.sha256(session_id.encode()).hexdigest()))
 
     def get_picker_session(self, owner_email: str, account_id: str,
                            session_id: str) -> dict[str, Any] | None:
@@ -323,6 +329,26 @@ class PersonalMemoryStore:
             "content_sha256": row["content_sha256"], "status": row["status"],
             "metadata": json.loads(row["metadata_json"]), "content": content,
         }
+
+    def audit_events(self, owner_email: str, *, limit: int = 100) -> list[dict[str, Any]]:
+        if not 1 <= limit <= 200:
+            raise ValueError("limit must be between 1 and 200")
+        with self._db() as db:
+            rows = db.execute("""
+                SELECT event_id, action, provider, account_id, remote_ref_hash,
+                       content_sha256, occurred_at, detail_json
+                FROM personal_memory_audit
+                WHERE owner_email=? ORDER BY event_id DESC LIMIT ?
+            """, (owner_email.casefold(), limit)).fetchall()
+        result = []
+        for row in rows:
+            item = dict(row)
+            try:
+                item["detail"] = json.loads(item.pop("detail_json"))
+            except (TypeError, ValueError):
+                item["detail"] = {}
+            result.append(item)
+        return result
 
     def list_sources(self, owner_email: str, *, limit: int = 100) -> list[dict[str, Any]]:
         if not 1 <= limit <= 200:
