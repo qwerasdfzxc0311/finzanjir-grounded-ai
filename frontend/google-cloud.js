@@ -35,9 +35,10 @@
   async function refreshMemory() {
     const target = byId("googleMemoryResults");
     try {
-      const [sources, media] = await Promise.all([
+      const [sources, media, audit] = await Promise.all([
         request("/api/google/memory/sources?limit=200"),
-        request("/api/google/memory/media?limit=200")
+        request("/api/google/memory/media?limit=200"),
+        request("/api/google/memory/audit?limit=50")
       ]);
       target.replaceChildren();
       target.appendChild(element("p", "muted",
