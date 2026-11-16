@@ -145,3 +145,71 @@ Report intent accuracy, retrieval recall@k, grounded factual precision, abstenti
 6. Only then evaluate whether a from-scratch small neural model is justified.
 
 The first implementation must be small, reversible, testable, and must not alter the existing FINZANJIR risk pipeline.
+
+## 11. Cloud-assisted capability without cloud dependence
+
+The user has no dedicated cloud infrastructure today. FINZANJIR may therefore connect to 4–5 independent cloud services as optional, replaceable workers, while its core remains local-first.
+
+### Provider-neutral worker roles
+
+Do not send every prompt to every provider. Route only the task that needs help:
+- language specialist: translation, script conversion, and low-resource language review;
+- research worker: retrieval from approved public sources, with URLs and dates;
+- reasoning critic: independently check a proposed conclusion or calculation;
+- response editor: improve clarity and grammar without adding facts;
+- optional specialist model: a narrowly scoped task selected by benchmark results.
+
+Potential providers are not fixed in this architecture. Each adapter must be selected after checking current terms, supported regions, data retention, pricing, latency, and security. Provider names and model IDs belong in deployment configuration, not business logic.
+
+### Orchestration policy
+
+- Local normalization, intent, conversation state, project retrieval, and safety checks run first.
+- A task router may select zero, one, or at most two workers by default. Multi-provider fan-out is reserved for explicitly approved high-value tasks.
+- Each worker receives only the minimum task-specific text, never the entire conversation or project corpus by default.
+- Independent answers are compared against source evidence. Majority vote is not proof: correlated models can repeat the same error.
+- If providers disagree, return the disagreement and uncertainty; do not average unsupported claims into a confident answer.
+- Provider timeout, quota exhaustion, or outage must degrade gracefully to local functions.
+- Every response records which mode actually ran: local-only, cloud-assisted, or unavailable. Never label cloud output as an independent local-model answer.
+
+### Privacy and legal gates
+
+- Default policy is no third-party transmission.
+- Before any cloud call, run sensitive-data detection and purpose/consent checks. If the request contains bank/customer identifiers, credentials, personal financial data, or other protected information, block cloud routing unless a separately approved legal basis and technical control exist.
+- The current identifier deny-list is not sufficient DLP. A real deployment needs stronger detection, redaction, allow-listed data classes, provider contracts, retention review, and auditable controls.
+- Never send real bank/customer data to public model endpoints for training or inference.
+- Cloud plugins/connectors are tool integrations, not a substitute for language training. They may provide controlled search, translation, file access, or compute only through explicit adapters and permissions.
+
+## 12. Language learning and knowledge growth
+
+- Keep separate datasets for language examples, general knowledge, FINZANJIR project evidence, author-provided material, and external research.
+- Every knowledge item needs source, date, language, license/permission, verification status, and a revision trail.
+- User corrections can become candidate language examples only after review; do not silently convert a single correction into a global rule.
+- Build language packs for Uzbek Latin/Cyrillic, Karakalpak Latin/Cyrillic, Kazakh, Russian, and English. Track dialect and transliteration variants without erasing the original input.
+- Plugins may import approved dictionaries, corpora, or terminology lists. They must preserve license metadata and cannot silently overwrite verified project facts.
+- Train/evaluate on held-out examples. Separate learning data from test data to avoid inflated scores.
+- For a from-scratch model, require a documented corpus inventory, license review, deduplication, privacy filtering, tokenizer evaluation, training plan, compute budget, and benchmark before training begins.
+
+## 13. Practical deployment without owned cloud
+
+Use a portable deployment profile:
+1. local development and offline tests on the user's device or a trusted workstation;
+2. one small hosted API/control plane for the application when online service is needed;
+3. optional independent model/research workers behind provider adapters;
+4. no mandatory single-provider dependency and no requirement to keep all workers running;
+5. configuration and secrets managed per environment, never committed to Git.
+
+Do not distribute API keys inside the Android APK. The client must call the FINZANJIR backend; the backend applies policy and keeps secrets server-side. If no cloud is available, local-only mode remains explicit and honest.
+
+## 14. Expanded five-track delivery plan
+
+All five tracks are developed in parallel only where interfaces are independent; integration is staged behind tests.
+
+| Track | First deliverable | Acceptance gate |
+|---|---|---|
+| Language understanding | Normalization, spelling/alias packs, intent benchmark | Held-out paraphrase and typo tests across scripts |
+| Conversation memory | Explicit dialogue state and reference-resolution tests | Topic shifts and follow-ups do not contaminate evidence |
+| Local reasoning | Safe calculator, typed facts, auditable inference rules | Every derived result has traceable premises; unsafe expressions rejected |
+| Independent response | Local answer planning and sentence composition | Correctly distinguishes grounded extractive, rule-composed, and model-generated output |
+| Own neural model | Dataset governance and feasibility study first | No training until corpus, rights, compute and baseline results are approved |
+
+Cloud worker adapters, language packs, and knowledge ingestion are supporting capabilities, not a sixth hosted-model dependency.
