@@ -263,18 +263,18 @@
       "status": "PARTIAL",
       "evidence_refs": [
         "tests/",
-        "GitHub Actions run #355",
+        "GitHub Actions main run #813 (commit 4786206189fbb36416df3a26349c86dfca8efee9; 1,204 passed, 0 failed; 2026-11-15)",
         "src/finzanjir_ai/risk/shadow.py"
       ],
       "acceptance_criteria": [
-        "293 ta CI test muvaffaqiyatli.",
-        "Synthetic Shadow metrics hisoblanadi."
+        "Current main-branch CI suite passes; latest recorded run #813 completed with 1,204 tests passed and 0 failed.",
+        "Synthetic Shadow metrics are calculated; this does not constitute independent evaluation or real-bank validation."
       ],
       "remaining_work": [
         "Independent evaluator va external review.",
         "Real labeled data bilan precision/recall va subgroup harm assessment."
       ],
-      "reviewed_at": "2026-11-12"
+      "reviewed_at": "2026-11-16"
     },
     {
       "id": "layer_14",
