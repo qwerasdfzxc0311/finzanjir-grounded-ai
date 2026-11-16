@@ -551,7 +551,7 @@ def google_drive_files(
             params = {
                 "pageSize": 100,
                 "orderBy": "modifiedTime desc",
-                "q": "trashed = false",
+                "q": "trashed = false and mimeType != 'application/vnd.google-apps.folder'",
                 "fields": "nextPageToken,files(id,name,mimeType,modifiedTime,size,webViewLink,thumbnailLink)",
             }
             if page_token:
