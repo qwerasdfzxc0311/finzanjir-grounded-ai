@@ -54,7 +54,8 @@ def test_answer_generator_fallback_keeps_source_statements_readable():
     result = GroundedAnswerGenerator().generate("FINZANJIR nima qiladi?", _context())
     assert result.abstained is False
     assert "1. FINZANJIR" in result.answer
-    assert "\n\n2. Muhim holatlar" in result.answer
+    assert "Muhim holatlar" not in result.answer
+    assert result.citations == ("ck-protect",)
 
 
 def test_long_raw_source_is_not_dumped_when_model_provider_is_unavailable():
