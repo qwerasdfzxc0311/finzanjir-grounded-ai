@@ -49,6 +49,7 @@ class StoredCandidate:
     discovered_at: str
     status: str
     source_mode: str
+    review_reasons: tuple[str, ...] = ()
 
 
 class LocalResearchRuntimeStore:
@@ -97,6 +98,13 @@ class LocalResearchRuntimeStore:
                     source_mode TEXT NOT NULL
                 );
             """)
+            candidate_columns = {
+                row[1] for row in db.execute("PRAGMA table_info(quarantined_candidates)").fetchall()
+            }
+            if "review_reasons_json" not in candidate_columns:
+                db.execute(
+                    "ALTER TABLE quarantined_candidates ADD COLUMN review_reasons_json TEXT NOT NULL DEFAULT '[]'"
+                )
         try:
             os.chmod(self.path, 0o600)
         except OSError:
@@ -301,20 +309,28 @@ class LocalResearchRuntimeStore:
             db.execute("""
                 INSERT OR IGNORE INTO quarantined_candidates
                     (candidate_id, source_id, url, title, text, content_hash,
-                     discovered_at, status, source_mode)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                     discovered_at, status, source_mode, review_reasons_json)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (candidate.candidate_id, candidate.source_id, candidate.url,
                   candidate.title, candidate.text, candidate.content_hash,
-                  candidate.discovered_at, candidate.status.value, source_mode))
+                  candidate.discovered_at, candidate.status.value, source_mode,
+                  json.dumps(list(candidate.review_reasons), ensure_ascii=False)))
 
     def get_candidate(self, candidate_id: str) -> StoredCandidate | None:
         with self._connection() as db:
             row = db.execute("""
                 SELECT candidate_id, source_id, url, title, text, content_hash,
-                       discovered_at, status, source_mode
+                       discovered_at, status, source_mode, review_reasons_json
                 FROM quarantined_candidates WHERE candidate_id=?
             """, (candidate_id,)).fetchone()
-        return StoredCandidate(*row) if row else None
+        if row is None:
+            return None
+        values = list(row)
+        try:
+            values[-1] = tuple(json.loads(values[-1]))
+        except (TypeError, ValueError):
+            values[-1] = ()
+        return StoredCandidate(*values)
 
     def audit_events(self, job_id: str, *, limit: int = 50) -> list[dict]:
         with self._connection() as db:
