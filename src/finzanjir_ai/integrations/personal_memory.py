@@ -90,6 +90,7 @@ class PersonalMemoryStore:
             if "picker_uri_ciphertext" not in picker_columns:
                 db.execute("ALTER TABLE google_photos_picker_sessions ADD COLUMN picker_uri_ciphertext BLOB")
                 if "picker_uri" in picker_columns:
+                    db.execute("PRAGMA secure_delete=ON")
                     rows = db.execute(
                         "SELECT session_id, picker_uri FROM google_photos_picker_sessions"
                     ).fetchall()
@@ -97,6 +98,10 @@ class PersonalMemoryStore:
                         db.execute(
                             "UPDATE google_photos_picker_sessions SET picker_uri_ciphertext=? WHERE session_id=?",
                             (self.cipher.encrypt(str(row[1]).encode("utf-8")), row[0]),
+                        )
+                        db.execute(
+                            "UPDATE google_photos_picker_sessions SET picker_uri='' WHERE session_id=?",
+                            (row[0],),
                         )
         try:
             os.chmod(self.path, 0o600)
