@@ -239,11 +239,13 @@ def test_legacy_plaintext_oauth_verifier_and_nonce_are_migrated(tmp_path):
         """)
         db.execute(
             "INSERT INTO google_oauth_flows VALUES(?,?,?,?,?,?,?)",
-            ("state-hash", "legacy-pkce-verifier", "legacy-oidc-nonce",
+            (hashlib.sha256(b"state-value").hexdigest(), "legacy-pkce-verifier", "legacy-oidc-nonce",
              "owner_login", None, 100, 700),
         )
     store = GoogleAccountStore(str(path), Fernet.generate_key().decode())
-    flow = store.consume_flow("state-value-that-hashes-to-no-match", now=200)
+    flow = store.consume_flow("state-value", now=200)
+    assert flow["verifier"] == "legacy-pkce-verifier"
+    assert flow["nonce"] == "legacy-oidc-nonce"
     assert flow is None
     with sqlite3.connect(path) as db:
         row = db.execute("SELECT verifier, nonce FROM google_oauth_flows").fetchone()
