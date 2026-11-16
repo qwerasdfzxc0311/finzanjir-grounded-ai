@@ -164,7 +164,9 @@ class GoogleAccountStore:
             db.execute("DELETE FROM google_oauth_flows WHERE expires_at < ?", (stamp,))
             db.execute(
                 "INSERT INTO google_oauth_flows VALUES (?, ?, ?, ?, ?, ?, ?)",
-                (_digest(state), verifier, nonce, purpose, owner_session_id, stamp, stamp + 600),
+                (_digest(state), self.cipher.encrypt(verifier.encode()).decode(),
+                 self.cipher.encrypt(nonce.encode()).decode(), purpose,
+                 owner_session_id, stamp, stamp + 600),
             )
 
     def consume_flow(self, state: str, now: int | None = None) -> dict[str, Any] | None:
