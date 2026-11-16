@@ -119,3 +119,42 @@ def test_personal_memory_keeps_drive_and_gmail_sources_separate(tmp_path):
     gmail = store.quarantine(**common, provider="google_gmail")
     assert drive["source_id"] != gmail["source_id"]
     assert len(store.list_sources("owner@example.com")) == 2
+
+
+def test_google_photos_picker_session_is_owner_and_account_bound(tmp_path):
+    store = PersonalMemoryStore(str(tmp_path / "memory.sqlite"), Fernet.generate_key().decode())
+    store.save_picker_session("owner@example.com", "account-a", "session-1",
+                              "https://photos.google.com/picker/session-1")
+    assert store.get_picker_session("owner@example.com", "account-a", "session-1")["status"] == "created"
+    assert store.get_picker_session("other@example.com", "account-a", "session-1") is None
+    assert store.get_picker_session("owner@example.com", "account-b", "session-1") is None
+    assert store.set_picker_session_status("owner@example.com", "account-a", "session-1", "ready")
+    assert store.get_picker_session("owner@example.com", "account-a", "session-1")["status"] == "ready"
+
+
+def test_selected_photo_video_bytes_are_encrypted_and_owner_scoped(tmp_path):
+    key = Fernet.generate_key().decode()
+    path = tmp_path / "memory.sqlite"
+    store = PersonalMemoryStore(str(path), key)
+    photo = store.quarantine_media(
+        owner_email="owner@example.com", account_id="photos-account",
+        remote_media_id="photo-1", file_name="family.jpg",
+        mime_type="image/jpeg", media_type="photo",
+        content=b"private-image-bytes",
+        metadata={"picker_session_id": "session-1"},
+    )
+    assert photo["status"] == "quarantined"
+    assert b"private-image-bytes" not in path.read_bytes()
+    assert store.read_media("owner@example.com", photo["media_id"])["content"] == b"private-image-bytes"
+    assert store.read_media("other@example.com", photo["media_id"]) is None
+    assert store.list_media("owner@example.com")[0]["file_name"] == "family.jpg"
+
+
+def test_media_store_rejects_empty_and_unsupported_kind(tmp_path):
+    store = PersonalMemoryStore(str(tmp_path / "memory.sqlite"), Fernet.generate_key().decode())
+    base = dict(owner_email="owner@example.com", account_id="a", remote_media_id="m",
+                file_name="file", mime_type="application/octet-stream")
+    with pytest.raises(ValueError):
+        store.quarantine_media(**base, media_type="archive", content=b"data")
+    with pytest.raises(ValueError):
+        store.quarantine_media(**base, media_type="photo", content=b"")
