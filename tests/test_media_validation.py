@@ -51,10 +51,10 @@ def test_media_size_is_bounded():
 
 
 def test_heic_avif_aac_and_3gpp_are_checked_by_container_brand():
-    heic = b"\\x00\\x00\\x00\\x18ftypheic" + b"\\x00" * 20
-    avif = b"\\x00\\x00\\x00\\x18ftypavif" + b"\\x00" * 20
-    aac = b"\\xff\\xf1" + b"\\x00" * 12
-    video = b"\\x00\\x00\\x00\\x18ftyp3gp4" + b"\\x00" * 20
+    heic = bytes.fromhex("000000186674797068656963") + bytes(20)
+    avif = bytes.fromhex("000000186674797061766966") + bytes(20)
+    aac = bytes.fromhex("fff1") + bytes(12)
+    video = bytes.fromhex("000000186674797033677034") + bytes(20)
     assert validate_media_content("image/heic", heic)["media_type"] == "photo"
     assert validate_media_content("image/avif", avif)["media_type"] == "photo"
     assert validate_media_content("audio/aac", aac)["media_type"] == "audio"
