@@ -191,3 +191,21 @@ def test_google_oauth_config_requires_frontend_in_exact_origin_allowlist(monkeyp
     monkeypatch.setenv("FINZANJIR_ALLOWED_ORIGINS", "https://other.example.com")
     with pytest.raises(GoogleConfigError):
         _config()
+
+
+def test_reconnecting_account_adds_scopes_without_dropping_prior_services(tmp_path):
+    store = make_store(tmp_path)
+    first = store.save_account(
+        "owner@example.com", "archive@example.com", "Archive",
+        "refresh-drive", ("openid", "email", "https://www.googleapis.com/auth/drive.readonly"),
+        now=100,
+    )
+    second = store.save_account(
+        "owner@example.com", "archive@example.com", "Archive",
+        "refresh-gmail", ("openid", "email", "https://www.googleapis.com/auth/gmail.readonly"),
+        now=200,
+    )
+    assert first["account_id"] == second["account_id"]
+    scopes = set(store.account_secret("owner@example.com", second["account_id"])[1])
+    assert "https://www.googleapis.com/auth/drive.readonly" in scopes
+    assert "https://www.googleapis.com/auth/gmail.readonly" in scopes
