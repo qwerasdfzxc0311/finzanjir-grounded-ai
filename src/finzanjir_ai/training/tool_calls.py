@@ -97,7 +97,7 @@ def validate_tool_call(
         raise ValueError("invalid tool name")
     if tool not in frozenset(allowed_tools):
         raise ValueError("tool is not explicitly allowlisted")
-    if classification not in _ALLOWED_CLASSIFICATIONS:
+    if not isinstance(classification, str) or classification not in _ALLOWED_CLASSIFICATIONS:
         raise ValueError("data classification is not permitted for tool calls")
     if payload["approval_required"] is not True:
         raise ValueError("tool calls must require explicit approval")
