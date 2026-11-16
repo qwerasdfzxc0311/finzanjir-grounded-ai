@@ -1171,3 +1171,28 @@ def google_personal_memory_media_list(
         raise HTTPException(status_code=503, detail="Shaxsiy xotira ombori sozlanmagan.") from exc
     _read_session(request, cfg, store)
     return {"media": memory.list_media(cfg["FINZANJIR_OWNER_EMAIL"], limit=limit)}
+
+
+@router.get("/status")
+def google_gateway_status(request: Request):
+    try:
+        cfg = _config()
+        store = _store(cfg)
+        memory = _personal_memory_store(cfg)
+    except (GoogleConfigError, OSError, ValueError):
+        return {"configured": False, "authenticated": False, "message": "Google ulanishi serverda hali sozlanmagan."}
+    try:
+        _read_session(request, cfg, store)
+    except HTTPException:
+        return {"configured": True, "authenticated": False, "account_limit": MAX_GOOGLE_ACCOUNTS}
+    accounts = store.list_accounts(cfg["FINZANJIR_OWNER_EMAIL"])
+    return {
+        "configured": True,
+        "authenticated": True,
+        "owner_email": cfg["FINZANJIR_OWNER_EMAIL"],
+        "account_count": sum(1 for item in accounts if item["status"] == "connected"),
+        "account_limit": MAX_GOOGLE_ACCOUNTS,
+        "accounts": accounts,
+        "memory_source_count": len(memory.list_sources(cfg["FINZANJIR_OWNER_EMAIL"], limit=200)),
+        "memory_media_count": len(memory.list_media(cfg["FINZANJIR_OWNER_EMAIL"], limit=200)),
+    }
