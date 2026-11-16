@@ -12,6 +12,7 @@ from finzanjir_ai.integrations.google_cloud import (
     SERVICE_SCOPES,
     _authorization_url,
     _session_cookie,
+    _require_same_origin,
 )
 
 
@@ -144,3 +145,36 @@ def test_photos_picker_scope_is_explicit_and_not_legacy_library_scope():
         "https://www.googleapis.com/auth/photospicker.mediaitems.readonly",
     )
     assert not any("photoslibrary" in scope for scope in SERVICE_SCOPES["photos"])
+
+
+
+def test_cors_allows_credentials_only_for_configured_frontend_origin(monkeypatch):
+    monkeypatch.setenv("FINZANJIR_ALLOWED_ORIGINS", "https://frontend.example.com")
+    response = TestClient(app).options(
+        "/api/google/accounts",
+        headers={
+            "Origin": "https://frontend.example.com",
+            "Access-Control-Request-Method": "GET",
+            "Access-Control-Request-Headers": "content-type",
+        },
+    )
+    assert response.status_code == 200
+    assert response.headers["access-control-allow-origin"] == "https://frontend.example.com"
+    assert response.headers["access-control-allow-credentials"] == "true"
+
+
+def test_csrf_origin_rejects_unlisted_frontend(monkeypatch):
+    from starlette.requests import Request
+    from fastapi import HTTPException
+
+    monkeypatch.setenv("FINZANJIR_ALLOWED_ORIGINS", "https://frontend.example.com")
+    scope = {
+        "type": "http", "method": "POST", "scheme": "https",
+        "server": ("api.example.com", 443),
+        "headers": [(b"origin", b"https://evil.example.com")],
+        "path": "/", "query_string": b"", "root_path": "",
+        "http_version": "1.1", "client": ("127.0.0.1", 1234),
+    }
+    with pytest.raises(HTTPException) as exc:
+        _require_same_origin(Request(scope))
+    assert exc.value.status_code == 403
