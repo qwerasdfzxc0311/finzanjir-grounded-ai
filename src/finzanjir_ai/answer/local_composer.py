@@ -38,10 +38,11 @@ def compose_local_grounded_answer(
     the exact source record IDs used. Missing matches produce an abstention.
     """
     query_tokens = set(meaningful_tokens(query))
-    if not query_tokens or not items:
+    if not items:
         return LocalComposition("", (), True, "local_composer_no_match")
 
     ranked: list[tuple[float, str, str]] = []
+    supporting: list[tuple[float, str, str]] = []
     seen: set[str] = set()
     for item in items:
         statement = str(getattr(item, "statement", "") or "").strip()
@@ -55,14 +56,23 @@ def compose_local_grounded_answer(
         alias_tokens = set(meaningful_tokens(" ".join(getattr(item, "aliases", ()) or ())))
         direct_overlap = len(query_tokens & statement_tokens)
         alias_overlap = len(query_tokens & alias_tokens)
+        source_score = max(0.0, min(1.0, float(getattr(item, "score", 0.0) or 0.0)))
+        if not query_tokens and len(items) == 1:
+            direct_overlap = 1
         if direct_overlap == 0 and alias_overlap == 0:
+            # A high-confidence item already admitted to the grounded context
+            # may be a supporting fact expressed with different vocabulary.
+            # Keep it only when at least one directly matched fact anchors the answer.
+            if source_score >= 0.80:
+                supporting.append((0.20 * source_score, record_id, statement))
             continue
         score = direct_overlap / max(1, len(query_tokens))
         score += 0.20 * alias_overlap / max(1, len(query_tokens))
-        source_score = max(0.0, min(1.0, float(getattr(item, "score", 0.0) or 0.0)))
         ranked.append((score + 0.025 * source_score, record_id, statement))
         seen.add(normalized)
 
+    if ranked:
+        ranked.extend(entry for entry in supporting if entry[1] not in {value[1] for value in ranked})
     if not ranked:
         return LocalComposition("", (), True, "local_composer_no_match")
 
