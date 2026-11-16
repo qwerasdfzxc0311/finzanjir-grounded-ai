@@ -1045,3 +1045,43 @@ def google_photos_delete_session(account_id: str, session_id: str, request: Requ
         cfg["FINZANJIR_OWNER_EMAIL"], account_id, session_id, "deleted"
     )
     return {"status": "deleted", "session_id": session_id}
+
+
+@router.get("/memory/search")
+def google_personal_memory_search(
+    request: Request,
+    q: str = Query(min_length=1, max_length=256),
+    limit: int = Query(default=10, ge=1, le=20),
+):
+    try:
+        cfg = _config()
+        store = _store(cfg)
+        memory = _personal_memory_store(cfg)
+    except (GoogleConfigError, OSError, ValueError) as exc:
+        raise HTTPException(status_code=503, detail="Shaxsiy xotira ombori sozlanmagan.") from exc
+    _read_session(request, cfg, store)
+    try:
+        results = memory.search_sources(cfg["FINZANJIR_OWNER_EMAIL"], q, limit=limit)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    return {
+        "query": q,
+        "results": results,
+        "search_mode": "local_decrypt_and_match",
+        "external_search": False,
+        "knowledge_status": "quarantined_sources_only",
+    }
+
+
+@router.get("/memory/media")
+def google_personal_memory_media_list(
+    request: Request, limit: int = Query(default=100, ge=1, le=200)
+):
+    try:
+        cfg = _config()
+        store = _store(cfg)
+        memory = _personal_memory_store(cfg)
+    except (GoogleConfigError, OSError, ValueError) as exc:
+        raise HTTPException(status_code=503, detail="Shaxsiy xotira ombori sozlanmagan.") from exc
+    _read_session(request, cfg, store)
+    return {"media": memory.list_media(cfg["FINZANJIR_OWNER_EMAIL"], limit=limit)}
