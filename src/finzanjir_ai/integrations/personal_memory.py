@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import hashlib
+import hmac
 import json
+from collections import Counter
 import os
 import re
 import sqlite3
@@ -54,6 +56,15 @@ class PersonalMemoryStore:
                     status TEXT NOT NULL DEFAULT 'created',
                     UNIQUE(owner_email, account_id, session_id)
                 );
+                CREATE TABLE IF NOT EXISTS personal_memory_terms (
+                    owner_email TEXT NOT NULL,
+                    source_id TEXT NOT NULL,
+                    term_hash TEXT NOT NULL,
+                    frequency INTEGER NOT NULL,
+                    PRIMARY KEY(owner_email, source_id, term_hash)
+                );
+                CREATE INDEX IF NOT EXISTS idx_personal_memory_terms_lookup
+                ON personal_memory_terms(owner_email, term_hash);
                 CREATE TABLE IF NOT EXISTS personal_memory_audit (
                     event_id INTEGER PRIMARY KEY AUTOINCREMENT,
                     owner_email TEXT NOT NULL,
