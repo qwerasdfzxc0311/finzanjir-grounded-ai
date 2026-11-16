@@ -213,3 +213,8 @@ All five tracks are developed in parallel only where interfaces are independent;
 | Own neural model | Dataset governance and feasibility study first | No training until corpus, rights, compute and baseline results are approved |
 
 Cloud worker adapters, language packs, and knowledge ingestion are supporting capabilities, not a sixth hosted-model dependency.
+
+
+## Verification gate
+
+The consolidated local-first branch must pass the full repository test suite before merge. This document describes design intent; it is not evidence that a trained neural model or production deployment exists.
