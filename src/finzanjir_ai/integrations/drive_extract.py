@@ -71,10 +71,10 @@ def extract_drive_text(file_name: str, mime_type: str, content: bytes) -> dict[s
                         raise ValueError("workbook exceeds the 100,000-cell extraction limit")
                     values = ["" if value is None else str(value) for value in row]
                     if any(values):
-                        parts.append("\\t".join(values))
+                        parts.append("\t".join(values))
         finally:
             workbook.close()
-        return {"text": _clean("\\n".join(parts)), "extractor": "openpyxl-xlsx-v1"}
+        return {"text": _clean("\n".join(parts)), "extractor": "openpyxl-xlsx-v1"}
     if mime == DOCX_MIME:
         from docx import Document
         document = Document(io.BytesIO(content))
