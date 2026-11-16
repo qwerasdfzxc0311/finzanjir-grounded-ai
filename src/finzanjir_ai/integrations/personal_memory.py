@@ -84,6 +84,20 @@ class PersonalMemoryStore:
                     UNIQUE(owner_email, provider, account_id, remote_media_id)
                 );
             """)
+            picker_columns = {
+                row[1] for row in db.execute("PRAGMA table_info(google_photos_picker_sessions)").fetchall()
+            }
+            if "picker_uri_ciphertext" not in picker_columns:
+                db.execute("ALTER TABLE google_photos_picker_sessions ADD COLUMN picker_uri_ciphertext BLOB")
+                if "picker_uri" in picker_columns:
+                    rows = db.execute(
+                        "SELECT session_id, picker_uri FROM google_photos_picker_sessions"
+                    ).fetchall()
+                    for row in rows:
+                        db.execute(
+                            "UPDATE google_photos_picker_sessions SET picker_uri_ciphertext=? WHERE session_id=?",
+                            (self.cipher.encrypt(str(row[1]).encode("utf-8")), row[0]),
+                        )
         try:
             os.chmod(self.path, 0o600)
         except OSError:
