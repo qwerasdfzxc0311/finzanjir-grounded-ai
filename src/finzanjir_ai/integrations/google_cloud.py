@@ -213,6 +213,7 @@ class GoogleAccountStore:
             ).fetchone()
             combined_scopes = set(scopes)
             if existing:
+                account_id = existing["account_id"]
                 combined_scopes.update(json.loads(existing["scopes_json"]))
             if not existing:
                 count = db.execute(
