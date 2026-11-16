@@ -59,6 +59,7 @@ def test_worker_filters_domains_and_persists_quarantined_public_extract(tmp_path
     assert candidate.status == "quarantined"
     assert candidate.source_mode == "online"
     assert "Official public advisory text" in candidate.text
+    assert any("human source/licence review" in reason for reason in candidate.review_reasons)
     assert "human source/licence review" in " ".join(
         ["External source extract is untrusted; human source/licence review required."]
     )
