@@ -12,9 +12,9 @@ MAX_CONTEXT_CHARS = 4800
 _FOLLOW_UP_PATTERNS = (
     r"(?<!\w)(?:u|uning|unga|undan|bu|bunga|buni|shuni|shu|o'sha|o‘sha|"
     r"oldingi|avvalgi|birinchi|ikkinchi|undan\s+oldin|yuqoridagi|"
-    r"onasi|otasi|uning\s+onasi|uning\s+otasi|ular|ularning)(?!\w)",
+    r"onasi|otasi|uning\s+onasi|uning\s+otasi|ular|ularning|unda|bunda|shunda)(?!\w)",
     r"(?<!\w)(?:у|унинг|унга|ундан|бу|буни|шун|ўша|олдинги|аввалги|"
-    r"биринчи|иккинчи|онаси|отаси|улар|уларнинг)(?!\w)",
+    r"биринчи|иккинчи|онаси|отаси|улар|уларнинг|унда|бунда|шунда)(?!\w)",
     r"(?<!\w)(?:он|она|его|её|ему|ей|этот|эта|это|этом|тот|та|те|они|их)(?!\w)",
     r"(?<!\w)(?:he|she|it|they|him|her|his|its|them|this|that|those|"
     r"these|former|previous|first|second)(?!\w)|\bwhat about\b|\band then\b",
