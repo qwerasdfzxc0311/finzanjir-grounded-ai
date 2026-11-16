@@ -80,6 +80,10 @@ def test_personal_memory_is_encrypted_owner_scoped_and_quarantined(tmp_path):
     assert store.read_source("other@example.com", saved["source_id"]) is None
     assert store.list_sources("owner@example.com")[0]["file_name"] == "notes.txt"
     assert store.list_sources("other@example.com") == []
+    audit = store.audit_events("owner@example.com")
+    assert audit[0]["action"] == "source_quarantined"
+    assert audit[0]["content_sha256"] == saved["content_sha256"]
+    assert store.audit_events("other@example.com") == []
 
 
 def test_same_remote_file_updates_one_quarantine_record(tmp_path):
