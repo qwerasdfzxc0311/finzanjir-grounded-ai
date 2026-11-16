@@ -5,6 +5,7 @@ import csv
 import io
 from pathlib import PurePosixPath
 import re
+import zipfile
 from typing import Any
 
 MAX_DOWNLOAD_BYTES = 10 * 1024 * 1024
@@ -36,6 +37,28 @@ def _clean(text: str) -> str:
     return text
 
 
+def _validate_office_archive(content: bytes) -> None:
+    try:
+        with zipfile.ZipFile(io.BytesIO(content)) as archive:
+            infos = archive.infolist()
+            if len(infos) > 2000:
+                raise ValueError("Office document exceeds the 2,000-entry archive limit")
+            total = 0
+            for info in infos:
+                name = PurePosixPath(info.filename)
+                if name.is_absolute() or ".." in name.parts:
+                    raise ValueError("Office archive contains an unsafe path")
+                total += info.file_size
+                if info.file_size > 50 * 1024 * 1024 or total > 100 * 1024 * 1024:
+                    raise ValueError("Office document exceeds the 100 MB expanded-size limit")
+                if info.compress_size == 0 and info.file_size > 0:
+                    raise ValueError("Office archive has an invalid compression entry")
+                if info.compress_size and info.file_size / info.compress_size > 200:
+                    raise ValueError("Office archive compression ratio exceeds safety limit")
+    except zipfile.BadZipFile as exc:
+        raise ValueError("Office document is not a valid ZIP container") from exc
+
+
 def extract_drive_text(file_name: str, mime_type: str, content: bytes) -> dict[str, Any]:
     if not content or len(content) > MAX_DOWNLOAD_BYTES:
         raise ValueError("file must be between 1 byte and 10 MB")
@@ -56,6 +79,7 @@ def extract_drive_text(file_name: str, mime_type: str, content: bytes) -> dict[s
             pages.append(f"[Page {index}]\n{page.extract_text() or ''}")
         return {"text": _clean("\n\n".join(pages)), "extractor": "pypdf-text-v1"}
     if mime == XLSX_MIME:
+        _validate_office_archive(content)
         from openpyxl import load_workbook
         workbook = load_workbook(io.BytesIO(content), read_only=True, data_only=True)
         if len(workbook.worksheets) > 100:
@@ -76,6 +100,7 @@ def extract_drive_text(file_name: str, mime_type: str, content: bytes) -> dict[s
             workbook.close()
         return {"text": _clean("\n".join(parts)), "extractor": "openpyxl-xlsx-v1"}
     if mime == DOCX_MIME:
+        _validate_office_archive(content)
         from docx import Document
         document = Document(io.BytesIO(content))
         paragraphs = [p.text for p in document.paragraphs if p.text.strip()]
