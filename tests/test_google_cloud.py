@@ -223,3 +223,29 @@ def test_oauth_requests_consent_when_any_cloud_service_is_selected():
     params = parse_qs(urlsplit(url).query)
     assert params["prompt"] == ["consent"]
     assert params["include_granted_scopes"] == ["true"]
+
+
+def test_legacy_plaintext_oauth_verifier_and_nonce_are_migrated(tmp_path):
+    import sqlite3
+
+    path = tmp_path / "legacy-google.sqlite"
+    with sqlite3.connect(path) as db:
+        db.execute("""
+            CREATE TABLE google_oauth_flows (
+                state_hash TEXT PRIMARY KEY, verifier TEXT NOT NULL, nonce TEXT NOT NULL,
+                purpose TEXT NOT NULL, owner_session_id TEXT,
+                created_at INTEGER NOT NULL, expires_at INTEGER NOT NULL
+            )
+        """)
+        db.execute(
+            "INSERT INTO google_oauth_flows VALUES(?,?,?,?,?,?,?)",
+            ("state-hash", "legacy-pkce-verifier", "legacy-oidc-nonce",
+             "owner_login", None, 100, 700),
+        )
+    store = GoogleAccountStore(str(path), Fernet.generate_key().decode())
+    flow = store.consume_flow("state-value-that-hashes-to-no-match", now=200)
+    assert flow is None
+    with sqlite3.connect(path) as db:
+        row = db.execute("SELECT verifier, nonce FROM google_oauth_flows").fetchone()
+    assert row[0] != "legacy-pkce-verifier"
+    assert row[1] != "legacy-oidc-nonce"
