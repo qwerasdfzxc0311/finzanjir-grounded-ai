@@ -15,9 +15,10 @@ def test_explicit_youtube_channel_discovery_routes_to_web_search():
 
 def test_ai_answer_uses_external_search_for_youtube_discovery(monkeypatch):
     class FakeSearch:
-        def search(self, query, *, max_results):
+        def search(self, query, *, max_results, search_depth="advanced"):
             assert "YouTube" in query
-            assert max_results == 5
+            assert max_results == 6
+            assert search_depth == "advanced"
             return {
                 "results": [{
                     "title": "FINZANJIR channel",
@@ -43,7 +44,7 @@ def test_ai_answer_uses_external_search_for_youtube_discovery(monkeypatch):
 
 def test_web_search_does_not_fall_back_to_project_knowledge_when_unconfigured(monkeypatch):
     class MissingSearch:
-        def search(self, query, *, max_results):
+        def search(self, query, *, max_results, search_depth="advanced"):
             raise RuntimeError("not configured")
 
     monkeypatch.setattr(api_module, "TavilySearchClient", MissingSearch)
