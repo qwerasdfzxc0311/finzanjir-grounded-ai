@@ -51,7 +51,7 @@ def _failure_status(exc: Exception) -> str:
         code = exc.response.status_code
         if code == 429:
             return "rate_limited"
-        if code == 402:
+        if code in (402, 432, 433):
             return "quota_exhausted"
         if code in (401, 403):
             return "authentication_or_permission_failed"
