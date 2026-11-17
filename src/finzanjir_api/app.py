@@ -20,6 +20,7 @@ from finzanjir_ai.prototype.flow import build_system_flow
 from finzanjir_ai.orchestration.engine import FINZANJIRAI, get_finzanjir_ai
 from finzanjir_ai.orchestration.intent import classify_query_intent
 from finzanjir_ai.research.tavily import TavilySearchClient
+from finzanjir_ai.research.youtube import filter_youtube_video_results
 from finzanjir_ai.integrations.cloud_sources import cloud_connector_status
 from finzanjir_ai.integrations.google_cloud import router as google_cloud_router
 from finzanjir_ai.risk.shadow import evaluate_shadow_batch, evaluate_detector_shadow_batch
@@ -258,6 +259,24 @@ def answer(request: AIAnswerRequest) -> dict[str, Any]:
 def external_research(request: ExternalResearchRequest) -> dict[str, Any]:
     try:
         return TavilySearchClient().search(request.query, max_results=request.max_results)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail="External research is not configured.") from exc
+    except httpx.HTTPError as exc:
+        raise HTTPException(status_code=502, detail="External research provider is temporarily unavailable.") from exc
+
+
+@app.post("/api/research/youtube")
+def youtube_research(request: ExternalResearchRequest) -> dict[str, Any]:
+    """Search public, indexed YouTube video pages; this does not fetch transcripts."""
+    try:
+        payload = TavilySearchClient().search(
+            f"site:youtube.com/watch {request.query}",
+            max_results=request.max_results,
+        )
+        payload["query"] = request.query
+        return filter_youtube_video_results(payload)
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     except RuntimeError as exc:

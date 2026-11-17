@@ -61,6 +61,18 @@
   <div id="runHistory" class="card" aria-live="polite"><p class="muted">Sinovlar tarixi yuklanmoqda...</p></div>
 </section>
 <section class="support-section"><div class="section-heading"><div><p class="eyebrow">NAZORAT ARXITEKTURASI</p><h2>16 qatlamli himoya modeli</h2></div></div><ol id="layers" class="layers"></ol></section>
+<section class="support-section" id="researchPanel">
+  <div class="section-heading"><div><p class="eyebrow">TASHQI MANBALAR</p><h2>Internet va YouTube qidiruvi</h2>
+    <p class="muted">Ochiq internet manbalarini va YouTube video sahifalarini alohida qidiring. Natijalar manba havolasi bilan ko‘rsatiladi.</p></div></div>
+  <div class="card">
+    <div class="cloud-toolbar">
+      <input id="researchQuery" type="search" maxlength="500" placeholder="Nimani izlaymiz?">
+      <button id="researchWebSearch" type="button">Internetda qidirish</button>
+      <button id="researchYoutubeSearch" type="button" class="secondary-button">YouTube’dan qidirish</button>
+    </div>
+    <div id="researchResults" aria-live="polite"><p class="muted">Qidiruv so‘zini kiriting.</p></div>
+  </div>
+</section>
 <section class="support-section cloud-memory-section" id="googleCloudPanel">
   <div class="section-heading"><div><p class="eyebrow">SHAXSIY XOTIRA</p><h2>Sozlamalar</h2>
     <p class="muted">FINZANJIR egasining Google akkauntlari, ulanish diagnostikasi va berilgan ruxsatlarni boshqarish.</p></div></div>
@@ -108,5 +120,5 @@
 </main>
 <footer class="app-footer"><strong>FINZANJIR</strong><span>Sintetik prototip · Real bank yoki mijoz ma’lumotlari ishlatilmaydi</span></footer>
 <script src="./app.js"></script>
-<script src="./google-cloud.js"></script>
+<script src="./google-cloud.js"></script>\n<script src="./research.js"></script>
 </body></html>
