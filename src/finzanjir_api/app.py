@@ -251,9 +251,12 @@ def answer(request: AIAnswerRequest) -> dict[str, Any]:
         "provider_diagnostics": list(getattr(engine.language_model, "last_provider_failures", ())),
         "knowledge_refs": list(result.answer.citations),
         "provenance": [
-            str(source)
-            for item in result.grounded_context.items
-            for source in item.provenance
+            *result.answer.provenance,
+            *[
+                str(source)
+                for item in result.grounded_context.items
+                for source in item.provenance
+            ],
         ],
         "runtime_refs": list(result.runtime_context.runtime_refs),
         "external_sources": [],
