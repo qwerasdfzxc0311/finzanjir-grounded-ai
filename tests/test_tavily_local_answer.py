@@ -117,3 +117,46 @@ def test_local_composer_does_not_add_unreliable_language_tags_to_source_sentence
     assert "[uz]" not in result.answer
     assert "[en]" not in result.answer
     assert "This latest research follows lab experiments" in result.answer
+
+
+
+def test_local_composer_suppresses_near_duplicate_research_passages_but_keeps_distinct_evidence():
+    result = compose_tavily_local_answer(
+        "What is the latest research?",
+        [
+            {
+                "title": "Research announcement",
+                "url": "https://a.example.org/research",
+                "raw_content": (
+                    "This latest research follows lab experiments on purple photosynthetic "
+                    "bacteria, which reveal a unique energy-splitting process happening "
+                    "inside their solar-collecting systems."
+                ),
+                "score": 0.9,
+            },
+            {
+                "title": "Research paper",
+                "url": "https://b.example.org/paper",
+                "raw_content": (
+                    "This latest research follows laboratory experiments on purple "
+                    "photosynthetic bacteria showing that a novel hetero-fission process "
+                    "occurs within their light-harvesting complexes."
+                ),
+                "score": 0.9,
+            },
+            {
+                "title": "Separate research finding",
+                "url": "https://c.example.org/ecosystems",
+                "raw_content": (
+                    "This latest research also compares carbon fixation rates across "
+                    "terrestrial ecosystems over several growing seasons."
+                ),
+                "score": 0.9,
+            },
+        ],
+    )
+
+    assert result.abstained is False
+    assert result.answer.count("This latest research follows") == 1
+    assert "carbon fixation rates" in result.answer
+    assert len(result.sources) == 2
