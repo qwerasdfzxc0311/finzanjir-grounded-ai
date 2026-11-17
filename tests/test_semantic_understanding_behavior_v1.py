@@ -31,7 +31,7 @@ def test_offline_general_fact_answers_work_in_all_five_languages(monkeypatch):
     )
     engine, gateway = _offline_engine(monkeypatch)
     for query, language, expected, intent in cases:
-        assert classify_query_intent(query) == intent
+        assert classify_query_intent(query) == intent, query
         result = engine.answer(query, runtime_refs=(), working_memory_scope="offline-test")
         assert result.answer.abstained is False, query
         assert result.answer.generation_mode == "general_knowledge_local_facts", query
@@ -102,3 +102,15 @@ def test_project_question_remains_separate_and_works_without_hosted_model(monkey
     assert result.answer.generation_mode == "project_overview_localized"
     assert result.answer.citations == ("project_0001",)
     assert gateway.last_status == "not_attempted"
+
+
+
+def test_offline_unknown_general_topic_abstains_without_project_contamination(monkeypatch):
+    engine, gateway = _offline_engine(monkeypatch)
+    query = "What is photosynthesis?"
+    assert classify_query_intent(query) == "general_knowledge"
+    result = engine.answer(query, runtime_refs=(), working_memory_scope="offline-test")
+    assert result.answer.abstained is True
+    assert result.answer.generation_mode == "general_knowledge_provider_failed"
+    assert "FINZANJIR" not in result.answer.answer
+    assert gateway.last_status == "offline_mode"
