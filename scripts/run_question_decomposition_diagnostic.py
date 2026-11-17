@@ -12,6 +12,7 @@ from finzanjir_ai.orchestration.task_intent import classify_task_type
 from finzanjir_ai.retrieval.cross_lingual import cross_lingual_query_variants, translate_search_hint
 from finzanjir_ai.retrieval.grounding import GroundedContextAssembler
 from finzanjir_ai.retrieval.hybrid import HybridRetriever, RetrievalResult
+from finzanjir_ai.retrieval.rerank import QueryExpander, Reranker
 from finzanjir_ai.retrieval.text import query_script_variants
 
 
@@ -66,6 +67,8 @@ def diagnose_case(
     index: Any,
     retriever: HybridRetriever,
     grounder: GroundedContextAssembler,
+    expander: QueryExpander,
+    reranker: Reranker,
     top_k: int = 5,
 ) -> dict[str, Any]:
     query = case["query"]
@@ -77,11 +80,21 @@ def diagnose_case(
     for subquestion in case["subquestions"]:
         question = subquestion["question"]
         status = subquestion["knowledge_status"]
-        baseline_candidates = retrieve_candidates(question, retriever, top_k * 4)
+        script_variants = query_script_variants(question)
+        baseline_candidates = retrieve_candidates(
+            question, retriever, top_k * 4, variants=script_variants
+        )
         bridge_variants = cross_lingual_query_variants(question)
         translation_hint, translated_term_count = translate_search_hint(question)
-        candidates = retrieve_candidates(
+        bridge_candidates = retrieve_candidates(
             question, retriever, top_k * 4, variants=bridge_variants
+        )
+        local_variants = expander.expand(question)
+        local_expanded_variants = tuple(dict.fromkeys(
+            (*bridge_variants, *local_variants)
+        ))
+        candidates = retrieve_candidates(
+            question, retriever, top_k * 4, variants=local_expanded_variants
         )
 
         candidate_details = []
@@ -113,9 +126,13 @@ def diagnose_case(
                 )
                 for item in candidates
             )
+            reranked = reranker.rerank(question, retrieval_results)
             grounded = grounder.assemble(
-                retrieval_results,
+                reranked,
                 query=question,
+                query_alternatives=tuple(
+                    value for value in local_expanded_variants if value.strip() != question.strip()
+                ),
                 max_items=top_k,
             )
             evidence_ids = [item.record_id for item in grounded.items]
@@ -141,12 +158,29 @@ def diagnose_case(
         expected_ids = subquestion.get("evidence_ids", [])
         candidate_ids = [item["record_id"] for item in candidates]
         baseline_candidate_ids = [item["record_id"] for item in baseline_candidates]
+        bridge_candidate_ids = [item["record_id"] for item in bridge_candidates]
         baseline_retrieved_expected_ids = [
             item for item in expected_ids if item in baseline_candidate_ids
+        ]
+        bridge_retrieved_expected_ids = [
+            item for item in expected_ids if item in bridge_candidate_ids
         ]
         retrieved_expected_ids = [item for item in expected_ids if item in candidate_ids]
         grounded_expected_ids = [item for item in expected_ids if item in evidence_ids]
         missed_expected_ids = [item for item in expected_ids if item not in candidate_ids]
+        expected_record_details = [
+            {
+                "record_id": record_id,
+                "statement": record_map[record_id].statement,
+                "aliases": list(record_map[record_id].aliases),
+                "evidence_status": (
+                    record_map[record_id].evidence.get("status")
+                    if isinstance(record_map[record_id].evidence, dict) else None
+                ),
+                "provenance": list(record_map[record_id].provenance),
+            }
+            for record_id in expected_ids if record_id in record_map
+        ]
 
         subresults.append({
             "subquestion_id": subquestion["id"],
@@ -154,16 +188,24 @@ def diagnose_case(
             "declared_knowledge_status": status,
             "required_action": subquestion["required_action"],
             "query_language": case["language"],
-            "query_variants": list(bridge_variants),
+            "script_query_variants": list(script_variants),
+            "cross_lingual_query_variants": list(bridge_variants),
+            "local_query_expansion_variants": list(local_variants),
+            "query_variants": list(local_expanded_variants),
             "translation_hint": translation_hint,
             "translated_term_count": translated_term_count,
             "baseline_retrieved_expected_evidence_ids": baseline_retrieved_expected_ids,
+            "bridge_retrieved_expected_evidence_ids": bridge_retrieved_expected_ids,
             "expected_evidence_ids": expected_ids,
+            "expected_evidence_record_details": expected_record_details,
             "retrieved_expected_evidence_ids": retrieved_expected_ids,
             "grounded_expected_evidence_ids": grounded_expected_ids,
             "missed_expected_evidence_ids": missed_expected_ids,
             "baseline_expected_evidence_candidate_recall": (
                 round(len(baseline_retrieved_expected_ids) / len(expected_ids), 4) if expected_ids else None
+            ),
+            "bridge_expected_evidence_candidate_recall": (
+                round(len(bridge_retrieved_expected_ids) / len(expected_ids), 4) if expected_ids else None
             ),
             "expected_evidence_candidate_recall": (
                 round(len(retrieved_expected_ids) / len(expected_ids), 4) if expected_ids else None
@@ -223,6 +265,8 @@ def main() -> int:
     index = build_index_from_document(document)
     retriever = HybridRetriever(index)
     grounder = GroundedContextAssembler(index)
+    expander = QueryExpander(index)
+    reranker = Reranker(index)
 
     report: dict[str, Any] = {
         "benchmark_id": benchmark["benchmark_id"],
@@ -241,14 +285,15 @@ def main() -> int:
             "Task-type classification is a separate multilingual baseline and is evaluated independently from domain routing.",
             "It does not call an LLM, external API, browser, bank system, or customer data source.",
             "Only known/partial internal-knowledge subquestions can produce eligible grounded candidates.",
-            "The cross-lingual bridge is a low-priority dictionary hint; compare its retrieval recall with the original/script-only baseline.",
+            "The report compares original/script-only retrieval, cross-lingual bridge retrieval, and local query-expansion retrieval separately.",
+            "Local query expansion, cross-lingual variants, and model-proposed rewrites are search hints only; none is evidence.",
             "External, production-unconfirmed, implementation-unverified, and manual-review-only hits are not counted as answer evidence.",
             "Expected evidence IDs remain subject to human provenance and relevance review.",
         ],
     }
 
     for case in cases:
-        result = diagnose_case(case, index, retriever, grounder, top_k=args.top_k)
+        result = diagnose_case(case, index, retriever, grounder, expander, reranker, top_k=args.top_k)
         report["cases"].append(result)
         if result["domain_route_match"]:
             report["domain_route_matches"] += 1
@@ -277,6 +322,7 @@ def main() -> int:
     ]
     expected_total = sum(len(sub["expected_evidence_ids"]) for sub in expected_subquestions)
     baseline_retrieved_expected_total = sum(len(sub["baseline_retrieved_expected_evidence_ids"]) for sub in expected_subquestions)
+    bridge_retrieved_expected_total = sum(len(sub["bridge_retrieved_expected_evidence_ids"]) for sub in expected_subquestions)
     retrieved_expected_total = sum(len(sub["retrieved_expected_evidence_ids"]) for sub in expected_subquestions)
     grounded_expected_total = sum(len(sub["grounded_expected_evidence_ids"]) for sub in expected_subquestions)
     language_totals: dict[str, dict[str, int]] = {}
@@ -286,17 +332,20 @@ def main() -> int:
             "expected": 0,
             "baseline_retrieved": 0,
             "bridge_retrieved": 0,
+            "local_expansion_retrieved": 0,
             "grounded": 0,
         })
         totals["expected"] += len(sub["expected_evidence_ids"])
         totals["baseline_retrieved"] += len(sub["baseline_retrieved_expected_evidence_ids"])
-        totals["bridge_retrieved"] += len(sub["retrieved_expected_evidence_ids"])
+        totals["bridge_retrieved"] += len(sub["bridge_retrieved_expected_evidence_ids"])
+        totals["local_expansion_retrieved"] += len(sub["retrieved_expected_evidence_ids"])
         totals["grounded"] += len(sub["grounded_expected_evidence_ids"])
     report["language_metrics"] = {
         language: {
             **totals,
             "baseline_candidate_recall": round(totals["baseline_retrieved"] / totals["expected"], 4),
             "bridge_candidate_recall": round(totals["bridge_retrieved"] / totals["expected"], 4),
+            "local_expansion_candidate_recall": round(totals["local_expansion_retrieved"] / totals["expected"], 4),
             "grounded_recall": round(totals["grounded"] / totals["expected"], 4),
         }
         for language, totals in language_totals.items()
@@ -304,6 +353,8 @@ def main() -> int:
     report["expected_evidence_total"] = expected_total
     report["baseline_retrieved_expected_evidence_total"] = baseline_retrieved_expected_total
     report["baseline_expected_evidence_candidate_recall"] = round(baseline_retrieved_expected_total / expected_total, 4) if expected_total else None
+    report["bridge_retrieved_expected_evidence_total"] = bridge_retrieved_expected_total
+    report["bridge_expected_evidence_candidate_recall"] = round(bridge_retrieved_expected_total / expected_total, 4) if expected_total else None
     report["retrieved_expected_evidence_total"] = retrieved_expected_total
     report["grounded_expected_evidence_total"] = grounded_expected_total
     report["missed_expected_evidence_total"] = expected_total - retrieved_expected_total
