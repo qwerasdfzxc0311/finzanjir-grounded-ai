@@ -68,3 +68,9 @@ main section{margin:0 0 26px}.hero-section{position:relative;display:flex;align-
 
 .cloud-memory-section{display:grid;gap:14px}.cloud-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:10px 0}.cloud-service-options{display:flex;flex-wrap:wrap;gap:14px;padding:12px 0;color:var(--muted);font-size:13px}.cloud-service-options label{display:flex;align-items:center;gap:6px}.cloud-account-list,.cloud-memory-list{display:grid;gap:10px;margin-top:12px}.cloud-account-card{display:grid;gap:10px;padding:14px;border:1px solid var(--line);border-radius:12px;background:#fbfdfe}.cloud-account-heading{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px}.cloud-account-output{display:grid;gap:8px}.cloud-memory-row{display:grid;gap:5px;padding:12px;border:1px solid var(--line);border-radius:10px;background:white;min-width:0}.cloud-memory-row strong{overflow-wrap:anywhere}.cloud-memory-row .muted{overflow-wrap:anywhere;font-size:12px}.cloud-query,#googleMemoryQuery{min-width:190px;flex:1;padding:10px;border:1px solid var(--line);border-radius:9px;background:white}.cloud-picker-link{display:inline-flex;padding:10px 0;color:var(--brand-700);font-weight:700}.secondary-button{background:#edf3f7;color:var(--brand-800);border:1px solid #d9e4eb}.status-success{color:#18734a}.status-error{color:#a33131}
 @media(max-width:700px){.cloud-toolbar{align-items:stretch;flex-direction:column}.cloud-toolbar button,.cloud-query,#googleMemoryQuery{width:100%}.cloud-account-heading{flex-direction:column}}
+
+.cloud-settings-tabs{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0}
+.cloud-settings-tabs [aria-selected="true"]{background:var(--brand-800);color:#fff;border-color:var(--brand-800)}
+.cloud-settings-panel{display:grid;gap:14px}
+#googleDiagnosticsResults,#googlePermissionsResults{display:grid;gap:10px;margin-top:12px}
+#googleSettingsDiagnostics[hidden],#googleSettingsPermissions[hidden],#googleSettingsAccounts[hidden]{display:none}
