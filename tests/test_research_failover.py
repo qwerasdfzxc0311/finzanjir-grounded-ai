@@ -1,0 +1,124 @@
+from __future__ import annotations
+
+import httpx
+
+from finzanjir_ai.research import service
+from finzanjir_ai.research.local_answer import compose_tavily_local_answer
+
+
+def _source(title="Biology guide", url="https://en.wikipedia.org/wiki/Photosynthesis"):
+    return {
+        "title": title,
+        "url": url,
+        "snippet": "Photosynthesis is the process by which plants use light energy.",
+        "raw_content": (
+            "Photosynthesis is the process by which green plants use sunlight "
+            "to make food from carbon dioxide and water. Oxygen is released "
+            "as a byproduct of this process."
+        ),
+        "score": 0.92,
+    }
+
+
+def test_wikimedia_composer_labels_backup_provider_and_keeps_source():
+    result = compose_tavily_local_answer(
+        "What is photosynthesis?",
+        [_source()],
+        provider_name="Wikimedia",
+    )
+    assert result.abstained is False
+    assert result.generation_mode == "wikimedia_local_extractive"
+    assert "Wikimedia" in result.answer
+    assert result.provenance == ("https://en.wikipedia.org/wiki/Photosynthesis",)
+
+
+def test_tavily_quota_failure_falls_back_to_wikimedia_without_llm(monkeypatch):
+    service.clear_research_state_for_tests()
+    calls = {"tavily": 0, "wikimedia": 0}
+
+    class QuotaTavily:
+        def search(self, *args, **kwargs):
+            calls["tavily"] += 1
+            request = httpx.Request("POST", "https://api.tavily.com/search")
+            response = httpx.Response(429, request=request)
+            raise httpx.HTTPStatusError("rate limited", request=request, response=response)
+
+    class BackupWiki:
+        def search(self, query, *, max_results):
+            calls["wikimedia"] += 1
+            return {"results": [_source()]}
+
+    monkeypatch.setattr(service, "TavilySearchClient", QuotaTavily)
+    monkeypatch.setattr(service, "WikimediaSearchClient", BackupWiki)
+
+    result = service.search_and_compose("What is photosynthesis?")
+    assert result is not None
+    assert result["abstained"] is False
+    assert result["generation_mode"] == "wikimedia_local_extractive"
+    assert result["research_provider"] == "wikimedia"
+    assert result["provider_status"] == "not_attempted"
+    assert result["research_diagnostics"][0]["status"] == "rate_limited"
+    assert calls == {"tavily": 1, "wikimedia": 1}
+
+
+def test_tavily_cooldown_skips_repeated_quota_requests(monkeypatch):
+    service.clear_research_state_for_tests()
+    calls = {"tavily": 0, "wikimedia": 0}
+
+    class QuotaTavily:
+        def search(self, *args, **kwargs):
+            calls["tavily"] += 1
+            request = httpx.Request("POST", "https://api.tavily.com/search")
+            response = httpx.Response(429, request=request)
+            raise httpx.HTTPStatusError("rate limited", request=request, response=response)
+
+    class BackupWiki:
+        def search(self, query, *, max_results):
+            calls["wikimedia"] += 1
+            return {"results": [_source()]}
+
+    monkeypatch.setattr(service, "TavilySearchClient", QuotaTavily)
+    monkeypatch.setattr(service, "WikimediaSearchClient", BackupWiki)
+
+    first = service.search_and_compose("What is photosynthesis?")
+    second = service.search_and_compose("How does photosynthesis work?")
+    assert first and second
+    assert calls["tavily"] == 1
+    assert calls["wikimedia"] == 2
+    assert any(item["status"] == "rate_limited" for item in second["research_diagnostics"])
+
+
+def test_successful_public_extract_is_cached_and_does_not_spend_tavily_again(monkeypatch):
+    service.clear_research_state_for_tests()
+    calls = {"tavily": 0, "wikimedia": 0}
+
+    class GoodTavily:
+        def search(self, *args, **kwargs):
+            calls["tavily"] += 1
+            return {"results": [_source(url="https://biology.example.edu/photosynthesis")]}
+
+    class ForbiddenWiki:
+        def search(self, *args, **kwargs):
+            calls["wikimedia"] += 1
+            raise AssertionError("Wikimedia should not be needed after a cache hit")
+
+    monkeypatch.setattr(service, "TavilySearchClient", GoodTavily)
+    monkeypatch.setattr(service, "WikimediaSearchClient", ForbiddenWiki)
+
+    first = service.search_and_compose("What is photosynthesis?")
+    second = service.search_and_compose("What is photosynthesis?")
+    assert first and second
+    assert first["generation_mode"] == "tavily_local_extractive"
+    assert second["generation_mode"] == "cached_local_extractive"
+    assert second["research_provider"] == "cache"
+    assert calls == {"tavily": 1, "wikimedia": 0}
+
+
+def test_cache_refuses_sensitive_identifiers():
+    service.clear_research_state_for_tests()
+    service._PUBLIC_RESEARCH_CACHE.put(
+        "Call me at +998 90 123 45 67",
+        "Tavily",
+        [_source()],
+    )
+    assert service._PUBLIC_RESEARCH_CACHE.get("Call me at +998 90 123 45 67") is None
