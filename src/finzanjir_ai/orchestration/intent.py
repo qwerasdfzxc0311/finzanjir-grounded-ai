@@ -91,7 +91,10 @@ def is_project_overview_query(query: str) -> bool:
         "что такое finzanjir", "расскажи о finzanjir", "о finzanjir",
         "what is finzanjir", "tell me about finzanjir", "about finzanjir",
         "finzanjir деген не", "finzanjir туралы", "finzanjir қандай жоба",
+        "finzanjir деген не және не үшін керек",
         "finzanjir degen ne", "finzanjir haqqında", "finzanjir joybar",
+        "finzanjir degen ne hám ne ushın kerek",
+        "что такое finzanjir и для чего он нужен",
     }
     # Exact broad-overview forms must be checked before generic detail markers:
     # "FINZANJIR nima va nima uchun kerak?" is still an overview, not the

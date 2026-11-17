@@ -69,3 +69,22 @@ def test_author_overpraise_question_is_an_evidence_based_critique_not_biography(
     assert "maqsad va kelajak haqidagi qarashlar" in result.answer.answer
     assert "mustaqil texnik audit" in result.answer.answer
     assert "hayotiy tajribalari sababli" not in result.answer.answer
+
+
+def test_multilingual_overview_questions_use_localized_grounded_fallbacks():
+    from finzanjir_ai.orchestration.intent import detect_query_language
+
+    cases = (
+        ("Что такое FINZANJIR и для чего он нужен?", "ru", "проект, направленный"),
+        ("FINZANJIR деген не және не үшін керек?", "kk", "қаржылық алаяқтық"),
+        ("FINZANJIR degen ne hám ne ushın kerek?", "kaa", "finanslıq alayaqlıqlar"),
+    )
+    engine = _engine()
+    for query, language, expected_phrase in cases:
+        assert detect_query_language(query) == language
+        assert classify_query_intent(query) == "project_overview"
+        result = engine.answer(query, runtime_refs=(), working_memory_scope="multilingual-overview")
+        assert result.answer.abstained is False, query
+        assert result.answer.generation_mode == "project_overview_localized", query
+        assert result.answer.citations == ("project_0001",), query
+        assert expected_phrase.casefold() in result.answer.answer.casefold(), query
