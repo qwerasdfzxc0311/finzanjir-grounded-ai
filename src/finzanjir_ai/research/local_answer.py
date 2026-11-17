@@ -99,7 +99,7 @@ def _near_duplicate(left: str, right: str) -> bool:
     sequence_similarity = SequenceMatcher(
         None, " ".join(left_tokens), " ".join(right_tokens)
     ).ratio()
-    return overlap >= 0.45 and sequence_similarity >= 0.62
+    return overlap >= 0.42 and sequence_similarity >= 0.60
 
 
 def _is_definition_question(query: str) -> bool:
