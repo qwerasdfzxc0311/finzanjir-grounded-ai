@@ -13,6 +13,21 @@ from finzanjir_ai.research.wikipedia import WikimediaSearchClient
 _PUBLIC_RESEARCH_CACHE = PublicResearchCache(ttl_seconds=6 * 60 * 60, max_entries=128)
 _TAVILY_COOLDOWN = ProviderCooldown()
 
+_TIME_SENSITIVE_MARKERS = (
+    "latest", "recent", "today", "tonight", "now", "current", "breaking",
+    "this week", "this month", "this year", "bugun", "bugungi", "hozir",
+    "so'nggi", "songgi", "oxirgi", "yangilik", "yangiliklar", "aktual",
+    "сегодня", "сейчас", "последн", "актуальн", "бүгін", "қазір", "соңғы",
+    "бүгінгі", "2025", "2026", "2027",
+)
+
+
+def _prefer_wikimedia_first(question: str, explicit_search: bool) -> bool:
+    if explicit_search:
+        return False
+    text = " ".join(str(question or "").casefold().split())
+    return not any(marker in text for marker in _TIME_SENSITIVE_MARKERS)
+
 
 def _failure_status(exc: Exception) -> str:
     if isinstance(exc, httpx.HTTPStatusError):
@@ -76,9 +91,10 @@ def search_and_compose(
     runtime_refs: list[str] | None = None,
     explicit_search: bool = False,
 ) -> dict[str, Any] | None:
-    """Search cache, Tavily and then Wikimedia; answer composition stays local."""
+    """Use local cache and two independent public providers; compose answers locally."""
     refs = list(runtime_refs or [])
     diagnostics: list[dict[str, Any]] = []
+    candidates: list[dict[str, Any]] = []
 
     cached = _PUBLIC_RESEARCH_CACHE.get(question)
     if cached:
@@ -94,7 +110,48 @@ def search_and_compose(
         if not payload["abstained"]:
             return payload
 
-    candidates: list[dict[str, Any]] = []
+    wikimedia_attempted = False
+
+    def try_wikimedia() -> dict[str, Any] | None:
+        nonlocal wikimedia_attempted
+        wikimedia_attempted = True
+        try:
+            backup = WikimediaSearchClient().search(question, max_results=6)
+            backup_results = backup.get("results", [])
+            if not backup_results:
+                diagnostics.append({
+                    "provider": "wikimedia",
+                    "status": backup.get("status", "no_results"),
+                })
+                return None
+            payload = _payload(
+                question,
+                backup,
+                runtime_refs=refs,
+                source_provider="Wikimedia",
+                research_provider="wikimedia",
+                diagnostics=diagnostics,
+                explicit_search=explicit_search,
+            )
+            if not payload["abstained"]:
+                _PUBLIC_RESEARCH_CACHE.put(question, "Wikimedia", backup_results)
+                return payload
+            candidates.append(payload)
+            diagnostics.append({"provider": "wikimedia", "status": "insufficient_extractable_evidence"})
+            return None
+        except ValueError:
+            raise
+        except (httpx.HTTPError, OSError):
+            diagnostics.append({"provider": "wikimedia", "status": "network_error"})
+            return None
+
+    # Stable encyclopedic questions prefer the independent no-key source first.
+    # This reduces Tavily usage rather than merely waiting for its quota to fail.
+    if _prefer_wikimedia_first(question, explicit_search):
+        wikimedia_payload = try_wikimedia()
+        if wikimedia_payload is not None:
+            return wikimedia_payload
+
     if _TAVILY_COOLDOWN.is_open():
         diagnostics.append({
             "provider": "tavily",
@@ -138,33 +195,10 @@ def search_and_compose(
                 "cooldown_seconds": cooldown,
             })
 
-    try:
-        backup = WikimediaSearchClient().search(question, max_results=6)
-        backup_results = backup.get("results", [])
-        if backup_results:
-            payload = _payload(
-                question,
-                backup,
-                runtime_refs=refs,
-                source_provider="Wikimedia",
-                research_provider="wikimedia",
-                diagnostics=diagnostics,
-                explicit_search=explicit_search,
-            )
-            if not payload["abstained"]:
-                _PUBLIC_RESEARCH_CACHE.put(question, "Wikimedia", backup_results)
-                return payload
-            candidates.append(payload)
-            diagnostics.append({"provider": "wikimedia", "status": "insufficient_extractable_evidence"})
-        else:
-            diagnostics.append({
-                "provider": "wikimedia",
-                "status": backup.get("status", "no_results"),
-            })
-    except ValueError:
-        raise
-    except (httpx.HTTPError, OSError):
-        diagnostics.append({"provider": "wikimedia", "status": "network_error"})
+    if not wikimedia_attempted:
+        wikimedia_payload = try_wikimedia()
+        if wikimedia_payload is not None:
+            return wikimedia_payload
 
     if candidates:
         best = max(candidates, key=lambda item: len(item.get("external_sources", [])))
