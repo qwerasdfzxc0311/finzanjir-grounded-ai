@@ -13,6 +13,7 @@ import json
 import os
 import secrets
 import sqlite3
+import shutil
 import time
 from contextlib import contextmanager
 from pathlib import Path
@@ -1324,3 +1325,123 @@ def google_personal_memory_audit(
         raise HTTPException(status_code=503, detail="Shaxsiy xotira auditi sozlanmagan.") from exc
     _read_session(request, cfg, store)
     return {"events": memory.audit_events(cfg["FINZANJIR_OWNER_EMAIL"], limit=limit)}
+
+@router.get("/diagnostics")
+def google_cloud_diagnostics(request: Request):
+    """Run owner-only, read-only diagnostics for the configured cloud runtime."""
+    try:
+        cfg = _config()
+    except (GoogleConfigError, OSError, ValueError):
+        return {
+            "configured": False,
+            "authenticated": False,
+            "checks": [
+                {"id": "oauth_config", "status": "not_configured",
+                 "detail": "Google OAuth server sozlamalari hali kiritilmagan."}
+            ],
+            "message": "Avval Google OAuth va shifrlash sozlamalarini serverda sozlash kerak.",
+        }
+
+    try:
+        store = _store(cfg)
+        memory = _personal_memory_store(cfg)
+    except (OSError, ValueError, RuntimeError):
+        return {
+            "configured": True,
+            "authenticated": False,
+            "checks": [
+                {"id": "storage", "status": "error",
+                 "detail": "Shifrlangan xotira omborlarini ochib bo‘lmadi."}
+            ],
+        }
+
+    try:
+        _read_session(request, cfg, store)
+    except HTTPException:
+        return {
+            "configured": True,
+            "authenticated": False,
+            "checks": [
+                {"id": "owner_session", "status": "needs_login",
+                 "detail": "Diagnostika natijalari faqat FINZANJIR egasiga ko‘rsatiladi."}
+            ],
+        }
+
+    checks = [
+        {"id": "oauth_config", "status": "ok",
+         "detail": "OAuth mijoz identifikatori, HTTPS callback va egasi sozlangan."},
+        {"id": "token_encryption", "status": "ok",
+         "detail": "Google token shifrlash kaliti yaroqli."},
+        {"id": "owner_session", "status": "ok",
+         "detail": "Ega sessiyasi tasdiqlandi."},
+    ]
+    paths = {
+        "google_state_db": cfg["FINZANJIR_GOOGLE_STATE_DB_PATH"],
+        "personal_memory_db": cfg["FINZANJIR_PERSONAL_MEMORY_DB_PATH"],
+    }
+    for name, raw_path in paths.items():
+        path = Path(raw_path)
+        try:
+            with sqlite3.connect(str(path), timeout=5) as db:
+                result = db.execute("PRAGMA quick_check").fetchone()[0]
+            ok = result == "ok"
+            checks.append({
+                "id": name, "status": "ok" if ok else "error",
+                "detail": "SQLite yaxlitligi tekshirildi." if ok
+                          else "SQLite yaxlitlik tekshiruvi xato qaytardi.",
+            })
+        except (OSError, sqlite3.Error) as exc:
+            checks.append({
+                "id": name, "status": "error",
+                "detail": "Ma’lumotlar bazasini tekshirib bo‘lmadi: " + type(exc).__name__,
+            })
+        if os.getenv("RENDER"):
+            try:
+                persistent = path.resolve().is_relative_to(Path("/var/data"))
+            except (OSError, ValueError):
+                persistent = False
+            checks.append({
+                "id": name + "_persistence", "status": "ok" if persistent else "warning",
+                "detail": "Render persistent disk yo‘li tasdiqlandi." if persistent
+                          else "Yo‘l /var/data ichida emas; qayta deployda ma’lumot yo‘qolishi mumkin.",
+            })
+
+    try:
+        usage = shutil.disk_usage(Path(cfg["FINZANJIR_PERSONAL_MEMORY_DB_PATH"]).parent)
+        checks.append({
+            "id": "storage_capacity", "status": "ok" if usage.free > 100 * 1024 * 1024 else "warning",
+            "detail": f"Bo‘sh joy: {usage.free // (1024 * 1024)} MiB.",
+        })
+    except OSError:
+        checks.append({
+            "id": "storage_capacity", "status": "error",
+            "detail": "Xotira diskidagi bo‘sh joyni aniqlab bo‘lmadi.",
+        })
+
+    accounts = store.list_accounts(cfg["FINZANJIR_OWNER_EMAIL"])
+    connected = [item for item in accounts if item["status"] == "connected"]
+    service_permissions = []
+    for account in connected:
+        scopes = set(account["scopes"])
+        service_permissions.append({
+            "account_id": account["account_id"],
+            "google_email": account["google_email"],
+            "drive_read": SERVICE_SCOPES["drive"][0] in scopes,
+            "gmail_read": SERVICE_SCOPES["gmail"][0] in scopes,
+            "photos_picker_read": SERVICE_SCOPES["photos"][0] in scopes,
+            "scopes": sorted(scopes),
+        })
+    return {
+        "configured": True,
+        "authenticated": True,
+        "account_count": len(connected),
+        "account_limit": MAX_GOOGLE_ACCOUNTS,
+        "checks": checks,
+        "permissions": service_permissions,
+        "summary": {
+            "ok": sum(item["status"] == "ok" for item in checks),
+            "warning": sum(item["status"] == "warning" for item in checks),
+            "error": sum(item["status"] == "error" for item in checks),
+        },
+        "scope_note": "Bu diagnostika server va mahalliy omborni tekshiradi; Google rozilik oynasi yoki API ruxsatini almashtirmaydi.",
+    }
