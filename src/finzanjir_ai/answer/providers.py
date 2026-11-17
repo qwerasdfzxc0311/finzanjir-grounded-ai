@@ -11,6 +11,51 @@ import httpx
 
 logger = logging.getLogger(__name__)
 
+# ISO 13616 IBAN country prefixes. A candidate must also pass the mod-97
+# checksum; this avoids treating acronyms such as BM25 as bank identifiers.
+_IBAN_COUNTRY_CODES = frozenset("""
+AD AE AL AT AZ BA BE BG BH BI BJ BR BY CH CI CM CR CV CY CZ DE DJ DK DO DZ
+EE EG ES FI FO FR GB GE GI GL GQ GR GT GW HN HR HU IE IL IQ IR IS IT JO KW
+KZ LB LC LI LT LU LV LY MA MC MD ME MK ML MR MT MU MZ NE NI NL NO OM PK PL
+PS PT QA RO RS SA SC SD SE SI SK SM SN SO ST SV TD TG TL TN TR UA VA VG XK
+""".split())
+_IBAN_PREFIX_RE = re.compile(r"(?<![A-Z0-9])([A-Z]{2}\\d{2})", re.IGNORECASE)
+
+
+def _has_valid_iban(text: str) -> bool:
+    upper = str(text).upper()
+    for prefix_match in _IBAN_PREFIX_RE.finditer(upper):
+        prefix = prefix_match.group(1)
+        if prefix[:2] not in _IBAN_COUNTRY_CODES:
+            continue
+        candidate_chars: list[str] = []
+        for position in range(prefix_match.start(), min(len(upper), prefix_match.start() + 64)):
+            char = upper[position]
+            if char.isalnum():
+                candidate_chars.append(char)
+            elif char in " -":
+                continue
+            else:
+                break
+            size = len(candidate_chars)
+            if not 15 <= size <= 34:
+                continue
+            next_char = upper[position + 1] if position + 1 < len(upper) else ""
+            if next_char and next_char.isalnum():
+                continue
+            candidate = "".join(candidate_chars)
+            rearranged = candidate[4:] + candidate[:4]
+            remainder = 0
+            for value in rearranged:
+                if value.isdigit():
+                    remainder = (remainder * 10 + int(value)) % 97
+                else:
+                    remainder = (remainder * 100 + ord(value) - 55) % 97
+            if remainder == 1:
+                return True
+    return False
+
+
 
 class LLMGateway:
     """Small provider gateway: Gemini primary, OpenRouter fallback.
@@ -172,7 +217,7 @@ class LLMGateway:
             return False
         if re.search(r"(?<![A-Z0-9])[A-Z]{2}[\s-]?\d{7}(?!\d)", text, flags=re.IGNORECASE):
             return False
-        if re.search(r"(?<![A-Z0-9])[A-Z]{2}\d{2}(?:\s?[A-Z0-9]){11,30}(?![A-Z0-9])", text, flags=re.IGNORECASE):
+        if _has_valid_iban(text):
             return False
         return True
 
