@@ -51,7 +51,7 @@ def test_tavily_quota_failure_falls_back_to_wikimedia_without_llm(monkeypatch):
     monkeypatch.setattr(service, "TavilySearchClient", QuotaTavily)
     monkeypatch.setattr(service, "WikimediaSearchClient", BackupWiki)
 
-    result = service.search_and_compose("What is photosynthesis?")
+    result = service.search_and_compose("What is photosynthesis?", explicit_search=True)
     assert result is not None
     assert result["abstained"] is False
     assert result["generation_mode"] == "wikimedia_local_extractive"
@@ -80,8 +80,8 @@ def test_tavily_cooldown_skips_repeated_quota_requests(monkeypatch):
     monkeypatch.setattr(service, "TavilySearchClient", QuotaTavily)
     monkeypatch.setattr(service, "WikimediaSearchClient", BackupWiki)
 
-    first = service.search_and_compose("What is photosynthesis?")
-    second = service.search_and_compose("How does photosynthesis work?")
+    first = service.search_and_compose("What is photosynthesis?", explicit_search=True)
+    second = service.search_and_compose("How does photosynthesis work?", explicit_search=True)
     assert first and second
     assert calls["tavily"] == 1
     assert calls["wikimedia"] == 2
@@ -105,8 +105,8 @@ def test_successful_public_extract_is_cached_and_does_not_spend_tavily_again(mon
     monkeypatch.setattr(service, "TavilySearchClient", GoodTavily)
     monkeypatch.setattr(service, "WikimediaSearchClient", ForbiddenWiki)
 
-    first = service.search_and_compose("What is photosynthesis?")
-    second = service.search_and_compose("What is photosynthesis?")
+    first = service.search_and_compose("What is photosynthesis?", explicit_search=True)
+    second = service.search_and_compose("What is photosynthesis?", explicit_search=True)
     assert first and second
     assert first["generation_mode"] == "tavily_local_extractive"
     assert second["generation_mode"] == "cached_local_extractive"
@@ -122,3 +122,27 @@ def test_cache_refuses_sensitive_identifiers():
         [_source()],
     )
     assert service._PUBLIC_RESEARCH_CACHE.get("Call me at +998 90 123 45 67") is None
+
+
+def test_stable_general_question_uses_wikimedia_before_tavily(monkeypatch):
+    service.clear_research_state_for_tests()
+    calls = {"tavily": 0, "wikimedia": 0}
+
+    class ForbiddenTavily:
+        def search(self, *args, **kwargs):
+            calls["tavily"] += 1
+            raise AssertionError("Stable encyclopedic questions should try Wikimedia first")
+
+    class BackupWiki:
+        def search(self, query, *, max_results):
+            calls["wikimedia"] += 1
+            return {"results": [_source()]}
+
+    monkeypatch.setattr(service, "TavilySearchClient", ForbiddenTavily)
+    monkeypatch.setattr(service, "WikimediaSearchClient", BackupWiki)
+
+    result = service.search_and_compose("What is photosynthesis?")
+    assert result is not None
+    assert result["generation_mode"] == "wikimedia_local_extractive"
+    assert result["research_provider"] == "wikimedia"
+    assert calls == {"tavily": 0, "wikimedia": 1}
