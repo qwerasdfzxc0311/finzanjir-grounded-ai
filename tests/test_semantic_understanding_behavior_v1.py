@@ -112,6 +112,7 @@ def test_offline_unknown_general_topic_abstains_without_project_contamination(mo
     result = engine.answer(query, runtime_refs=(), working_memory_scope="offline-test")
     assert result.answer.abstained is True
     assert result.answer.generation_mode == "general_knowledge_provider_failed"
+    assert "FINZANJIR" not in result.answer.answer
     assert "bank kartasini" not in result.answer.answer.casefold()
     assert result.answer.citations == ()
     assert gateway.last_status == "offline_mode"
