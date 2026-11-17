@@ -7,6 +7,9 @@ from .text import meaningful_tokens, tokenize
 from finzanjir_ai.knowledge.index import KnowledgeIndex
 
 
+MAX_LOCAL_QUERY_VARIANTS = 32
+
+
 _IDENTITY_QUERY_HINTS = (
     "FINZANJIR moliyaviy xavfsizlik firibgarlik zanjiri",
     "FINZANJIR maqsad vazifa himoya bank",
@@ -173,7 +176,8 @@ class QueryExpander:
                     expanded.extend(record.aliases)
                     break
 
-        return tuple(dict.fromkeys(term for term in expanded if term))
+        unique = tuple(dict.fromkeys(term for term in expanded if term))
+        return unique[:MAX_LOCAL_QUERY_VARIANTS]
 
 
 class Reranker:
