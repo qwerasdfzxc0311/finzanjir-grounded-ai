@@ -18,11 +18,11 @@ _SKY = {
 }
 
 _UZBEKISTAN = {
-    "uz": "O‘zbekiston Markaziy Osiyoda joylashgan va dengizga bevosita chiqish yo‘li yo‘q davlat. U Qozog‘iston, Qirg‘iziston, Tojikiston, Turkmaniston va Afg‘oniston bilan chegaradosh. Poytaxti — Toshkent. Bu javob barqaror geografik ma’lumotlarga asoslangan; aholi soni kabi vaqt o‘tishi bilan o‘zgaradigan raqamlarni keltirmadim.",
-    "kaa": "Ózbekstan Oraylıq Aziyada jaylasqan hám teńizge tikkeley shıǵıw jolı joq mámleket. Ol Qazaqstan, Qırǵızstan, Tájikstan, Túrkmenstan hám Awǵanstan menen shegaralas. Paytaxtı — Tashkent. Bul juwap turaqlı geografiyalıq maǵlıwmatlarǵa tiykarlanǵan; xalıq sanı sıyaqlı waqıt penen ózgeretuǵın sanlardı keltirmedim.",
-    "kk": "Өзбекстан Орталық Азияда орналасқан және теңізге тікелей шығатын жолы жоқ мемлекет. Ол Қазақстан, Қырғызстан, Тәжікстан, Түрікменстан және Ауғанстанмен шектеседі. Астанасы — Ташкент. Бұл жауап тұрақты географиялық деректерге негізделген; халық саны сияқты уақыт өте өзгеретін сандарды қоспадым.",
-    "ru": "Узбекистан расположен в Центральной Азии и не имеет прямого выхода к морю. Он граничит с Казахстаном, Кыргызстаном, Таджикистаном, Туркменистаном и Афганистаном. Столица — Ташкент. Здесь приведены устойчивые географические сведения; изменяющиеся со временем показатели, например численность населения, не приводятся.",
-    "en": "Uzbekistan is in Central Asia and has no direct access to the sea. It borders Kazakhstan, Kyrgyzstan, Tajikistan, Turkmenistan, and Afghanistan. Its capital is Tashkent. This answer uses stable geographic facts and omits time-sensitive figures such as population.",
+    "uz": "O‘zbekiston Markaziy Osiyoda joylashgan va dengizga bevosita chiqish yo‘li yo‘q davlat. U Qozog‘iston, Qirg‘iziston, Tojikiston, Turkmaniston va Afg‘oniston bilan chegaradosh. Poytaxti — Toshkent. Bu javob barqaror geografik ma’lumotlarga asoslangan; vaqt bilan o‘zgaradigan statistik raqamlar keltirilmagan.",
+    "kaa": "Ózbekstan Oraylıq Aziyada jaylasqan hám teńizge tikkeley shıǵıw jolı joq mámleket. Ol Qazaqstan, Qırǵızstan, Tájikstan, Túrkmenstan hám Awǵanstan menen shegaralas. Paytaxtı — Tashkent. Bul juwap turaqlı geografiyalıq maǵlıwmatlarǵa tiykarlanǵan; waqıt penen ózgeretuǵın statistikalıq sanlar keltirilmegen.",
+    "kk": "Өзбекстан Орталық Азияда орналасқан және теңізге тікелей шығатын жолы жоқ мемлекет. Ол Қазақстан, Қырғызстан, Тәжікстан, Түрікменстан және Ауғанстанмен шектеседі. Астанасы — Ташкент. Бұл жауап тұрақты географиялық деректерге негізделген; уақыт өте өзгеретін статистикалық көрсеткіштерді қоспадым.",
+    "ru": "Узбекистан расположен в Центральной Азии и не имеет прямого выхода к морю. Он граничит с Казахстаном, Кыргызстаном, Таджикистаном, Туркменистаном и Афганистаном. Столица — Ташкент. Здесь приведены устойчивые географические сведения; изменяющиеся со временем статистические показатели не приводятся.",
+    "en": "Uzbekistan is in Central Asia and has no direct access to the sea. It borders Kazakhstan, Kyrgyzstan, Tajikistan, Turkmenistan, and Afghanistan. Its capital is Tashkent. This answer focuses on stable geographic facts and omits changing statistical figures.",
 }
 
 _TORTOISE = {
@@ -91,7 +91,7 @@ _GENERAL_TOPIC_MARKERS = (
     "quyosh", "sun", "солнц", "osmon", "sky", "небо", "aspan",
     "hayvon", "animal", "животн", "toshbaqa", "toshvaqa", "turtle",
     "tortoise", "черепах", "photosynthesis", "фотосинтез", "gravitatsiya",
-    "gravity", "гравитац", "fan", "science", "наука",
+    "gravity", "гравитац", "science", "наука",
 )
 
 
