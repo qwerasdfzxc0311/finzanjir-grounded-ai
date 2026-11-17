@@ -49,3 +49,31 @@ def test_tavily_returns_external_sources_without_claiming_canonical_status(monke
     assert calls[0][1]["json"]["max_results"] == 8
     assert calls[0][1]["json"]["include_answer"] is False
     assert calls[0][1]["headers"]["Authorization"] == "Bearer test-only"
+
+
+def test_tavily_raw_content_is_opt_in_and_bounded(monkeypatch):
+    calls = []
+
+    class RawResponse:
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return {"results": [{
+                "title": "Public advisory",
+                "url": "https://cisa.gov/advisories/one",
+                "content": "Short snippet",
+                "raw_content": "Full public extract " + "x" * 600000,
+            }]}
+
+    def fake_post(url, **kwargs):
+        calls.append(kwargs["json"])
+        return RawResponse()
+
+    monkeypatch.setattr("finzanjir_ai.research.tavily.httpx.post", fake_post)
+    client = TavilySearchClient(api_key="test-only")
+    default = client.search("public advisory")
+    assert default["results"][0]["raw_content"] == ""
+    full = client.search("public advisory", include_raw_content=True)
+    assert calls[-1]["include_raw_content"] is True
+    assert len(full["results"][0]["raw_content"]) == 500000

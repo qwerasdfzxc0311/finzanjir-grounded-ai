@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import os
+import json
 import sqlite3
 
 from .autonomous_learning import ResearchCandidate
@@ -48,6 +49,7 @@ class StoredCandidate:
     discovered_at: str
     status: str
     source_mode: str
+    review_reasons: tuple[str, ...] = ()
 
 
 class LocalResearchRuntimeStore:
@@ -79,6 +81,11 @@ class LocalResearchRuntimeStore:
                     bytes INTEGER NOT NULL,
                     detail TEXT NOT NULL
                 );
+                CREATE TABLE IF NOT EXISTS research_checkpoints (
+                    job_id TEXT PRIMARY KEY,
+                    checkpoint_json TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                );
                 CREATE TABLE IF NOT EXISTS quarantined_candidates (
                     candidate_id TEXT PRIMARY KEY,
                     source_id TEXT NOT NULL,
@@ -91,6 +98,13 @@ class LocalResearchRuntimeStore:
                     source_mode TEXT NOT NULL
                 );
             """)
+            candidate_columns = {
+                row[1] for row in db.execute("PRAGMA table_info(quarantined_candidates)").fetchall()
+            }
+            if "review_reasons_json" not in candidate_columns:
+                db.execute(
+                    "ALTER TABLE quarantined_candidates ADD COLUMN review_reasons_json TEXT NOT NULL DEFAULT '[]'"
+                )
         try:
             os.chmod(self.path, 0o600)
         except OSError:
@@ -202,16 +216,69 @@ class LocalResearchRuntimeStore:
                        (lease_until, job_id))
         return True
 
+    def heartbeat_job(self, job_id: str, *, now: datetime | None = None,
+                      lease_seconds: int = 300) -> bool:
+        if lease_seconds < 1 or lease_seconds > 3600:
+            raise ValueError("lease_seconds must be between 1 and 3600")
+        instant = _utc(now)
+        with self._connection() as db:
+            changed = db.execute("""
+                UPDATE research_jobs SET lease_until=?
+                WHERE job_id=? AND enabled=1 AND paused=0 AND lease_until>?
+            """, (_stamp(instant + timedelta(seconds=lease_seconds)),
+                  job_id, _stamp(instant))).rowcount
+        return changed == 1
+
+    def save_checkpoint(self, job_id: str, checkpoint: dict,
+                        *, now: datetime | None = None) -> None:
+        if not isinstance(checkpoint, dict):
+            raise ValueError("checkpoint must be an object")
+        encoded = json.dumps(checkpoint, ensure_ascii=False, sort_keys=True)
+        if len(encoded.encode("utf-8")) > 65536:
+            raise ValueError("checkpoint exceeds 64 KiB")
+        with self._connection() as db:
+            exists = db.execute(
+                "SELECT 1 FROM research_jobs WHERE job_id=?", (job_id,)
+            ).fetchone()
+            if not exists:
+                raise KeyError(job_id)
+            db.execute("""
+                INSERT INTO research_checkpoints(job_id, checkpoint_json, updated_at)
+                VALUES (?, ?, ?)
+                ON CONFLICT(job_id) DO UPDATE SET
+                    checkpoint_json=excluded.checkpoint_json,
+                    updated_at=excluded.updated_at
+            """, (job_id, encoded, _stamp(now)))
+
+    def get_checkpoint(self, job_id: str) -> dict:
+        with self._connection() as db:
+            row = db.execute(
+                "SELECT checkpoint_json FROM research_checkpoints WHERE job_id=?",
+                (job_id,),
+            ).fetchone()
+        if row is None:
+            return {}
+        value = json.loads(row[0])
+        if not isinstance(value, dict):
+            raise ValueError("stored checkpoint is not an object")
+        return value
+
+    def clear_checkpoint(self, job_id: str) -> None:
+        with self._connection() as db:
+            db.execute("DELETE FROM research_checkpoints WHERE job_id=?", (job_id,))
+
     def finish_job(self, job_id: str, *, started_at: datetime,
                    finished_at: datetime | None = None, status: str,
                    items: int = 0, bytes_processed: int = 0,
-                   detail: str = "") -> ResearchJob:
+                   detail: str = "", next_run_delay_minutes: int | None = None) -> ResearchJob:
         if status not in {"completed", "failed", "partial", "no_items"}:
             raise ValueError("unsupported cycle status")
         if items < 0 or bytes_processed < 0:
             raise ValueError("items and bytes_processed must be non-negative")
         start = _utc(started_at)
         finish = _utc(finished_at)
+        if next_run_delay_minutes is not None and not 0 <= next_run_delay_minutes <= 1440:
+            raise ValueError("next_run_delay_minutes must be between 0 and 1440")
         if finish < start:
             raise ValueError("finished_at cannot precede started_at")
         with self._connection() as db:
@@ -222,7 +289,8 @@ class LocalResearchRuntimeStore:
             ).fetchone()
             if row is None:
                 raise KeyError(job_id)
-            next_run = _stamp(finish + timedelta(minutes=row[0]))
+            delay = row[0] if next_run_delay_minutes is None else next_run_delay_minutes
+            next_run = _stamp(finish + timedelta(minutes=delay))
             db.execute("""
                 INSERT INTO research_audit
                     (job_id, started_at, finished_at, status, items, bytes, detail)
@@ -241,20 +309,28 @@ class LocalResearchRuntimeStore:
             db.execute("""
                 INSERT OR IGNORE INTO quarantined_candidates
                     (candidate_id, source_id, url, title, text, content_hash,
-                     discovered_at, status, source_mode)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                     discovered_at, status, source_mode, review_reasons_json)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (candidate.candidate_id, candidate.source_id, candidate.url,
                   candidate.title, candidate.text, candidate.content_hash,
-                  candidate.discovered_at, candidate.status.value, source_mode))
+                  candidate.discovered_at, candidate.status.value, source_mode,
+                  json.dumps(list(candidate.review_reasons), ensure_ascii=False)))
 
     def get_candidate(self, candidate_id: str) -> StoredCandidate | None:
         with self._connection() as db:
             row = db.execute("""
                 SELECT candidate_id, source_id, url, title, text, content_hash,
-                       discovered_at, status, source_mode
+                       discovered_at, status, source_mode, review_reasons_json
                 FROM quarantined_candidates WHERE candidate_id=?
             """, (candidate_id,)).fetchone()
-        return StoredCandidate(*row) if row else None
+        if row is None:
+            return None
+        values = list(row)
+        try:
+            values[-1] = tuple(json.loads(values[-1]))
+        except (TypeError, ValueError):
+            values[-1] = ()
+        return StoredCandidate(*values)
 
     def audit_events(self, job_id: str, *, limit: int = 50) -> list[dict]:
         with self._connection() as db:
