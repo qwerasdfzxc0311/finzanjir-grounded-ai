@@ -268,9 +268,10 @@ def answer(request: AIAnswerRequest) -> dict[str, Any]:
         return research_payload
 
     # In Auto mode, local general facts take priority. If the local corpus does
-    # not cover the question, Tavily searches public sources and a deterministic
-    # local composer builds a source-linked answer. Gemini/OpenRouter are not
-    # required for this path. Explicit Offline mode never makes network calls.
+    # not cover the question, the research service checks its public-source cache,
+    # then Tavily, then Wikimedia when Tavily is unavailable or insufficient.
+    # A deterministic local composer builds source-linked answers; hosted LLMs
+    # remain optional. Explicit Offline mode never makes network calls.
     research_payload: dict[str, Any] | None = None
     if query_intent == "general_knowledge" and request.model_policy == "auto":
         offline_engine = ai_engine("offline")
