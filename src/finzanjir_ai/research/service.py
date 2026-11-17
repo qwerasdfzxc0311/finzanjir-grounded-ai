@@ -29,6 +29,23 @@ def _prefer_wikimedia_first(question: str, explicit_search: bool) -> bool:
     return not any(marker in text for marker in _TIME_SENSITIVE_MARKERS)
 
 
+def _tavily_time_range(question: str) -> str | None:
+    text = " ".join(str(question or "").casefold().split())
+    if not any(marker in text for marker in _TIME_SENSITIVE_MARKERS):
+        return None
+    research_markers = (
+        "research", "study", "studies", "paper", "papers", "scientific",
+        "tadqiqot", "ilmiy", "izlanish", "исследован", "научн", "зерттеу",
+    )
+    if any(marker in text for marker in research_markers):
+        return "year"
+    if any(marker in text for marker in ("today", "tonight", "bugun", "bugungi", "сегодня", "бүгін")):
+        return "day"
+    if any(marker in text for marker in ("this week", "hafta", "на этой неделе", "осы апта")):
+        return "week"
+    return "month"
+
+
 def _failure_status(exc: Exception) -> str:
     if isinstance(exc, httpx.HTTPStatusError):
         code = exc.response.status_code
@@ -160,12 +177,15 @@ def search_and_compose(
         })
     else:
         try:
-            research = TavilySearchClient().search(
-                question,
-                max_results=6,
-                search_depth="advanced",
-                include_raw_content=True,
-            )
+            search_kwargs: dict[str, Any] = {
+                "max_results": 6,
+                "search_depth": "advanced",
+                "include_raw_content": True,
+            }
+            time_range = _tavily_time_range(question)
+            if time_range:
+                search_kwargs["time_range"] = time_range
+            research = TavilySearchClient().search(question, **search_kwargs)
             _TAVILY_COOLDOWN.record_success()
             payload = _payload(
                 question,

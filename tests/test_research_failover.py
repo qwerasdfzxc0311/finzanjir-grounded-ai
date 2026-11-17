@@ -211,3 +211,33 @@ def test_wikimedia_client_blocks_sensitive_queries_before_network(monkeypatch):
         assert "personal or payment identifier" in str(exc)
     else:
         raise AssertionError("Expected sensitive query rejection")
+
+
+def test_definition_question_prefers_sentence_that_starts_with_the_subject():
+    result = compose_tavily_local_answer(
+        "What is photosynthesis?",
+        [{
+            "title": "Photosynthesis",
+            "url": "https://en.wikipedia.org/wiki/Photosynthesis",
+            "snippet": "Photosynthesis is a biological process.",
+            "raw_content": (
+                "Archaea such as Halobacterium also perform a type of anoxygenic "
+                "photosynthesis using retinal photopigments. "
+                "Photosynthesis is a system of biological processes by which "
+                "plants, algae and cyanobacteria convert light energy into chemical energy. "
+                "This process is essential to many ecosystems."
+            ),
+            "score": 0.9,
+        }],
+        provider_name="Wikimedia",
+    )
+    assert result.abstained is False
+    assert result.answer.index("1. Photosynthesis is a system") < result.answer.index("Archaea")
+
+
+def test_time_sensitive_research_queries_use_year_filter():
+    from finzanjir_ai.research.service import _tavily_time_range
+
+    assert _tavily_time_range("What is the latest research on photosynthesis today?") == "year"
+    assert _tavily_time_range("What happened in the news today?") == "day"
+    assert _tavily_time_range("What is photosynthesis?") is None

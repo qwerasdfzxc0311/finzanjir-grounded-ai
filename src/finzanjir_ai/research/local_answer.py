@@ -81,6 +81,22 @@ def _sentences(value: str) -> tuple[str, ...]:
             cleaned.append(sentence)
     return tuple(cleaned)
 
+def _is_definition_question(query: str) -> bool:
+    text = " ".join(str(query or "").casefold().split())
+    patterns = (
+        r"\bwhat\s+is\b",
+        r"\bdefine\b",
+        r"\bmeaning\s+of\b",
+        r"\bчто\s+такое\b",
+        r"\bчто\s+означает\b",
+        r"\bтакая\b",
+        r"\bnima\b",
+        r"\bne\s+degen\b",
+        r"\bdegen\s+ne\b",
+        r"\bанықтамасы\b",
+    )
+    return any(re.search(pattern, text) for pattern in patterns)
+
 
 def compose_tavily_local_answer(
     query: str,
@@ -102,6 +118,7 @@ def compose_tavily_local_answer(
     intro = _INTROS.get(lang, _INTROS["uz"]).replace("Tavily", provider)
     limitation = _LIMITS.get(lang, _LIMITS["uz"])
     query_terms = set(meaningful_tokens(query))
+    definition_question = _is_definition_question(query)
     candidates: list[tuple[float, str, str, str, str]] = []
     source_rows: list[dict[str, Any]] = []
     seen_urls: set[str] = set()
@@ -149,7 +166,11 @@ def compose_tavily_local_answer(
                 or domain.endswith(".int")
                 or domain in {"who.int", "un.org", "europa.eu"}
             ) else 0.0
-            score = 0.65 * lexical + 0.25 * provider_score + official_bonus
+            first_sentence_term = next(iter(meaningful_tokens(sentence)), "")
+            definition_bonus = (
+                0.24 if definition_question and first_sentence_term in query_terms else 0.0
+            )
+            score = 0.65 * lexical + 0.25 * provider_score + official_bonus + definition_bonus
             candidates.append((score, sentence, url, title, domain))
             seen_sentences.add(normalized)
 
@@ -161,7 +182,8 @@ def compose_tavily_local_answer(
             continue
         selected.append(candidate)
         domain_counts[candidate[4]] = domain_counts.get(candidate[4], 0) + 1
-        if len(selected) >= max(1, min(int(max_sentences), 8)):
+        sentence_limit = min(int(max_sentences), 3) if definition_question else int(max_sentences)
+        if len(selected) >= max(1, min(sentence_limit, 8)):
             break
 
     selected_urls = tuple(dict.fromkeys(row[2] for row in selected))
