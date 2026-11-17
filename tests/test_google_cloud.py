@@ -304,3 +304,35 @@ def test_cloud_diagnostics_checks_owner_databases_and_permissions(monkeypatch, t
         "google_state_db", "personal_memory_db", "storage_capacity",
     }
     assert payload["summary"]["error"] == 0
+
+
+def test_cloud_diagnostics_does_not_mistake_ephemeral_var_data_for_a_disk(
+    monkeypatch, tmp_path
+):
+    key = Fernet.generate_key().decode()
+    monkeypatch.setenv("FINZANJIR_GOOGLE_CLIENT_ID", "client-id")
+    monkeypatch.setenv("FINZANJIR_GOOGLE_CLIENT_SECRET", "client-secret")
+    monkeypatch.setenv("FINZANJIR_GOOGLE_REDIRECT_URI", "https://api.example.com/api/google/oauth/callback")
+    monkeypatch.setenv("FINZANJIR_OWNER_EMAIL", "owner@example.com")
+    monkeypatch.setenv("FINZANJIR_SESSION_SECRET", "s" * 40)
+    monkeypatch.setenv("FINZANJIR_TOKEN_ENCRYPTION_KEY", key)
+    monkeypatch.setenv("FINZANJIR_GOOGLE_STATE_DB_PATH", str(tmp_path / "state.sqlite"))
+    monkeypatch.setenv("FINZANJIR_PERSONAL_MEMORY_DB_PATH", str(tmp_path / "memory.sqlite"))
+    monkeypatch.setenv("FINZANJIR_FRONTEND_URL", "https://frontend.example.com")
+    monkeypatch.setenv("FINZANJIR_ALLOWED_ORIGINS", "https://frontend.example.com")
+    monkeypatch.setenv("RENDER", "true")
+    store = GoogleAccountStore(str(tmp_path / "state.sqlite"), key)
+    session_id = store.create_session("owner@example.com")
+    monkeypatch.setattr("os.path.ismount", lambda path: False)
+    client = TestClient(app)
+    client.cookies.set(
+        "finzanjir_owner_session",
+        _session_cookie(session_id, "s" * 40),
+    )
+    payload = client.get("/api/google/diagnostics").json()
+    persistence = {
+        item["id"]: item for item in payload["checks"]
+        if item["id"].endswith("_persistence")
+    }
+    assert persistence["google_state_db_persistence"]["status"] == "warning"
+    assert persistence["personal_memory_db_persistence"]["status"] == "warning"
