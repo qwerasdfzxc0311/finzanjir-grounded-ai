@@ -20,7 +20,6 @@ from finzanjir_ai.prototype.flow import build_system_flow
 from finzanjir_ai.orchestration.engine import FINZANJIRAI, get_finzanjir_ai
 from finzanjir_ai.orchestration.intent import classify_query_intent
 from finzanjir_ai.research.tavily import TavilySearchClient
-from finzanjir_ai.research.local_answer import compose_tavily_local_answer
 from finzanjir_ai.research.service import search_and_compose
 from finzanjir_ai.research.youtube import filter_youtube_video_results
 from finzanjir_ai.integrations.cloud_sources import cloud_connector_status
@@ -169,37 +168,6 @@ def ai_engine(model_policy: str = "auto") -> FINZANJIRAI:
     # Separate cached engines ensure an offline request can never borrow an
     # automatic engine that has configured hosted credentials.
     return get_finzanjir_ai(knowledge_index(), model_policy=model_policy)
-
-
-def _tavily_answer_payload(
-    question: str,
-    research: dict[str, Any],
-    *,
-    runtime_refs: list[str],
-    explicit_search: bool = False,
-) -> dict[str, Any]:
-    """Compose a grounded answer locally; Tavily supplies sources, not an LLM."""
-    composed = compose_tavily_local_answer(
-        question,
-        research.get("results", []),
-        max_sentences=5,
-        max_sources=6,
-    )
-    return {
-        "answer": composed.answer,
-        "confidence": composed.confidence,
-        "abstained": composed.abstained,
-        "generation_mode": "web_search" if explicit_search else composed.generation_mode,
-        "composition_mode": composed.generation_mode,
-        "confidence_basis": composed.confidence_basis,
-        "provider_status": "not_attempted",
-        "provider_diagnostics": [],
-        "knowledge_refs": [],
-        "provenance": list(composed.provenance),
-        "runtime_refs": list(runtime_refs),
-        "external_sources": list(composed.sources),
-        "research_status": "completed" if not composed.abstained else "insufficient_extractable_evidence",
-    }
 
 
 @app.get("/api/cloud/connectors")
