@@ -44,7 +44,10 @@ class AIAnswerRequest(BaseModel):
 
 class ExternalResearchRequest(BaseModel):
     query: str = Field(min_length=1, max_length=500)
-    max_results: int = Field(default=5, ge=1, le=8)
+    max_results: int = Field(default=6, ge=1, le=8)
+    search_depth: Literal["basic", "advanced"] = "advanced"
+    topic: Literal["general", "news"] = "general"
+    time_range: Literal["day", "week", "month", "year"] | None = None
 
 
 class ShadowScenario(BaseModel):
@@ -205,7 +208,9 @@ def answer(request: AIAnswerRequest) -> dict[str, Any]:
 
     if classify_query_intent(question) == "web_search":
         try:
-            research = TavilySearchClient().search(question, max_results=5)
+            research = TavilySearchClient().search(
+                question, max_results=6, search_depth="advanced"
+            )
         except RuntimeError as exc:
             raise HTTPException(status_code=503, detail="Internet qidiruvi hozir sozlanmagan yoki vaqtincha mavjud emas.") from exc
         except httpx.HTTPError as exc:
@@ -258,7 +263,13 @@ def answer(request: AIAnswerRequest) -> dict[str, Any]:
 @app.post("/api/research/search")
 def external_research(request: ExternalResearchRequest) -> dict[str, Any]:
     try:
-        return TavilySearchClient().search(request.query, max_results=request.max_results)
+        return TavilySearchClient().search(
+            request.query,
+            max_results=request.max_results,
+            search_depth=request.search_depth,
+            topic=request.topic,
+            time_range=request.time_range,
+        )
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     except RuntimeError as exc:

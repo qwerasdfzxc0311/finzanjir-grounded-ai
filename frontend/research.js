@@ -6,6 +6,41 @@
   const webButton = document.getElementById("researchWebSearch");
   const youtubeButton = document.getElementById("researchYoutubeSearch");
 
+  function makeSelect(labelText, options) {
+    const label = document.createElement("label");
+    label.className = "research-filter";
+    label.appendChild(document.createTextNode(labelText + " "));
+    const select = document.createElement("select");
+    for (const [value, text] of options) {
+      const option = document.createElement("option");
+      option.value = value;
+      option.textContent = text;
+      select.appendChild(option);
+    }
+    label.appendChild(select);
+    return {label, select};
+  }
+
+  const depthControl = makeSelect("Qidiruv aniqligi:", [
+    ["advanced", "Chuqur qidiruv"],
+    ["basic", "Tez qidiruv"]
+  ]);
+  const topicControl = makeSelect("Mavzu:", [
+    ["general", "Umumiy ma’lumot"],
+    ["news", "Yangiliklar"]
+  ]);
+  const timeControl = makeSelect("Davr:", [
+    ["", "Istalgan vaqt"],
+    ["day", "So‘nggi 24 soat"],
+    ["week", "So‘nggi 7 kun"],
+    ["month", "So‘nggi 30 kun"],
+    ["year", "So‘nggi 1 yil"]
+  ]);
+  const controls = document.createElement("div");
+  controls.className = "research-controls";
+  controls.append(depthControl.label, topicControl.label, timeControl.label);
+  webButton.parentNode.insertBefore(controls, webButton);
+
   function showMessage(text, className = "muted") {
     results.replaceChildren();
     const p = document.createElement("p");
@@ -21,6 +56,9 @@
     summary.className = "muted";
     summary.textContent = items.length
       ? (kind === "youtube" ? "YouTube videolari topildi: " : "Internet manbalari topildi: ") + items.length
+        + (data.search_depth === "advanced" ? " · chuqur qidiruv" : "")
+        + (data.topic === "news" ? " · yangiliklar" : "")
+        + (data.time_range ? " · vaqt bo‘yicha cheklangan" : "")
       : "Mos natija topilmadi.";
     results.appendChild(summary);
 
@@ -45,10 +83,10 @@
       list.appendChild(row);
     }
     if (list.childElementCount) results.appendChild(list);
-    if (data.note) {
+    if (data.warning) {
       const note = document.createElement("p");
       note.className = "muted";
-      note.textContent = data.note;
+      note.textContent = data.warning;
       results.appendChild(note);
     }
   }
@@ -66,7 +104,13 @@
         method: "POST",
         headers: {"Content-Type": "application/json"},
         credentials: "include",
-        body: JSON.stringify({query, max_results: 5})
+        body: JSON.stringify({
+          query,
+          max_results: 8,
+          search_depth: depthControl.select.value,
+          topic: topicControl.select.value,
+          time_range: timeControl.select.value || null
+        })
       });
       const body = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(body.detail || "Qidiruv hozir bajarilmadi.");
