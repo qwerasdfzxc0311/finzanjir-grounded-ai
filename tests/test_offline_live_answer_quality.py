@@ -79,11 +79,14 @@ def test_offline_benchmark_sixteen_layer_answer_is_relevant_or_abstains():
     )
 
 
-def test_offline_benchmark_general_knowledge_does_not_fabricate_project_answer():
+def test_offline_benchmark_general_knowledge_uses_source_backed_local_fact():
     result = _answer("toshvaqa qansha yil umir koradi")
-    assert result.abstained is True
-    assert "umumiy bilim" in result.answer.casefold()
-    assert "toshvaqa" not in result.answer.casefold()
+    assert result.abstained is False
+    assert result.generation_mode == "general_knowledge_local_facts"
+    assert "150 yil" in result.answer
+    assert "toshbaqaning turi" in result.answer.casefold()
+    assert result.citations
+    assert result.provenance
 
 
 def test_offline_benchmark_author_motivation_uses_grounded_localized_answer():
