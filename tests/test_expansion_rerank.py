@@ -34,3 +34,25 @@ def test_project_mission_architecture_comparison_and_limits_get_targeted_hints()
     assert any("cross-bank fraud detection" in item for item in comparison)
     assert any("kuchli tomonlari" in item for item in limitations)
     assert any("production readiness" in item for item in limitations)
+
+
+
+def test_local_query_expansion_has_a_bounded_variant_budget():
+    records = [
+        {
+            "id": f"alias-{index}",
+            "concept_id": f"alias-{index}",
+            "canonical_concept_id": f"alias-{index}",
+            "statement": f"Financial security concept {index}.",
+            "aliases": ["bank card suspicious risk"],
+            "evidence": {},
+            "provenance": [],
+            "reconciliation": {},
+        }
+        for index in range(80)
+    ]
+    expanded = QueryExpander(build_knowledge_index(records)).expand(
+        "FINZANJIR bank card suspicious risk"
+    )
+    assert expanded[0] == "FINZANJIR bank card suspicious risk"
+    assert len(expanded) <= 32
