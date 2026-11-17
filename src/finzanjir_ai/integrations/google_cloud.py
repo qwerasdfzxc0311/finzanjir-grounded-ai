@@ -371,7 +371,9 @@ def _authorization_url(cfg: dict[str, str], state: str, verifier: str,
         "access_type": "offline",
         "include_granted_scopes": "true",
     }
-    if len(scopes) > len(IDENTITY_SCOPES):
+    # Scope count is not a safe proxy: callers may omit optional profile
+    # scopes. Request fresh consent whenever any non-identity service scope is added.
+    if any(scope not in IDENTITY_SCOPES for scope in scopes):
         params["prompt"] = "consent"
     return GOOGLE_AUTH + "?" + urlencode(params)
 
