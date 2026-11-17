@@ -63,20 +63,20 @@ def _domain(url: str) -> str:
 
 def _clean_text(value: Any, *, limit: int = 18000) -> str:
     text = str(value or "")[:limit]
-    text = re.sub(r"!\\[[^\\]]*\\]\\([^)]*\\)", " ", text)
-    text = re.sub(r"\\[([^\\]]+)\\]\\([^)]*\\)", r"\\1", text)
+    text = re.sub(r"!\[[^\]]*\]\([^)]*\)", " ", text)
+    text = re.sub(r"\[([^\]]+)\]\([^)]*\)", r"\1", text)
     text = re.sub(r"<[^>]{1,300}>", " ", text)
-    text = re.sub(r"^\\s{0,3}#{1,6}\\s*", "", text, flags=re.MULTILINE)
-    text = re.sub("\\x60{3}.*?\\x60{3}", " ", text, flags=re.DOTALL)
-    text = re.sub(r"\\s+", " ", text).strip()
+    text = re.sub(r"^\s{0,3}#{1,6}\s*", "", text, flags=re.MULTILINE)
+    text = re.sub("\x60{3}.*?\x60{3}", " ", text, flags=re.DOTALL)
+    text = re.sub(r"\s+", " ", text).strip()
     return text
 
 
 def _sentences(value: str) -> tuple[str, ...]:
-    parts = re.split(r"(?<=[.!?])\\s+|\\s*[•▪]\\s*|(?<=;)\\s+|\\s{2,}", value)
+    parts = re.split(r"(?<=[.!?])\s+|\s*[•▪]\s*|(?<=;)\s+|\s{2,}", value)
     cleaned = []
     for part in parts:
-        sentence = part.strip(" \\t\\r\\n-*•")
+        sentence = part.strip(" \t\r\n-*•")
         if 35 <= len(sentence) <= 520:
             cleaned.append(sentence)
     return tuple(cleaned)
@@ -200,7 +200,7 @@ def compose_tavily_local_answer(
     # This is a retrieval-quality heuristic, not a calibrated probability.
     confidence = min(0.82, 0.35 + 0.08 * min(unique_domains, 3) + 0.15 * average_score)
     return LocalResearchAnswer(
-        answer="\\n\\n".join(lines),
+        answer="\n\n".join(lines),
         confidence=round(confidence, 3),
         abstained=False,
         sources=selected_sources,
