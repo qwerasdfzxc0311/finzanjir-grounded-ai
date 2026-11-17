@@ -100,7 +100,7 @@ def is_project_overview_query(query: str) -> bool:
     exact_forms = {
         "finzanjir nima", "finzanjir nima va nima uchun kerak",
         "finzanjir haqida", "finzanjir haqida aytib ber", "finzanjir haqida qisqacha aytib ber",
-        "finzanjirning maqsadi", "finzanjir qanday loyiha",
+        "finzanjirning maqsadi", "finzanjir maqsadi", "finzanjir qanday loyiha",
         "финзанжир нима", "финзанжир ҳақида", "финзанжир ҳақида айтып бер",
         "что такое finzanjir", "расскажи о finzanjir", "о finzanjir",
         "what is finzanjir", "tell me about finzanjir", "about finzanjir",
