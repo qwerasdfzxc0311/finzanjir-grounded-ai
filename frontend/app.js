@@ -814,6 +814,18 @@ function providerDiagnosticLabel(item) {
   return provider + " — " + status;
 }
 
+function citationDisplayName(ref) {
+  const labels = {
+    general_sky_blue_noaa: "NOAA",
+    general_sky_blue_nasa: "NASA",
+    general_uzbekistan_geography_world_bank: "World Bank (2020)",
+    general_uzbekistan_geography_world_bank_2024: "World Bank (2024)",
+    general_tortoise_lifespan_sandiego_zoo: "San Diego Zoo",
+    general_aldabra_tortoise_smithsonian: "Smithsonian National Zoo",
+  };
+  return labels[ref] || ref;
+}
+
 function appendProvenanceLinks(target, sources) {
   if (!target || !Array.isArray(sources) || !sources.length) return;
   const valid = sources.filter(source => typeof source === "string").slice(0, 8);
@@ -842,7 +854,7 @@ function appendChatMessage(role, content, refs = [], mode = "", providerStatus =
   item.append(element("span", "chat-role", role === "user" ? "Siz" : "FINZANJIR AI"));
   item.append(element("p", "", content));
   if (refs.length) {
-    const citationLine = element("small", "chat-refs", "Bilim manbalari: " + refs.join(", "));
+    const citationLine = element("small", "chat-refs", "Bilim manbalari: " + refs.map(citationDisplayName).join(", "));
     item.appendChild(citationLine);
   }
   appendProvenanceLinks(item, provenance);
