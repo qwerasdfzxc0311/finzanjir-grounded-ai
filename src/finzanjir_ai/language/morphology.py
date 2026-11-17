@@ -12,8 +12,7 @@ _UZBEK_KARAKALPAK_SUFFIXES = (
     "larining", "larning", "lariga", "laridan", "larida", "larini",
     "larimiz", "laringiz", "lari", "ları", "leri", "lardı", "lerdi",
     "nıń", "niń", "dıń", "diń", "lardan", "lerden", "dan", "den",
-    "tan", "ten", "ning", "ga", "ge", "ka", "ke", "qa", "da", "de",
-    "ta", "te", "ni", "nı", "sini", "ini", "im", "ing", "ingiz",
+    "tan", "ten", "ning", "ga", "ge", "ka", "ke", "qa", "ni", "nı", "sini", "ini", "im", "ing", "ingiz",
     "miz", "si", "men", "ben", "pen", "ǵa", "lash",
 )
 
@@ -21,7 +20,7 @@ _KAZAKH_SUFFIXES = (
     "лардың", "лердің", "дардың", "дердің", "тардың", "тердің",
     "лар", "лер", "дар", "дер", "тар", "тер", "ның", "нің",
     "дың", "дің", "ты", "ті", "ды", "ді", "ны", "ні", "ға", "ге",
-    "қа", "ке", "да", "де", "та", "те", "дан", "ден", "тан", "тен",
+    "қа", "ке", "дан", "ден", "тан", "тен",
     "мен", "бен", "пен", "лық", "лік", "дық", "дік", "тық", "тік",
 )
 
