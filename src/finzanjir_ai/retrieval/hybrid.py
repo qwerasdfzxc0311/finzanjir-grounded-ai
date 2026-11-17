@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections import Counter
+from collections import Counter, defaultdict
 from dataclasses import dataclass
 import math
 
@@ -55,6 +55,14 @@ class HybridRetriever:
             for term in self._idf
             if len(term) >= 5
         }
+        ngram_terms: dict[str, list[str]] = defaultdict(list)
+        for term, grams in self._vocabulary_ngrams.items():
+            for gram in grams:
+                ngram_terms[gram].append(term)
+        self._ngram_to_terms = {
+            gram: tuple(sorted(terms))
+            for gram, terms in ngram_terms.items()
+        }
 
     @staticmethod
     def _record_frequencies(statement: str, aliases: tuple[str, ...]) -> Counter[str]:
@@ -74,10 +82,20 @@ class HybridRetriever:
         if term in self._idf or len(term) < 5 or not self._vocabulary_ngrams:
             return term
         grams = set(character_ngrams(term, min_n=2, max_n=4))
+        candidates: set[str] = set()
+        for gram in grams:
+            candidates.update(self._ngram_to_terms.get(gram, ()))
+        if len(candidates) > 4000:
+            candidates = {
+                candidate
+                for gram in grams if len(gram.strip()) >= 3
+                for candidate in self._ngram_to_terms.get(gram, ())
+            }
         best_term = term
         best_score = 0.0
         best_overlap = 0.0
-        for candidate, candidate_grams in self._vocabulary_ngrams.items():
+        for candidate in sorted(candidates):
+            candidate_grams = self._vocabulary_ngrams[candidate]
             if abs(len(candidate) - len(term)) > 2:
                 continue
             intersection = len(grams & candidate_grams)
