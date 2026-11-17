@@ -938,6 +938,15 @@ function renderWindowInteractive(windowId) {
       renderWindowInteractive("finzanjir_ai");
     });
     const form = element("form", "ai-chat-form");
+    const modelPolicyLabel = element("label", "muted", "Javob rejimi");
+    const modelPolicy = element("select", "ai-model-policy");
+    const autoOption = element("option", "", "Avtomatik — model mavjud bo‘lsa foydalanish");
+    autoOption.value = "auto";
+    const offlineOption = element("option", "", "Mahalliy — tashqi modelsiz ishlash");
+    offlineOption.value = "offline";
+    modelPolicy.append(autoOption, offlineOption);
+    modelPolicy.name = "model_policy";
+    modelPolicyLabel.appendChild(modelPolicy);
     const input = element("textarea", "ai-question");
     input.id = "aiQuestion";
     input.name = "question";
@@ -949,7 +958,7 @@ function renderWindowInteractive(windowId) {
     const submit = element("button", "primary-button", "Savol yuborish");
     submit.type = "submit";
     const formHint = element("small", "muted", "Maksimal 4 000 belgi. Shaxsiy yoki haqiqiy bank ma’lumotlarini yubormang.");
-    form.append(input, submit, formHint);
+    form.append(modelPolicyLabel, input, submit, formHint);
     form.addEventListener("submit", async event => {
       event.preventDefault();
       const question = input.value.trim();
@@ -970,6 +979,7 @@ function renderWindowInteractive(windowId) {
           headers: {"Content-Type":"application/json"},
           body: JSON.stringify({
             question,
+            model_policy:modelPolicy.value,
             runtime_refs:runtimeRefs,
             working_memory_scope:"prototype-ui-session",
             conversation_history:aiConversation.slice(0, -1).filter(message =>
