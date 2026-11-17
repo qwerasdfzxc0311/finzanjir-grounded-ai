@@ -14,6 +14,28 @@ _IDENTITY_QUERY_HINTS = (
 )
 
 # Search hints only: the canonical author layer must supply every biographical fact.
+_PROJECT_OVERVIEW_QUERY_HINTS = (
+    "FINZANJIR hujjatlarda tasdiqlangan maqsad vazifa konsepsiya moliyaviy xavfsizlik",
+    "FINZANJIR arxitektura qatlamlari komponentlari ishlash mexanizmi data flow",
+    "FINZANJIR Risk Engine Cross-Match Fraud Graph Signal Evidence Case Management Audit",
+    "FINZANJIR banklarni almashtirmaydi mavjud bank xavfsizlik tizimlarini to'ldiradi",
+    "FINZANJIR konsepsiya hujjati amaldagi prototip va rejalashtirilgan imkoniyatlar farqi",
+)
+
+_PROJECT_COMPARISON_QUERY_HINTS = (
+    "FINZANJIR O'zbekistondagi va xalqaro o'xshash loyihalar bilan taqqoslash farqlari",
+    "FINZANJIR cross-bank fraud detection interbank fraud monitoring national fraud prevention systems",
+    "FINZANJIR mavjud bank antifraud AML cybersecurity antivirus tizimlarini almashtirmaydi to'ldiradi",
+    "FINZANJIR xalqaro analoglar ma'lumot almashinuvi qonuniy asoslar maxfiylik",
+)
+
+_PROJECT_LIMITATIONS_QUERY_HINTS = (
+    "FINZANJIR kuchli tomonlari afzalliklari imkoniyatlari va amaliy cheklovlari",
+    "FINZANJIR production readiness prototip holati bank integratsiyasi huquqiy tasdiq",
+    "FINZANJIR false positive false negative 100 foiz kafolat yo'q inson ko'rigi",
+    "FINZANJIR avtomatik bloklash yo'q vakolatli bank qarori ma'lumotlarni minimallashtirish audit",
+)
+
 _AUTHOR_QUERY_HINTS = (
     "Salamat Smaylov FINZANJIR muallifi yaratuvchisi asoschisi",
     "muallif tarjimai holi hayoti ta'lim qiziqishlari astronomiya kimyo",
@@ -73,6 +95,10 @@ class QueryExpander:
         expanded: list[str] = [original]
         raw_terms = set(tokenize(original))
         query_terms = set(meaningful_tokens(original))
+        has_finzanjir = any(
+            term.startswith(("finzanjir", "финзанжир"))
+            for term in raw_terms
+        ) or {"fin", "recovery"} <= raw_terms
 
         # Recognize colloquial citizen/funds protection questions and search
         # the canonical project concepts they refer to, even when the wording
@@ -98,10 +124,18 @@ class QueryExpander:
         if bool(raw_terms & signal_terms) and bool(raw_terms & process_terms):
             expanded.extend(_SIGNAL_PROCESS_QUERY_HINTS)
 
+        if has_finzanjir:
+            if any(term.startswith(("maqsad", "arxitektur", "mexanizm", "ishlash", "qatlam", "komponent", "hujjat")) for term in raw_terms):
+                expanded.extend(_PROJECT_OVERVIEW_QUERY_HINTS)
+            if any(term.startswith(("farq", "xshash", "taqqos", "solisht", "davlat", "mamlakat", "analog")) for term in raw_terms):
+                expanded.extend(_PROJECT_COMPARISON_QUERY_HINTS)
+            if any(term.startswith(("kuchli", "jihat", "afzallik", "imkoniyat", "cheklov", "zaif", "xavf", "risk")) for term in raw_terms):
+                expanded.extend(_PROJECT_LIMITATIONS_QUERY_HINTS)
+
         # A broad identity question has little lexical content after stopword
         # removal. Do not let a detailed "how does it protect money?" question
         # fall back to broad mission/identity hints.
-        if "finzanjir" in raw_terms and not is_citizen_protection and (
+        if has_finzanjir and not is_citizen_protection and (
             len(query_terms) <= 1
             or bool(raw_terms & {"nima", "maqsad", "kerak", "loyiha"})
         ):
