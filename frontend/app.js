@@ -778,6 +778,8 @@ function generationModeLabel(mode) {
     author_insufficient_evidence: "Muallif haqida mos tasdiqlangan dalil topilmadi",
     general_knowledge_model: "Umumiy bilim AI javobi · FINZANJIR hujjatlaridan tashqari",
     general_knowledge_local_facts: "Tashqi modelsiz javob · tekshiriladigan mahalliy bilim manbasi",
+    tavily_local_extractive: "Tavily internet manbalari · javob FINZANJIR ichida tuzildi, Gemini/OpenRouter chaqirilmadi",
+    web_search: "Tavily qidiruvi · javob mahalliy mexanizm bilan manba parchalaridan tuzildi",
     general_knowledge_unavailable: "Umumiy bilim modeli sozlanmagan",
     general_knowledge_provider_failed: "Umumiy bilim modeli javob bermadi",
     blocked_sensitive: "Maxfiylik sabab so'rov tashqi modelga yuborilmadi",
@@ -912,7 +914,7 @@ function renderWindowInteractive(windowId) {
   target.appendChild(heading);
 
   if (windowId === "finzanjir_ai") {
-    const notice = element("p", "module-warning", "MUHIM: AI javobi xato, eskirgan yoki to‘liq bo‘lmasligi mumkin — uni 100% to‘g‘ri deb qabul qilmang. Muhim ma’lumot va qarorlarni asl hujjatlar hamda ishonchli manbalar bilan tekshiring. FINZANJIR konsepsiyasi, muallifning niyati yoki noaniq masalalar bo‘yicha zarur bo‘lsa muallif bilan aniqlashtiring. AI javoblari loyiha bilimlar bazasidagi dalillarga tayanadi; dalil yetarli bo‘lmasa, tizim buni ochiq aytishi kerak. Suhbat xotirasi shu brauzer qurilmasida oxirgi 12 ta xabarni saqlaydi. Bu hozircha bulut xotirasi emas va boshqa qurilmaga avtomatik ko‘chmaydi.");
+    const notice = element("p", "module-warning", "MUHIM: AI javobi xato, eskirgan yoki to‘liq bo‘lmasligi mumkin — uni 100% to‘g‘ri deb qabul qilmang. Muhim ma’lumot va qarorlarni asl hujjatlar hamda ishonchli manbalar bilan tekshiring. FINZANJIR savollari loyiha hujjatlariga tayanadi; umumiy bilim savollari mahalliy bilim yoki Tavily topgan tashqi manbalardan foydalanishi mumkin. Tashqi manbalar avtomatik ravishda FINZANJIRning tasdiqlangan bilim bazasiga qo‘shilmaydi. Dalil yetarli bo‘lmasa, tizim buni ochiq aytishi kerak. Suhbat xotirasi shu brauzer qurilmasida oxirgi 12 ta xabarni saqlaydi. Bu hozircha bulut xotirasi emas va boshqa qurilmaga avtomatik ko‘chmaydi.");
     const chat = element("div", "ai-chat-panel");
     const log = element("div", "ai-chat-log");
     log.id = "aiChatLog";
@@ -952,9 +954,9 @@ function renderWindowInteractive(windowId) {
     const form = element("form", "ai-chat-form");
     const modelPolicyLabel = element("label", "muted", "Javob rejimi");
     const modelPolicy = element("select", "ai-model-policy");
-    const autoOption = element("option", "", "Avtomatik — model mavjud bo‘lsa foydalanish");
+    const autoOption = element("option", "", "Avtomatik — mahalliy bilim, Tavily qidiruvi, model ixtiyoriy");
     autoOption.value = "auto";
-    const offlineOption = element("option", "", "Mahalliy — tashqi AI modelsiz (internet qidiruvi alohida)");
+    const offlineOption = element("option", "", "Mahalliy — tashqi AI va internet qidiruvisiz");
     offlineOption.value = "offline";
     modelPolicy.append(autoOption, offlineOption);
     modelPolicy.name = "model_policy";
@@ -969,7 +971,7 @@ function renderWindowInteractive(windowId) {
     input.setAttribute("aria-label", "FINZANJIR AI savoli");
     const submit = element("button", "primary-button", "Savol yuborish");
     submit.type = "submit";
-    const formHint = element("small", "muted", "Mahalliy rejim tashqi AI modeliga murojaat qilmaydi; internet qidiruvi alohida xizmat. Maksimal 4 000 belgi. Shaxsiy yoki haqiqiy bank ma’lumotlarini yubormang.");
+    const formHint = element("small", "muted", "Auto rejimi mahalliy bilim yetmasa Tavily orqali ochiq internet manbalarini qidirishi mumkin; Gemini/OpenRouter majburiy emas. Mahalliy rejim hech qanday tashqi AI yoki internet so‘rovini yubormaydi. Maksimal 4 000 belgi. Shaxsiy yoki haqiqiy bank ma’lumotlarini yubormang.");
     form.append(modelPolicyLabel, input, submit, formHint);
     form.addEventListener("submit", async event => {
       event.preventDefault();
