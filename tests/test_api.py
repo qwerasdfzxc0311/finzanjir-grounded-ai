@@ -38,6 +38,7 @@ def test_ai_endpoint_answers_from_grounded_knowledge():
         "author_deterministic_fallback",
         "author_insufficient_evidence",
         "general_knowledge_model",
+        "general_knowledge_local_facts",
         "general_knowledge_unavailable",
         "general_knowledge_provider_failed",
         "project_overview_localized",
@@ -52,7 +53,7 @@ def test_ai_endpoint_answers_from_grounded_knowledge():
         assert body["abstained"] is True
         assert body["knowledge_refs"] == []
     assert body["provider_status"] in {
-        "ready", "not_configured", "provider_failed", "blocked_sensitive", "not_attempted"
+        "ready", "not_configured", "provider_failed", "blocked_sensitive", "not_attempted", "offline_mode"
     }
     assert isinstance(body["provider_diagnostics"], list)
     assert "confidence" in body
@@ -606,3 +607,19 @@ def test_stream_rejects_non_synthetic_input_with_failed_first_stage_and_remainin
         "detail": "The prototype flow accepts only explicitly synthetic transactions.",
     }]
     assert results == []
+
+
+
+def test_general_knowledge_api_returns_local_fact_and_source_provenance():
+    response = client.post(
+        "/api/ai/answer",
+        json={"question": "Nega osmon ko‘k?", "runtime_refs": []},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["generation_mode"] == "general_knowledge_local_facts"
+    assert body["provider_status"] == "not_attempted"
+    assert body["abstained"] is False
+    assert "Rayleigh" in body["answer"]
+    assert "https://www.weather.gov/fgz/SkyBlue" in body["provenance"]
+    assert "https://spaceplace.nasa.gov/blue-sky/en/" in body["provenance"]
