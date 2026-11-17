@@ -47,7 +47,7 @@ def _fact_kind(query: str) -> str | None:
 
     country = _has_any(text, (
         "o'zbekiston", "ozbekiston", "uzbekistan", "өзбекстан",
-        "ózbekstan", "ozbekstan",
+        "ózbekstan", "ozbekstan", "узбекистан",
     ))
     about = _has_any(text, (
         "haqida", "ma'lumot", "malumot", "about", "tell me", "расскажи",
@@ -79,6 +79,32 @@ def _fact_kind(query: str) -> str | None:
 def supports_local_general_fact(query: str) -> bool:
     """True only for narrowly scoped, source-backed offline fact cards."""
     return _fact_kind(query) is not None
+
+
+_GENERAL_TOPIC_MARKERS = (
+    "o'zbekiston", "ozbekiston", "uzbekistan", "узбекистан", "өзбекстан",
+    "ózbekstan", "ozbekstan", "geografiya", "geography", "география",
+    "iqtisodiyot", "economy", "экономика", "tarix", "history", "история",
+    "fizika", "physics", "физика", "kimyo", "chemistry", "химия",
+    "biologiya", "biology", "биология", "astronomiya", "astronomy", "астрономия",
+    "sayyora", "planet", "планет", "mars", "earth", "yer", "земля",
+    "quyosh", "sun", "солнц", "osmon", "sky", "небо", "aspan",
+    "hayvon", "animal", "животн", "toshbaqa", "toshvaqa", "turtle",
+    "tortoise", "черепах", "photosynthesis", "фотосинтез", "gravitatsiya",
+    "gravity", "гравитац", "fan", "science", "наука",
+)
+
+
+def supports_general_knowledge_intent(query: str) -> bool:
+    """Route clear non-project subject questions to general knowledge.
+
+    This is a domain-routing heuristic, not a claim that the local fact pack
+    contains an answer for every listed topic.
+    """
+    if supports_local_general_fact(query):
+        return True
+    text = normalize_multilingual_text(query)
+    return any(marker in text for marker in _GENERAL_TOPIC_MARKERS)
 
 
 def answer_local_general_fact(
