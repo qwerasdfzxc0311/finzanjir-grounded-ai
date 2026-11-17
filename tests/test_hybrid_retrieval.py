@@ -59,3 +59,15 @@ def test_hybrid_retrieval_recovers_a_clear_single_character_typo_with_ngrams():
     assert results
     assert results[0].record_id == "typo-1"
     assert all(item.semantic_score == 0.0 for item in results)
+
+
+def test_character_ngram_fallback_does_not_match_unrelated_vocabulary():
+    records = [
+        {"id": "neg-1", "concept_id": "neg-1", "canonical_concept_id": "neg-1",
+         "statement": "Firibgarlik xavfini aniqlash uchun dalillar tekshiriladi.",
+         "aliases": [], "evidence": {}, "provenance": [], "reconciliation": {}},
+    ]
+    results = HybridRetriever(build_knowledge_index(records)).search(
+        "photosynthesis", top_k=2
+    )
+    assert results == ()
