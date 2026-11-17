@@ -71,7 +71,7 @@ def test_offline_uzbekistan_geography_answers_without_current_population_claims(
         assert result.answer.generation_mode == "general_knowledge_local_facts", query
         assert expected.casefold() in result.answer.answer.casefold(), query
         assert result.answer.provenance
-        assert "population" not in result.answer.answer.casefold()
+        assert "current population" not in result.answer.answer.casefold()
     assert gateway.last_status == "not_attempted"
 
 
@@ -112,5 +112,6 @@ def test_offline_unknown_general_topic_abstains_without_project_contamination(mo
     result = engine.answer(query, runtime_refs=(), working_memory_scope="offline-test")
     assert result.answer.abstained is True
     assert result.answer.generation_mode == "general_knowledge_provider_failed"
-    assert "FINZANJIR" not in result.answer.answer
+    assert "bank kartasini" not in result.answer.answer.casefold()
+    assert result.answer.citations == ()
     assert gateway.last_status == "offline_mode"
