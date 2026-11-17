@@ -10,7 +10,7 @@ class FakeGeneralProvider:
         return True
 
     def generate_json(self, **_kwargs):
-        return {"answer": "Toshbaqalar turi va yashash sharoitiga qarab turlicha umr ko'radi."}
+        return {"answer": "Photosynthesis is the process by which plants use light energy to make sugars."}
 
 
 def test_general_knowledge_question_bypasses_empty_project_corpus():
@@ -19,7 +19,7 @@ def test_general_knowledge_question_bypasses_empty_project_corpus():
     ai.answer_generator.provider = ai.language_model
 
     result = ai.answer(
-        "toshvaqa qansha yil umir koradi",
+        "What is photosynthesis?",
         runtime_refs=(),
         working_memory_scope="general",
     )
@@ -27,7 +27,7 @@ def test_general_knowledge_question_bypasses_empty_project_corpus():
     assert result.answer.abstained is False
     assert result.answer.generation_mode == "general_knowledge_model"
     assert result.answer.citations == ()
-    assert "Toshbaqalar" in result.answer.answer
+    assert "Photosynthesis" in result.answer.answer
 
 
 def test_project_question_still_abstains_without_project_evidence():
