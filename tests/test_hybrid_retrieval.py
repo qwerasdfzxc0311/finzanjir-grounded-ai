@@ -11,3 +11,18 @@ def test_hybrid_retrieval_combines_term_and_concept_evidence():
     results = retriever.search("suspicious signal evidence", top_k=2)
     assert results[0].record_id == "ck-1"
     assert results[0].score >= results[1].score
+
+
+def test_bm25_lexical_score_is_not_reported_as_semantic_similarity():
+    records = [
+        {"id": "lex-1", "concept_id": "lex-1", "canonical_concept_id": "lex-1",
+         "statement": "Rayleigh scattering explains blue sky.", "aliases": [],
+         "evidence": {}, "provenance": [], "reconciliation": {}},
+        {"id": "lex-2", "concept_id": "lex-2", "canonical_concept_id": "lex-2",
+         "statement": "Financial fraud risk requires evidence.", "aliases": [],
+         "evidence": {}, "provenance": [], "reconciliation": {}},
+    ]
+    results = HybridRetriever(build_knowledge_index(records)).search("blue sky", top_k=2)
+    assert results
+    assert all(item.semantic_score == 0.0 for item in results)
+    assert any(item.lexical_score > 0 for item in results)
