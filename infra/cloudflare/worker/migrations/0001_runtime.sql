@@ -47,5 +47,5 @@ CREATE TABLE IF NOT EXISTS backup_manifests (
   verified_at TEXT
 );
 
-INSERT OR IGNORE INTO runtime_state(id, mode, updated_at)
-VALUES (1, 'work', CURRENT_TIMESTAMP);
+INSERT OR IGNORE INTO runtime_state(id, mode, work_started_at, work_deadline, updated_at)
+VALUES (1, 'work', CURRENT_TIMESTAMP, datetime('now', '+60 minutes'), CURRENT_TIMESTAMP);
