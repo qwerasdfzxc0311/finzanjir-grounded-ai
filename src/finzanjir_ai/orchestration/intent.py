@@ -92,7 +92,7 @@ def is_project_overview_query(query: str) -> bool:
         "what is finzanjir", "tell me about finzanjir", "about finzanjir",
         "finzanjir деген не", "finzanjir туралы", "finzanjir қандай жоба",
         "finzanjir деген не және не үшін керек",
-        "finzanjir degen ne", "finzanjir hakkında", "finzanjir joybar",
+        "finzanjir degen ne", "finzanjir haqqında", "finzanjir joybar",
         "finzanjir degen ne hám ne ushın kerek",
         "что такое finzanjir и для чего он нужен",
     }
