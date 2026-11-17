@@ -1399,7 +1399,13 @@ def google_cloud_diagnostics(request: Request):
             })
         if os.getenv("RENDER"):
             try:
-                persistent = path.resolve().is_relative_to(Path("/var/data"))
+                # A directory named /var/data is not proof of a Render disk:
+                # Free instances can create it on ephemeral storage. Require an
+                # actual mount at the documented mount point.
+                persistent = (
+                    path.resolve().is_relative_to(Path("/var/data"))
+                    and os.path.ismount("/var/data")
+                )
             except (OSError, ValueError):
                 persistent = False
             checks.append({
