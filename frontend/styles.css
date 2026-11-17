@@ -74,3 +74,5 @@ main section{margin:0 0 26px}.hero-section{position:relative;display:flex;align-
 .cloud-settings-panel{display:grid;gap:14px}
 #googleDiagnosticsResults,#googlePermissionsResults{display:grid;gap:10px;margin-top:12px}
 #googleSettingsDiagnostics[hidden],#googleSettingsPermissions[hidden],#googleSettingsAccounts[hidden]{display:none}
+.settings-nav-link{display:inline-flex;align-items:center;padding:8px 12px;border:1px solid rgba(255,255,255,.3);border-radius:9px;color:#fff;text-decoration:none;font-weight:650}
+.settings-nav-link:hover{background:rgba(255,255,255,.12)}
