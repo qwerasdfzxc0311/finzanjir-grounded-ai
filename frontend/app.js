@@ -779,13 +779,44 @@ function generationModeLabel(mode) {
     general_knowledge_model: "Umumiy bilim AI javobi · FINZANJIR hujjatlaridan tashqari",
     general_knowledge_local_facts: "Tashqi modelsiz javob · tekshiriladigan mahalliy bilim manbasi",
     tavily_local_extractive: "Tavily internet manbalari · javob FINZANJIR ichida tuzildi, Gemini/OpenRouter chaqirilmadi",
-    web_search: "Tavily qidiruvi · javob mahalliy mexanizm bilan manba parchalaridan tuzildi",
+    wikimedia_local_extractive: "Wikimedia zaxira manbasi · javob mahalliy mexanizm bilan tuzildi",
+    cached_local_extractive: "Oldin olingan ochiq manbalar keshi · yangi qidiruv sarflanmadi",
+    external_local_extractive: "Ochiq manbalar · javob FINZANJIR ichida mahalliy tuzildi",
+    web_search: "Ochiq internet manbalari · javob mahalliy mexanizm bilan tuzildi",
     general_knowledge_unavailable: "Umumiy bilim modeli sozlanmagan",
     general_knowledge_provider_failed: "Umumiy bilim modeli javob bermadi",
     blocked_sensitive: "Maxfiylik sabab so'rov tashqi modelga yuborilmadi",
     assistant_identity: "FINZANJIR AI yordamchisining o'zini tanishtirish javobi",
   };
   return labels[mode] || "";
+}
+
+function researchProviderLabel(provider) {
+  const labels = {
+    tavily: "Tavily",
+    wikimedia: "Wikimedia (Wikipedia)",
+    cache: "Oldin olingan manbalar keshi",
+  };
+  return labels[provider] || "";
+}
+
+function researchDiagnosticLabel(item) {
+  const names = {tavily: "Tavily", wikimedia: "Wikimedia"};
+  const statuses = {
+    rate_limited: "so‘rov limiti tugagan yoki oshgan",
+    quota_exhausted: "hisob kvotasi tugagan",
+    authentication_or_permission_failed: "kalit yoki ruxsat xatosi",
+    provider_unavailable: "xizmat vaqtincha ishlamayapti",
+    network_error: "tarmoq xatosi",
+    not_configured: "sozlanmagan",
+    no_results: "mos sahifa topilmadi",
+    unavailable: "hozir mavjud emas",
+    insufficient_extractable_evidence: "javob uchun yetarli parcha ajratilmadi",
+  };
+  const name = names[item?.provider] || item?.provider || "Manba";
+  const status = statuses[item?.status] || item?.status || "noma’lum";
+  const cooldown = Number.isFinite(item?.cooldown_seconds) ? " · tanaffus " + Math.ceil(item.cooldown_seconds / 60) + " daqiqa" : "";
+  return name + ": " + status + cooldown;
 }
 
 function providerStatusLabel(status) {
@@ -849,7 +880,7 @@ function appendProvenanceLinks(target, sources) {
   target.appendChild(list);
 }
 
-function appendChatMessage(role, content, refs = [], mode = "", providerStatus = "", providerDiagnostics = [], confidence = null, abstained = null, provenance = []) {
+function appendChatMessage(role, content, refs = [], mode = "", providerStatus = "", providerDiagnostics = [], confidence = null, abstained = null, provenance = [], researchProvider = "", researchDiagnostics = []) {
   const log = document.querySelector("#aiChatLog");
   if (!log) return;
   const item = element("article", "chat-message " + (role === "user" ? "chat-user" : "chat-assistant"));
@@ -864,6 +895,11 @@ function appendChatMessage(role, content, refs = [], mode = "", providerStatus =
   if (modeLabel) item.appendChild(element("small", "chat-refs", "Javob rejimi: " + modeLabel));
   const providerLabel = providerStatusLabel(providerStatus);
   if (providerLabel) item.appendChild(element("small", "chat-refs", "AI ulanishi: " + providerLabel));
+  const researchLabel = researchProviderLabel(researchProvider);
+  if (researchLabel) item.appendChild(element("small", "chat-refs", "Tashqi ma’lumot manbasi: " + researchLabel));
+  if (researchDiagnostics.length) {
+    item.appendChild(element("small", "chat-refs", "Qidiruv holati: " + researchDiagnostics.map(researchDiagnosticLabel).join("; ")));
+  }
   if (providerDiagnostics.length) {
     const diagnosticText = providerDiagnostics.map(providerDiagnosticLabel).join("; ");
     item.appendChild(element("small", "chat-refs", "Ulanish diagnostikasi: " + diagnosticText));
@@ -931,6 +967,11 @@ function renderWindowInteractive(windowId) {
         if (modeLabel) item.appendChild(element("small", "chat-refs", "Javob rejimi: " + modeLabel));
         const providerLabel = providerStatusLabel(message.providerStatus);
         if (providerLabel) item.appendChild(element("small", "chat-refs", "AI ulanishi: " + providerLabel));
+        const researchLabel = researchProviderLabel(message.researchProvider);
+        if (researchLabel) item.appendChild(element("small", "chat-refs", "Tashqi ma’lumot manbasi: " + researchLabel));
+        if (Array.isArray(message.researchDiagnostics) && message.researchDiagnostics.length) {
+          item.appendChild(element("small", "chat-refs", "Qidiruv holati: " + message.researchDiagnostics.map(researchDiagnosticLabel).join("; ")));
+        }
         if (Array.isArray(message.providerDiagnostics) && message.providerDiagnostics.length) {
           item.appendChild(element("small", "chat-refs", "Ulanish diagnostikasi: " + message.providerDiagnostics.map(providerDiagnosticLabel).join("; ")));
         }
@@ -971,7 +1012,7 @@ function renderWindowInteractive(windowId) {
     input.setAttribute("aria-label", "FINZANJIR AI savoli");
     const submit = element("button", "primary-button", "Savol yuborish");
     submit.type = "submit";
-    const formHint = element("small", "muted", "Auto rejimi mahalliy bilim yetmasa Tavily orqali ochiq internet manbalarini qidirishi mumkin; Gemini/OpenRouter majburiy emas. Mahalliy rejim hech qanday tashqi AI yoki internet so‘rovini yubormaydi. Maksimal 4 000 belgi. Shaxsiy yoki haqiqiy bank ma’lumotlarini yubormang.");
+    const formHint = element("small", "muted", "Auto rejimi avval mahalliy bilim va avval olingan manbalar keshini tekshiradi; keyin Tavily, u ishlamasa yoki limiti tugasa Wikimedia zaxira manbasini sinaydi. Gemini/OpenRouter javob uchun majburiy emas. Mahalliy rejim hech qanday tashqi AI yoki internet so‘rovini yubormaydi. Maksimal 4 000 belgi. Shaxsiy yoki haqiqiy bank ma’lumotlarini yubormang.");
     form.append(modelPolicyLabel, input, submit, formHint);
     form.addEventListener("submit", async event => {
       event.preventDefault();
@@ -1011,9 +1052,11 @@ function renderWindowInteractive(windowId) {
         const mode = body.generation_mode || "";
         const providerStatus = body.provider_status || "not_attempted";
         const providerDiagnostics = Array.isArray(body.provider_diagnostics) ? body.provider_diagnostics : [];
-        aiConversation.push({role:"assistant", content:answer, refs, mode, providerStatus, providerDiagnostics, confidence:body.confidence, abstained:body.abstained, externalSources, provenance});
+        const researchProvider = body.research_provider || "";
+        const researchDiagnostics = Array.isArray(body.research_diagnostics) ? body.research_diagnostics : [];
+        aiConversation.push({role:"assistant", content:answer, refs, mode, providerStatus, providerDiagnostics, researchProvider, researchDiagnostics, confidence:body.confidence, abstained:body.abstained, externalSources, provenance});
         if (aiConversation.length > 12) aiConversation.splice(0, aiConversation.length - 12);
-        appendChatMessage("assistant", answer, refs, mode, providerStatus, providerDiagnostics, body.confidence, body.abstained, provenance);
+        appendChatMessage("assistant", answer, refs, mode, providerStatus, providerDiagnostics, body.confidence, body.abstained, provenance, researchProvider, researchDiagnostics);
         if (externalSources.length) appendExternalSources(externalSources);
         persistAIConversation();
         if (body.abstained) appendChatMessage("assistant", "Eslatma: mavjud dalillar yetarli bo‘lmagani uchun javob cheklangan.");
