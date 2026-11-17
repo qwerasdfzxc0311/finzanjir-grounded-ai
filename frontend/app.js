@@ -950,7 +950,7 @@ function renderWindowInteractive(windowId) {
   target.appendChild(heading);
 
   if (windowId === "finzanjir_ai") {
-    const notice = element("p", "module-warning", "MUHIM: AI javobi xato, eskirgan yoki to‘liq bo‘lmasligi mumkin — uni 100% to‘g‘ri deb qabul qilmang. Muhim ma’lumot va qarorlarni asl hujjatlar hamda ishonchli manbalar bilan tekshiring. FINZANJIR savollari loyiha hujjatlariga tayanadi; umumiy bilim savollari mahalliy bilim yoki Tavily topgan tashqi manbalardan foydalanishi mumkin. Tashqi manbalar avtomatik ravishda FINZANJIRning tasdiqlangan bilim bazasiga qo‘shilmaydi. Dalil yetarli bo‘lmasa, tizim buni ochiq aytishi kerak. Suhbat xotirasi shu brauzer qurilmasida oxirgi 12 ta xabarni saqlaydi. Bu hozircha bulut xotirasi emas va boshqa qurilmaga avtomatik ko‘chmaydi.");
+    const notice = element("p", "module-warning", "MUHIM: AI javobi xato, eskirgan yoki to‘liq bo‘lmasligi mumkin — uni 100% to‘g‘ri deb qabul qilmang. Muhim ma’lumot va qarorlarni asl hujjatlar hamda ishonchli manbalar bilan tekshiring. FINZANJIR savollari loyiha hujjatlariga tayanadi; umumiy bilim savollari mahalliy bilim, avval olingan manbalar keshi yoki Tavily/Wikimedia tashqi manbalaridan foydalanishi mumkin. Tashqi manbalar avtomatik ravishda FINZANJIRning tasdiqlangan bilim bazasiga qo‘shilmaydi. Dalil yetarli bo‘lmasa, tizim buni ochiq aytishi kerak. Suhbat xotirasi shu brauzer qurilmasida oxirgi 12 ta xabarni saqlaydi. Bu hozircha bulut xotirasi emas va boshqa qurilmaga avtomatik ko‘chmaydi.");
     const chat = element("div", "ai-chat-panel");
     const log = element("div", "ai-chat-log");
     log.id = "aiChatLog";
@@ -995,7 +995,7 @@ function renderWindowInteractive(windowId) {
     const form = element("form", "ai-chat-form");
     const modelPolicyLabel = element("label", "muted", "Javob rejimi");
     const modelPolicy = element("select", "ai-model-policy");
-    const autoOption = element("option", "", "Avtomatik — mahalliy bilim, Tavily qidiruvi, model ixtiyoriy");
+    const autoOption = element("option", "", "Avtomatik — mahalliy bilim, kesh, Tavily/Wikimedia zaxira, model ixtiyoriy");
     autoOption.value = "auto";
     const offlineOption = element("option", "", "Mahalliy — tashqi AI va internet qidiruvisiz");
     offlineOption.value = "offline";
