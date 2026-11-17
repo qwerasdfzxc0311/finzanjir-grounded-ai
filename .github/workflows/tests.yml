@@ -5,6 +5,9 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -22,7 +25,7 @@ jobs:
         run: |
           PYTHONPATH=src python scripts/run_question_decomposition_diagnostic.py --output question-decomposition-diagnostic.json
       - name: Upload question decomposition diagnostic report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: finzanjir-question-decomposition-diagnostic
           path: question-decomposition-diagnostic.json
