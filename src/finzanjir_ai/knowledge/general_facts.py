@@ -127,7 +127,7 @@ def answer_local_general_fact(
     if kind == "uzbekistan":
         return (
             _UZBEKISTAN[lang],
-            ("general_uzbekistan_geography_world_bank", "general_uzbekistan_geography_unfccc"),
+            ("general_uzbekistan_geography_world_bank", "general_uzbekistan_geography_world_bank_2024"),
             (
                 "https://documents1.worldbank.org/curated/en/620601593145818606/pdf/Uzbekistan-Building-Blocks-for-Integrated-Transport-and-Logistics-Development-Policy-Paper.pdf",
                 "https://documents1.worldbank.org/curated/en/099070724045016869/pdf/P176060-6a414312-9800-48bf-8108-1e1fb66cb331.pdf",
