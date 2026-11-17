@@ -613,7 +613,7 @@ def test_stream_rejects_non_synthetic_input_with_failed_first_stage_and_remainin
 def test_general_knowledge_api_returns_local_fact_and_source_provenance():
     response = client.post(
         "/api/ai/answer",
-        json={"question": "Nega osmon ko‘k?", "runtime_refs": []},
+        json={"question": "Nega osmon ko‘k?", "runtime_refs": [], "model_policy": "offline"},
     )
     assert response.status_code == 200
     body = response.json()
@@ -623,3 +623,12 @@ def test_general_knowledge_api_returns_local_fact_and_source_provenance():
     assert "Rayleigh" in body["answer"]
     assert "https://www.weather.gov/fgz/SkyBlue" in body["provenance"]
     assert "https://spaceplace.nasa.gov/blue-sky/en/" in body["provenance"]
+
+
+
+def test_api_rejects_unknown_model_policy():
+    response = client.post(
+        "/api/ai/answer",
+        json={"question": "Nega osmon ko‘k?", "model_policy": "unrestricted"},
+    )
+    assert response.status_code == 422
