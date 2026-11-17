@@ -1012,7 +1012,7 @@ function renderWindowInteractive(windowId) {
     input.setAttribute("aria-label", "FINZANJIR AI savoli");
     const submit = element("button", "primary-button", "Savol yuborish");
     submit.type = "submit";
-    const formHint = element("small", "muted", "Auto rejimi avval mahalliy bilim va avval olingan manbalar keshini tekshiradi; keyin Tavily, u ishlamasa yoki limiti tugasa Wikimedia zaxira manbasini sinaydi. Gemini/OpenRouter javob uchun majburiy emas. Mahalliy rejim hech qanday tashqi AI yoki internet so‘rovini yubormaydi. Maksimal 4 000 belgi. Shaxsiy yoki haqiqiy bank ma’lumotlarini yubormang.");
+    const formHint = element("small", "muted", "Auto rejimi avval mahalliy bilim va manbalar keshini tekshiradi; barqaror ensiklopedik savollarda Wikimedia, dolzarb yoki aniq internet qidiruvida Tavily ishlatiladi. Ulardan biri ishlamasa, ikkinchisi zaxira bo‘ladi. Gemini/OpenRouter javob uchun majburiy emas. Mahalliy rejim hech qanday tashqi AI yoki internet so‘rovini yubormaydi. Maksimal 4 000 belgi. Shaxsiy yoki haqiqiy bank ma’lumotlarini yubormang.");
     form.append(modelPolicyLabel, input, submit, formHint);
     form.addEventListener("submit", async event => {
       event.preventDefault();
