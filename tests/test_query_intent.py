@@ -44,6 +44,7 @@ def test_author_question_expansion_adds_author_search_hints_only():
 def test_finzanjir_overview_is_a_dedicated_intent_not_a_broad_retrieval():
     assert classify_query_intent("FINZANJIR nima?") == "project_overview"
     assert classify_query_intent("FINZANJIR haqida aytib ber") == "project_overview"
+    assert classify_query_intent("FINZANJIRning maqsadi") == "project_overview"
     assert classify_query_intent("What is FINZANJIR?") == "project_overview"
     assert classify_query_intent("Что такое FINZANJIR?") == "project_overview"
     assert classify_query_intent("ФИНЗАНЖИР нима?") == "project_overview"
