@@ -97,7 +97,10 @@ def test_worker_skips_non_allowlisted_results_and_no_content(tmp_path):
 
 def test_worker_requires_exact_domain_configuration(tmp_path):
     store = make_store(tmp_path)
-    for domains in ([], ["https://cisa.gov"], ["cisa.gov/path"], ["cisa.gov:443"]):
+    for domains in (
+        [], ["https://cisa.gov"], ["cisa.gov/path"], ["cisa.gov:443"],
+        ["com"], ["co.uk"], ["*.cisa.gov"], ["127.0.0.1"], ["bad_domain.gov"],
+    ):
         try:
             build_public_research_worker(
                 source_id="cisa", query="advisory", allowed_domains=domains,
