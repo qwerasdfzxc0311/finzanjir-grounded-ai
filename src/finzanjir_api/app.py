@@ -163,7 +163,6 @@ def knowledge_index() -> KnowledgeIndex:
     return build_system_flow().demo_knowledge_index()
 
 
-@lru_cache(maxsize=2)
 def ai_engine(model_policy: str = "auto") -> FINZANJIRAI:
     # Separate cached engines ensure an offline request can never borrow an
     # automatic engine that has configured hosted credentials.
