@@ -602,14 +602,18 @@ class GroundedAnswerGenerator:
             )
 
         if is_author_critique_query(query):
-            required = {"author_0008", "project_0001"}
+            required = {"author_0008"}
             available = {item.record_id for item in grounded_items}
             if required.issubset(available):
+                critique_citations = tuple(
+                    record_id for record_id in ("author_0008", "project_0001")
+                    if record_id in available
+                )
                 return AnswerResult(
                     answer=self.AUTHOR_CRITIQUE_ANSWERS.get(language, self.AUTHOR_CRITIQUE_ANSWERS["uz"]),
                     confidence=confidence,
                     abstained=False,
-                    citations=("author_0008", "project_0001"),
+                    citations=critique_citations,
                     generation_mode="author_claims_critique_grounded",
                     provider_status="not_attempted",
                 )
