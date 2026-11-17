@@ -243,6 +243,42 @@ class GroundedAnswerGenerator:
         "kaa": "FINZANJIR — finanslıq alayaqlıqlar qáwipin hám gúmanlı pul aǵımların anıqlaw hám tallawǵa baǵdarlanǵan joybar. Onıń tiykarǵı maqseti — usı processte puqaralardıń nızamlı operaciyaları hám qarjılarına tiykarсыз zıyan jetpewine járdemlesiw. Bul joybardıń maqseti; barlıq rejelestirilgen múmkinshilikler házirgi prototipte tolıq iske asırılǵan degeni emes.",
     }
 
+    AUTHOR_CRITIQUE_ANSWERS = {
+        "uz": (
+            "Buni faqat muallifning o'z fikriga qarab qat'iy baholab bo'lmaydi. Muallif bildirgan maqsad va kelajak haqidagi qarashlar — loyiha niyati; ular tizimning amalda ishlashi yoki samaradorligi mustaqil isbotlanganini anglatmaydi.\n\n"
+            "Hozirgi dalillardan ehtiyotkor xulosa shuki: FINZANJIRning maqsadi va konsepsiyasi hujjatlashtirilgan, ammo barcha rejalashtirilgan imkoniyatlar ishga tushgani yoki firibgarlikni kamaytirish natijasi amaliy pilot bilan isbotlangani haqida xulosa qilib bo'lmaydi. Shuning uchun muallifni 'ortiqcha maqtayapti' deb ham, loyihaning barcha da'volari isbotlangan deb ham aytish to'g'ri emas.\n\n"
+            "Buni xolis baholash uchun mustaqil texnik audit, qonuniylik tekshiruvi, bank pilot natijalari, false positive/false negative ko'rsatkichlari, xavfsizlik sinovlari va xarajat-samaradorlik tahlili kerak."
+        ),
+        "ru": (
+            "Нельзя уверенно оценить это только по мнению самого автора. Заявленные им цели и видение будущего — это намерения проекта, а не независимое доказательство того, что система уже работает или достигла заявленной эффективности.\n\n"
+            "Осторожный вывод по имеющимся материалам: цель и концепция FINZANJIR документированы, но нельзя утверждать, что все запланированные функции уже внедрены или что снижение мошенничества подтверждено пилотными результатами. Поэтому нельзя ни объявлять автора чрезмерно хвалящим проект, ни считать все заявления доказанными.\n\n"
+            "Для объективной оценки нужны независимый технический аудит, правовая проверка, результаты банковского пилота, показатели false positive/false negative, тесты безопасности и анализ эффективности затрат."
+        ),
+        "en": (
+            "That cannot be judged conclusively from the author's own statements alone. The stated goals and future vision describe project intent; they are not independent proof that the system is already operational or effective.\n\n"
+            "The careful conclusion from the available material is that FINZANJIR's purpose and concept are documented, but the materials do not establish that every planned capability is deployed or that fraud reduction has been demonstrated in a real pilot. So it would be unjustified either to label the author as overpraising it or to treat every claim as proven.\n\n"
+            "A fair assessment needs an independent technical audit, legal review, bank-pilot results, false-positive/false-negative metrics, security testing, and cost-effectiveness analysis."
+        ),
+        "kk": (
+            "Мұны тек автордың өз пікіріне қарап нақты бағалау мүмкін емес. Автор айтқан мақсаттар мен болашаққа көзқарас — жобаның ниеті; олар жүйенің қазір жұмыс істеп тұрғанын немесе тиімділігі тәуелсіз дәлелденгенін білдірмейді.\n\n"
+            "Қолдағы материалдар бойынша сақ қорытынды: FINZANJIR мақсаты мен тұжырымдамасы құжатталған, бірақ жоспарланған барлық мүмкіндік енгізілгені немесе алаяқтықты азайту нәтижесі нақты пилотпен дәлелденгені расталмайды. Сондықтан автор жобаны артық мақтайды деу де, барлық мәлімдеме дәлелденді деу де дұрыс емес.\n\n"
+            "Әділ бағалау үшін тәуелсіз техникалық аудит, құқықтық тексеру, банк пилотының нәтижелері, false positive/false negative көрсеткіштері, қауіпсіздік сынақтары және шығын-тиімділік талдауы қажет."
+        ),
+        "kaa": (
+            "Bunı tek mualliftiń óz pikirine qarap anıq bahalaw múmkin emes. Muallif bildirgen maqset hám keleshek haqqındaǵı kózqaras — joybardıń niyeti; olar sistemanıń házir islep turǵanın yamasa nátiyjeliligi ǵárezsiz dálillengenin bildirmeydi.\n\n"
+            "Bar materiallar boyınsha abaylı juwmaq: FINZANJIR maqseti hám konsepsiyası hújjetlestirilgen, biraq rejelestirilgen barlıq múmkinshilikler engizilgeni yamasa firibgarlıq azayǵanı real pilot nátiyjeleri menen dálillengenin aytıwǵa bolmaydı. Sonlıqtan muallif joybardı artıqsha maqtaydı dep te, barlıq aytılǵanlar dálillengen dep te aytıw durıs emes.\n\n"
+            "Ádil bahalaw ushın ǵárezsiz texnikalıq audit, nızamlılıq tekseriwi, bank pilotı nátiyjeleri, false positive/false negative kórsetkishleri, qáwipsizlik sınawları hám shıǵın-nátiyje tallawı kerek."
+        ),
+    }
+
+    SYSTEM_COMPLEMENT_ANSWERS = {
+        "uz": "FINZANJIR mavjud bank va xavfsizlik tizimlarini almashtirish uchun emas, ularni to'ldirish uchun mo'ljallangan. U turli xavf belgilarini qonuniy va minimal ma'lumot almashinuvi doirasida bog'lab, vaziyatni kengroq tahlil qilishga yordam berishi kerak. Banklarning vakolati va qarorlari o'zida qoladi; FINZANJIR signali aybdorlik isboti yoki avtomatik bloklash buyrug'i emas. Bu konsepsiyadagi maqsad — barcha integratsiyalar hozir ishlayapti degani emas.",
+        "ru": "FINZANJIR предназначен не для замены существующих банковских и защитных систем, а для их дополнения. Он должен помогать связывать различные признаки риска и анализировать ситуацию шире в рамках законного обмена минимально необходимыми данными. Полномочия и решения остаются у банков; сигнал FINZANJIR не является доказательством вины или автоматической командой блокировки. Это цель концепции, а не утверждение, что все интеграции уже работают.",
+        "en": "FINZANJIR is intended to complement existing bank and security systems, not replace them. It is meant to help connect risk indicators and provide broader analysis using only legally permitted, minimally necessary data. Banks retain their authority and decisions; a FINZANJIR signal is neither proof of guilt nor an automatic blocking instruction. This is the concept's goal, not a claim that all integrations are already live.",
+        "kk": "FINZANJIR қолданыстағы банк және қауіпсіздік жүйелерін алмастыру үшін емес, оларды толықтыру үшін арналған. Ол заңды түрде рұқсат етілген ең аз қажетті деректер аясында тәуекел белгілерін байланыстырып, жағдайды кеңірек талдауға көмектесуі тиіс. Банктер өз өкілеттігі мен шешімдерін сақтайды; FINZANJIR сигналы кінәнің дәлелі де, автоматты бұғаттау пәрмені де емес. Бұл тұжырымдаманың мақсаты, барлық интеграция қазір жұмыс істеп тұр деген сөз емес.",
+        "kaa": "FINZANJIR házirgi bank hám qáwipsizlik sistemaların almastırıw ushın emes, olardı tolıqtırıw ushın mólsherlengen. Ol nızamlı ruxsat etilgen minimal zárúr maǵlıwmat sheńberinde qáwip belgilerin baylanıstırıp, jaǵdaydı keńirek tallawǵa járdemlesiwi kerek. Bankler óz wákileti hám qararların saqlap qaladı; FINZANJIR signalı ayıplılıq dálili de, avtomat bloklaw buyrıǵı da emes. Bul konsepsiya maqseti, barlıq integraciyalar házir islep tur degeni emes.",
+    }
+
     COMPLEMENTARY_PROTECTION_FAQ_ANSWERS = {
         "project_0010": (
             "FINZANJIR mavjud banklar, qo'riqlash va xavfsizlik vositalari, tahlil tizimlari yoki antiviruslarning o'rnini egallash uchun emas. "
@@ -526,6 +562,7 @@ class GroundedAnswerGenerator:
             classify_query_intent, detect_query_language, is_bank_authority_query,
             is_signal_guilt_query, is_case_purpose_query, is_fraud_graph_definition_query,
             is_c_model_query, is_sixteen_layer_query, is_author_motivation_query, is_author_motivation_follow_up,
+            is_author_critique_query, is_system_complement_query,
         )
 
         intent_query = context_query or query
@@ -561,6 +598,39 @@ class GroundedAnswerGenerator:
                 abstained=True,
                 citations=(),
                 generation_mode="insufficient_evidence",
+                provider_status="not_attempted",
+            )
+
+        if is_author_critique_query(query):
+            required = {"author_0008", "project_0001"}
+            available = {item.record_id for item in grounded_items}
+            if required.issubset(available):
+                return AnswerResult(
+                    answer=self.AUTHOR_CRITIQUE_ANSWERS.get(language, self.AUTHOR_CRITIQUE_ANSWERS["uz"]),
+                    confidence=confidence,
+                    abstained=False,
+                    citations=("author_0008", "project_0001"),
+                    generation_mode="author_claims_critique_grounded",
+                    provider_status="not_attempted",
+                )
+            return AnswerResult(
+                answer=self.NO_EVIDENCE_MESSAGES.get(language, self.NO_EVIDENCE_MESSAGES["uz"]),
+                confidence=0.0,
+                abstained=True,
+                citations=tuple(sorted(available & required)),
+                generation_mode="author_critique_evidence_incomplete",
+                provider_status="not_attempted",
+            )
+
+        if is_system_complement_query(query) and any(
+            item.record_id == "project_0010" for item in grounded_items
+        ):
+            return AnswerResult(
+                answer=self.SYSTEM_COMPLEMENT_ANSWERS.get(language, self.SYSTEM_COMPLEMENT_ANSWERS["uz"]),
+                confidence=confidence,
+                abstained=False,
+                citations=("project_0010",),
+                generation_mode="system_complement_localized",
                 provider_status="not_attempted",
             )
 
