@@ -9,16 +9,16 @@ FINZANJIR should not depend on a single search provider or hosted answer model. 
 1. Classify the question. FINZANJIR project questions remain inside the project knowledge corpus; they are not silently replaced with public web results.
 2. Prefer an existing local general-knowledge fact when one directly covers the question.
 3. Check the bounded, six-hour in-process cache of previously retrieved public extracts. This avoids repeating the same external search during the current service process.
-4. If no cache entry exists, try Tavily Search when configured and not in cooldown.
-5. If Tavily is unconfigured, rate-limited, quota-exhausted, unavailable, or returns passages that cannot support an answer, use Wikimedia's language-specific Wikipedia API as an independent no-key fallback for encyclopedic topics.
+4. For stable encyclopedic questions, try Wikimedia's language-specific Wikipedia API first, reducing Tavily usage. For explicit web searches and time-sensitive questions, try Tavily first.
+5. If the first provider is unavailable, rate-limited, quota-exhausted, unconfigured, or returns passages that cannot support an answer, try the other provider when it is suitable for the question.
 6. The local composer filters unsafe URLs, extracts relevant sentences, ranks them using query overlap and provider relevance, removes duplicates, and returns source links.
 7. If public research still cannot support an answer, Auto mode may try the existing optional LLM gateway. If no provider can support an answer, abstain rather than inventing facts.
 
 ## Provider resilience
 
-- Tavily is a primary public-web search provider, not the required answer-generating LLM.
+- Tavily is a primary broad public-web search provider, not the required answer-generating LLM. It is not called first for stable encyclopedic questions when Wikimedia is a better low-cost fit.
 - HTTP 429 opens a 15-minute Tavily cooldown; quota exhaustion opens a 30-minute cooldown; authentication/permission failures also open a 30-minute cooldown. Temporary network/provider failures open a short 60-second cooldown.
-- During cooldown, new questions skip Tavily and proceed directly to Wikimedia. This avoids repeatedly spending requests against a provider that has already reported a limit or outage.
+- During cooldown, new questions skip Tavily and proceed directly to Wikimedia when the topic is suitable. This avoids repeatedly spending requests against a provider that has already reported a limit or outage.
 - Wikimedia is an independent, keyless encyclopedia fallback, not a full replacement for broad web search. It is suitable for stable encyclopedic topics; it may not find current events, niche pages, or all Karakalpak-language material.
 - Successful public extracts are cached in memory for up to six hours, with a maximum of 128 query entries. The cache is process-local and may be cleared by a service restart or deployment.
 - Gemini and OpenRouter are optional. When local composition has sufficient source evidence, neither is called.
