@@ -1,0 +1,14 @@
+name = "finzanjir-runtime"
+main = "src/index.mjs"
+compatibility_date = "2026-11-17"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "finzanjir-memory-v1"
+database_id = "50a5620a-3e0b-4b25-b9ff-8c4c751fef67"
+migrations_dir = "migrations"
+
+[triggers]
+crons = ["*/5 * * * *"]
+
+# R2 binding will be added only after the owner enables R2 in the Cloudflare dashboard.
