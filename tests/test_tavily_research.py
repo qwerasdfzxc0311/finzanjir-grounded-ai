@@ -87,7 +87,7 @@ def test_advanced_search_sends_depth_topic_and_time_filter(monkeypatch):
     def fake_post(url, **kwargs):
         captured["url"] = url
         captured.update(kwargs)
-        return httpx.Response(200, json={"results": [
+        return httpx.Response(200, request=httpx.Request("POST", url), json={"results": [
             {"title": "Second", "url": "https://example.com/b", "content": "B", "score": 0.4},
             {"title": "First", "url": "https://example.com/a", "content": "A", "score": 0.9},
             {"title": "Duplicate", "url": "https://example.com/a", "content": "dup", "score": 0.8},
