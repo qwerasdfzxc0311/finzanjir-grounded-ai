@@ -4,35 +4,56 @@
 
 Allow FINZANJIR to discover and read approved project knowledge in user-authorized cloud stores while keeping each user's files private, traceable, and separate from FINZANJIR's authoritative project corpus and training datasets.
 
-## Current implementation status
+## Current implementation status (verified 2026-11-17)
 
-This change adds a provider policy registry and a read-only readiness endpoint. It does **not** connect a cloud account, perform OAuth, read files, store tokens, or run cloud synchronization. The API reports connections as disabled until the security controls below are implemented. This is deliberate: the current prototype has no authenticated per-user identity/session boundary, so enabling account linking now could expose one user's connected files to another visitor.
+This repository contains a **partial Google single-owner connector**, not a fully implemented multi-provider cloud connector.
 
-Supported provider policy descriptions:
-- Dropbox: metadata and file-content read scopes only.
-- Microsoft OneDrive: Files.Read and User.Read only.
-- Google Drive: drive.file (app-created or explicitly selected files), not broad full-drive access.
+- **Google Drive:** OAuth Authorization Code + PKCE, owner session, account registry, file listing, selected document import and selected binary-media import are implemented. The code currently requests `https://www.googleapis.com/auth/drive.readonly`.
+- **Gmail:** bounded message listing and owner-selected message import are implemented with `https://www.googleapis.com/auth/gmail.readonly`. No send, compose, modify, label or mailbox-management scope is requested.
+- **Google Photos:** the current Picker API is implemented. Only media selected in a Picker session is listed/imported, using `photospicker.mediaitems.readonly`.
+- **Dropbox and Microsoft OneDrive:** only provider policy/readiness descriptions exist. OAuth, token storage, import, revocation and account isolation are not implemented for these providers; they must remain disabled.
+- Google refresh tokens are encrypted server-side using the configured Fernet key. Owner sessions use a signed HttpOnly/Secure/SameSite=Lax cookie. The implementation is single-owner, not multi-tenant.
+- Imported Google text and media are stored in a private, owner-scoped quarantine with provenance and audit metadata. They are not automatically added to the canonical project corpus or training data. The current `/api/ai/answer` path does not yet use this quarantine as a separate personal-memory context.
+- OAuth routes fail closed when required configuration is missing. The current Render Free service has ephemeral storage, so the code existing in the repository does not mean real-account imports are safe to enable in the current deployment.
 
-No write, delete, move, upload, public-link, or share permission is included.
+## Google OAuth scope and policy gate
 
-## Required connection architecture
+The actual scopes in `src/finzanjir_ai/integrations/google_cloud.py` must be described accurately:
 
-1. **User identity first.** Add a real sign-in/session layer with secure, HttpOnly, SameSite cookies, CSRF protection, session rotation, logout, and per-user authorization. A public static website must never hold provider client secrets or refresh tokens.
-2. **OAuth 2.1 Authorization Code + PKCE.** Use exact registered HTTPS redirect URIs, cryptographically random single-use state, PKCE S256, issuer/audience validation where supported, nonce where applicable, strict callback validation, and short-lived authorization codes. Never accept arbitrary callback URLs or provider-supplied redirect targets.
-3. **Encrypted token vault.** Encrypt access and refresh tokens at rest with a managed key (KMS or equivalent), separate from the database. Never log tokens, return them to the browser, place them in URLs, or store them in localStorage. Support refresh-token rotation, revocation, expiry, and disconnect.
-4. **Least privilege.** Request only the listed read scopes. Start with user-selected folders/files where the provider supports it. Do not request write or public-sharing scopes. A later write feature must be a separate reviewed permission and explicit user action.
-5. **Per-user isolation.** Every connection, source, cache record, job, and query must be bound to an authenticated user and checked server-side. No global shared token or cross-user search.
-6. **Read-only ingestion.** Import only user-selected content within file-count, size, MIME-type, and rate limits. Treat every cloud document as untrusted input. Prevent prompt injection from document contents. Preserve provider ID, owner/account ID, path/name, version/etag, modified time, content hash, source URL, import time, and granted scopes.
-7. **Quarantine and review.** Cloud content remains a candidate source. It must not overwrite FINZANJIR's authoritative documents, enter the training corpus, or be promoted automatically. Require source ownership/permission checks, licence and sensitive-data review, and an explicit approval event.
-8. **Audit and user controls.** Show connected account, provider, exact scopes, selected folders, last sync, imported files, failures, and audit history. Provide pause, disconnect, token revocation, and deletion of FINZANJIR's cached copy. Disconnect must stop scheduled jobs and revoke tokens where supported.
-9. **Safe background sync.** Use a host scheduler with per-user and per-provider quotas, bounded pagination and byte budgets, backoff, rate-limit handling, and no background sync until the user explicitly enables it. No hidden chat uploads.
-10. **Data retention.** Define retention and deletion behavior before activation. Cloud source content, project-authoritative documents, transient research candidates, and model-training datasets remain separate.
+| Service | Current scope | Effective access and status |
+|---|---|---|
+| Drive | `https://www.googleapis.com/auth/drive.readonly` | Read/download **all** Drive files. Google classifies it as restricted. Selecting one file in FINZANJIR's import UI does not reduce the token's underlying scope. |
+| Gmail | `https://www.googleapis.com/auth/gmail.readonly` | View email messages and settings. Google classifies it as restricted. FINZANJIR imports only a selected message, but the granted scope is broader than that single message. |
+| Photos | `https://www.googleapis.com/auth/photospicker.mediaitems.readonly` | Access media selected by the owner in a specific Picker session; it does not grant silent full-library access. |
+
+Google recommends the narrowest scope needed. For Drive, `drive.file` with Google Picker can provide per-file access, while the current `drive.readonly` scope can read/download all files. Moving to `drive.file` would change which files the integration can discover and import, so it is a separate product/design decision and must not be silently substituted.
+
+Google states that restricted-scope apps require verification unless an exception applies, and apps that store or transmit restricted-scope data through a server require a security assessment by an approved assessor unless an applicable exception is confirmed. The Drive and Gmail use cases, public-app eligibility, data retention, user notice, and security-assessment requirements must therefore be confirmed before public activation. In particular, FINZANJIR's Gmail-to-private-memory import must be checked against Google's approved Gmail use cases; do not assume that read-only access alone makes the use case eligible.
+
+References:
+- Google Drive scopes and least-privilege guidance: https://developers.google.com/workspace/drive/api/guides/api-specific-auth
+- Google Gmail scopes: https://developers.google.com/workspace/gmail/api/auth/scopes
+- Google restricted-scope verification and server-side security assessment: https://developers.google.com/identity/protocols/oauth2/production-readiness/restricted-scope-verification
+- Google Photos Picker authorization: https://developers.google.com/photos/overview/authorization
+
+## Remaining production controls and work
+
+1. **Durable storage:** move OAuth state, account/session data, personal-memory records and encrypted media to a verified persistent store with backup/restore tests. Do not enable real imports on the current ephemeral Render Free filesystem.
+2. **Scope approval:** complete Google OAuth verification and any required restricted-scope security assessment. Decide explicitly whether Drive's broad `drive.readonly` scope is acceptable or whether the product should move to per-file `drive.file` + Picker.
+3. **Gmail use-case approval:** confirm the proposed message-import/personal-memory workflow is permitted by Google's Gmail user-data policy before public use.
+4. **Key management:** the current code reads a Fernet key from server environment configuration. A managed key/KMS lifecycle, rotation and recovery process remain to be designed and tested for production.
+5. **Personal-memory lifecycle:** add explicit owner review/approval/rejection/revocation states before any private source can be used as approved personal memory. Never promote it automatically into FINZANJIR's authoritative project corpus.
+6. **Multi-user isolation:** the current connector is for one configured owner. A multi-user product requires a separate identity, tenant isolation, authorization and audit design.
+7. **Other providers:** implement Dropbox and OneDrive OAuth/PKCE, token encryption, least-privilege scopes, import, revocation, audit and isolation before showing them as connected.
+8. **Background sync:** no unattended sync should run until a supported scheduler, per-owner quotas, backoff, retention and pause controls exist.
+9. **Multimodal understanding:** imported image/audio/video bytes are stored with provenance, but local vision, transcription and video understanding are not implemented.
 
 ## Current API
 
-- `GET /api/cloud/connectors` reports provider names, approved read-only scopes, and setup status.
-- It does not reveal environment values, credentials, tokens, account names, or file metadata.
-- `connect_enabled` remains false. This must not be changed until user identity, OAuth/PKCE, encrypted token storage, isolation, audit, disconnect, and security tests are in place.
+- `GET /api/cloud/connectors` reports safe provider readiness/policy information; it does not expose credentials, tokens, account names or file metadata and is not proof that Google OAuth is active.
+- Google owner flows are under `/api/google/*`: OAuth start/callback, account listing/disconnect, Drive listing/import, Gmail listing/import, Photos Picker sessions/import, private-memory source/search/media/audit and diagnostics.
+- Google account operations require the configured owner session. State-changing actions also validate the request Origin against the exact configured allowlist.
+- Imported content remains owner-scoped and quarantined; it is not automatically promoted to the authoritative project corpus.
 
 ## Safety constraints
 
@@ -52,7 +73,7 @@ Cloud account linking is not production-ready until the identity and token-secur
 
 An optional `gmail` service can be selected explicitly during account linking with the `gmail.readonly` scope. FINZANJIR can list message IDs using a bounded Gmail search query and import only a message the owner selects. The message body and limited headers are extracted, encrypted, and saved in the same private quarantine with provider provenance `google_gmail`. HTML-only bodies are converted to text while script/style content is excluded. Attachments are not downloaded by this first implementation.
 
-Gmail read access is a restricted Google OAuth scope and may require Google verification/security assessment before public use. It is never requested by the default Drive-only connection. No compose, send, modify, delete, label, or mailbox settings scopes are requested. See the official Gmail API documentation for read-only scope and message list/get methods: https://developers.google.com/workspace/gmail/api/auth/scopes and https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages.
+Gmail read access uses the restricted `gmail.readonly` scope. Public use requires the applicable Google verification and, where restricted data is stored/transmitted server-side, a security assessment unless an exception is confirmed. It is never requested by the default Drive-only connection. No compose, send, modify, delete, label, or mailbox-management scopes are requested. The planned import of messages into FINZANJIR private memory must be checked against Google's approved Gmail use cases before activation. See the official Gmail API documentation for read-only scope and message list/get methods: https://developers.google.com/workspace/gmail/api/auth/scopes and https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages.
 
 
 
