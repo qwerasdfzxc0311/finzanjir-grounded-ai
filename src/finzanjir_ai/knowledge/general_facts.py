@@ -57,7 +57,7 @@ def _fact_kind(query: str) -> str | None:
     if country and about:
         return "uzbekistan"
 
-    sky = _has_any(text, ("osmon", "sky", "небо", "aspan", "aspannıń", "aspanning"))
+    sky = _has_any(text, ("osmon", "sky", "небо", "аспан", "aspan", "aspannıń", "aspanning"))
     blue = _has_any(text, ("ko'k", "kok", "көк", "голуб", "blue", "kók", "kоk"))
     if sky and blue:
         return "sky"
