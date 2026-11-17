@@ -942,7 +942,7 @@ function renderWindowInteractive(windowId) {
     const modelPolicy = element("select", "ai-model-policy");
     const autoOption = element("option", "", "Avtomatik — model mavjud bo‘lsa foydalanish");
     autoOption.value = "auto";
-    const offlineOption = element("option", "", "Mahalliy — tashqi modelsiz ishlash");
+    const offlineOption = element("option", "", "Mahalliy — tashqi AI modelsiz (internet qidiruvi alohida)");
     offlineOption.value = "offline";
     modelPolicy.append(autoOption, offlineOption);
     modelPolicy.name = "model_policy";
@@ -957,7 +957,7 @@ function renderWindowInteractive(windowId) {
     input.setAttribute("aria-label", "FINZANJIR AI savoli");
     const submit = element("button", "primary-button", "Savol yuborish");
     submit.type = "submit";
-    const formHint = element("small", "muted", "Maksimal 4 000 belgi. Shaxsiy yoki haqiqiy bank ma’lumotlarini yubormang.");
+    const formHint = element("small", "muted", "Mahalliy rejim tashqi AI modeliga murojaat qilmaydi; internet qidiruvi alohida xizmat. Maksimal 4 000 belgi. Shaxsiy yoki haqiqiy bank ma’lumotlarini yubormang.");
     form.append(modelPolicyLabel, input, submit, formHint);
     form.addEventListener("submit", async event => {
       event.preventDefault();
