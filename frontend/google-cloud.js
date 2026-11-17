@@ -303,24 +303,98 @@
     });
   }
 
+  function selectSettingsTab(name) {
+    const panels = {
+      accounts: byId("googleSettingsAccounts"),
+      diagnostics: byId("googleSettingsDiagnostics"),
+      permissions: byId("googleSettingsPermissions")
+    };
+    Object.entries(panels).forEach(([key, panel]) => {
+      panel.hidden = key !== name;
+    });
+    document.querySelectorAll("[data-google-tab]").forEach(tab => {
+      tab.setAttribute("aria-selected", String(tab.dataset.googleTab === name));
+    });
+  }
+
+  async function runDiagnostics() {
+    const target = byId("googleDiagnosticsResults");
+    message(target, "Server va xotira omborlari tekshirilmoqda...");
+    try {
+      const result = await request("/api/google/diagnostics");
+      target.replaceChildren();
+      if (!result.configured) {
+        addLine(target, "Google sozlamalari", result.message || "Server sozlanmagan.", null);
+        return;
+      }
+      if (!result.authenticated) {
+        addLine(target, "Ega sessiyasi", "Avval FINZANJIR egasi Google orqali kirishi kerak.", null);
+        return;
+      }
+      (result.checks || []).forEach(check => {
+        const state = check.status === "ok" ? "Tayyor" :
+          check.status === "warning" ? "Ogohlantirish" :
+          check.status === "needs_login" ? "Kirish kerak" : "Xato";
+        addLine(target, check.id + " · " + state, check.detail, null);
+      });
+      if (result.summary) {
+        addLine(target, "Yakun", "Muvaffaqiyatli: " + result.summary.ok +
+          " · Ogohlantirish: " + result.summary.warning +
+          " · Xato: " + result.summary.error, null);
+      }
+      if (result.scope_note) addLine(target, "Izoh", result.scope_note, null);
+    } catch (error) {
+      message(target, error.message, "status-error");
+    }
+  }
+
+  function renderPermissions(accounts) {
+    const target = byId("googlePermissionsResults");
+    target.replaceChildren();
+    if (!accounts || !accounts.length) {
+      message(target, "Hali Google akkaunt ulanmagan.");
+      return;
+    }
+    accounts.forEach(account => {
+      const card = element("div", "cloud-account-card");
+      card.appendChild(element("strong", "", account.google_email));
+      const scopes = new Set(account.scopes || []);
+      const services = [
+        ["Google Drive — faqat o‘qish", "https://www.googleapis.com/auth/drive.readonly"],
+        ["Gmail — faqat o‘qish", "https://www.googleapis.com/auth/gmail.readonly"],
+        ["Google Photos — tanlangan media", "https://www.googleapis.com/auth/photospicker.mediaitems.readonly"]
+      ];
+      services.forEach(([label, scope]) => {
+        addLine(card, label, scopes.has(scope) ? "Ruxsat berilgan" : "Ruxsat berilmagan", null);
+      });
+      target.appendChild(card);
+    });
+  }
+
   async function refreshStatus() {
     const status = byId("googleCloudStatus");
     const controls = byId("googleCloudControls");
     const memory = byId("googleMemoryWorkspace");
     try {
       const result = await request("/api/google/status");
+      controls.hidden = false;
       if (!result.configured) {
-        controls.hidden = true;
         memory.hidden = true;
-        message(status, result.message || "Google ulanishi hali sozlanmagan.");
+        byId("googleOwnerLogin").hidden = true;
+        byId("googleAddAccount").hidden = true;
+        byId("googleOwnerLogout").hidden = true;
+        byId("googleAccounts").replaceChildren();
+        renderPermissions([]);
+        message(status, result.message || "Google ulanishi serverda hali sozlanmagan.");
         return;
       }
-      controls.hidden = false;
       if (!result.authenticated) {
         memory.hidden = true;
         byId("googleOwnerLogin").hidden = false;
         byId("googleAddAccount").hidden = true;
         byId("googleOwnerLogout").hidden = true;
+        byId("googleAccounts").replaceChildren();
+        renderPermissions([]);
         message(status, "Google server sozlamalari tayyor. Egasi Google akkaunti bilan kirsin.");
         return;
       }
@@ -330,6 +404,7 @@
       byId("googleOwnerLogout").hidden = false;
       message(status, "Egasi: " + result.owner_email + " · Akkauntlar: " +
         result.account_count + " / " + result.account_limit, "status-success");
+      renderPermissions(result.accounts || []);
       await loadAccounts(result.accounts || []);
       await refreshMemory();
     } catch (error) {
@@ -338,6 +413,12 @@
       message(status, error.message, "status-error");
     }
   }
+
+  document.querySelectorAll("[data-google-tab]").forEach(tab => {
+    tab.addEventListener("click", () => selectSettingsTab(tab.dataset.googleTab));
+  });
+  byId("googleRunDiagnostics").addEventListener("click", runDiagnostics);
+  selectSettingsTab("accounts");
 
   byId("googleOwnerLogin").addEventListener("click", () => {
     window.location.href = apiUrl("/api/google/oauth/start?purpose=owner_login");
