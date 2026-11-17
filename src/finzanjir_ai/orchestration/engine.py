@@ -20,6 +20,7 @@ from finzanjir_ai.orchestration.intent import (
     is_author_motivation_query,
     is_author_motivation_follow_up,
     is_author_overview_query,
+    is_author_critique_query,
 )
 
 
@@ -207,6 +208,45 @@ class FINZANJIRAI:
         # A broad "tell me about this person" request is an entity lookup,
         # not a keyword-match task. Resolve the canonical entity first, then let
         # the answer composer select and organize its verified biography facets.
+        # A critique of the author's claims requires two distinct evidence layers:
+        # the author's documented intent and the canonical project description.
+        # A biography/name match alone is never sufficient evidence for an opinion.
+        if query_intent == "author" and is_author_critique_query(query):
+            profile = self.grounder.assemble_entity("person:salamat_smaylov", max_items=16)
+            project_record = self.index.get_record("project_0001")
+            project_context = GroundedContext(items=())
+            if project_record is not None:
+                project_context = self.grounder.assemble(
+                    (RetrievalResult(
+                        record_id=project_record.record_id,
+                        score=1.0,
+                        lexical_score=1.0,
+                        semantic_score=0.0,
+                    ),),
+                    max_items=1,
+                )
+            combined_by_id = {
+                item.record_id: item
+                for item in (*profile.items, *project_context.items)
+            }
+            critique_context = GroundedContext(items=tuple(combined_by_id.values()))
+            runtime = RuntimeContext.from_refs(
+                knowledge_refs=tuple(item.record_id for item in critique_context.items),
+                runtime_refs=runtime_refs,
+                working_memory_scope=working_memory_scope,
+            )
+            answer = self.answer_generator.generate(
+                query,
+                critique_context,
+                context_query=contextual_query,
+                conversation_context=conversation.context_text,
+            )
+            return OrchestrationResult(
+                answer=answer,
+                grounded_context=critique_context,
+                runtime_context=runtime,
+            )
+
         # Motivation questions need the complete, source-separated author profile.
         # Do not answer from the family anecdote alone or from a name match.
         motivation_route = is_author_motivation_query(query) or (

@@ -83,21 +83,8 @@ def is_project_overview_query(query: str) -> bool:
     tokens = set(normalized.split())
     if not ({"finzanjir", "финзанжир"} & tokens):
         return False
-    detail_markers = {
-        "bank", "банк", "karta", "kartani", "карта", "блок", "blok", "signal",
-        "сигнал", "risk", "риск", "case", "fuqaro", "граждан", "murojaat",
-        "ma'lumot", "malumot", "данные", "data", "law", "qonun", "закон",
-        "detect", "aniqlash", "aniqlaydi", "qanday ishlaydi", "how",
-        # Purpose, sponsorship, foreign-copy and legality questions are specific
-        # project questions, not the one-sentence general project overview.
-        "kerak", "homiy", "homiylik", "sponsor", "sponsorship",
-        "nusxa", "nusxami", "davlat", "xorij", "qonuniy", "qonuniymi",
-        "legal", "законен", "копия", "страна",
-    }
-    if tokens & detail_markers:
-        return False
     exact_forms = {
-        "finzanjir nima", "finzanjir nima va nima uchun kerak", "finzanjir nima uchun kerak",
+        "finzanjir nima", "finzanjir nima va nima uchun kerak",
         "finzanjir haqida", "finzanjir haqida aytib ber", "finzanjir haqida qisqacha aytib ber",
         "finzanjirning maqsadi", "finzanjir qanday loyiha",
         "финзанжир нима", "финзанжир ҳақида", "финзанжир ҳақида айтып бер",
@@ -106,7 +93,62 @@ def is_project_overview_query(query: str) -> bool:
         "finzanjir деген не", "finzanjir туралы", "finzanjir қандай жоба",
         "finzanjir degen ne", "finzanjir haqqında", "finzanjir joybar",
     }
-    return normalized in exact_forms
+    # Exact broad-overview forms must be checked before generic detail markers:
+    # "FINZANJIR nima va nima uchun kerak?" is still an overview, not the
+    # dedicated "why is the project needed?" FAQ route.
+    if normalized in exact_forms:
+        return True
+    detail_markers = {
+        "bank", "банк", "karta", "kartani", "карта", "блок", "blok", "signal",
+        "сигнал", "risk", "риск", "case", "fuqaro", "граждан", "murojaat",
+        "ma'lumot", "malumot", "данные", "data", "law", "qonun", "закон",
+        "detect", "aniqlash", "aniqlaydi", "qanday ishlaydi", "how",
+        "homiy", "homiylik", "sponsor", "sponsorship",
+        "nusxa", "nusxami", "davlat", "xorij", "qonuniy", "qonuniymi",
+        "legal", "законен", "копия", "страна",
+    }
+    if tokens & detail_markers:
+        return False
+    return False
+
+
+def is_author_critique_query(query: str) -> bool:
+    """Recognize a request to assess the author's claims, not a biography lookup."""
+    normalized = normalize_query_for_intent(query)
+    if not normalized:
+        return False
+    tokens = set(normalized.split())
+    author_ref = bool(tokens & {
+        "muallif", "muallifi", "muallifning", "author", "автор", "avtor",
+        "yaratuvchi", "asoschi",
+    })
+    critique_markers = (
+        "ortiqcha maqt", "ko'p maqt", "haddan tashqari maqt",
+        "oshirib yubor", "bo'rttir", "maqtayaptimi", "maqtayaptimi",
+        "exaggerat", "overstat", "overprais", "overpraise", "oversell",
+        "преувелич", "слишком хвал", "приукраш",
+    )
+    return author_ref and any(marker in normalized for marker in critique_markers)
+
+
+def is_system_complement_query(query: str) -> bool:
+    """Recognize explicit replace-vs-complement questions about FINZANJIR."""
+    normalized = normalize_query_for_intent(query)
+    tokens = set(normalized.split())
+    if not ({"finzanjir", "финзанжир"} & tokens):
+        return False
+    replace_markers = (
+        "almashtir", "o'rnini", "ornini", "replace", "replaces", "substitute",
+        "замен", "алмастыр",
+    )
+    complement_markers = (
+        "to'ldir", "toldir", "qo'shimcha", "qoshimcha", "complement",
+        "supplement", "дополня", "толықтыр",
+    )
+    return bool(tokens & {"bank", "banklar", "tizim", "tizimlarini", "systems", "system", "систем"}) and (
+        any(marker in normalized for marker in replace_markers)
+        or any(marker in normalized for marker in complement_markers)
+    )
 
 
 def classify_query_intent(query: str) -> str:
