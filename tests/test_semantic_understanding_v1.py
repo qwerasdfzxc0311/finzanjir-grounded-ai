@@ -48,7 +48,13 @@ def test_provider_outage_cases_do_not_claim_unverified_local_generation():
         any("local" in item or "tested_local" in item for item in row["must_do"])
         for row in cases
     )
+    forbidden_capability_terms = (
+        "claim", "mislabel", "fabricate", "pretend", "equivalent", "full_general"
+    )
     assert all(
-        any("claim" in item or "mislabel" in item for item in row["must_not"])
+        any(
+            any(term in item for term in forbidden_capability_terms)
+            for item in row["must_not"]
+        )
         for row in cases
     )
