@@ -9,6 +9,7 @@ from finzanjir_ai.retrieval.grounding import GroundedContext, is_grounded_eviden
 from finzanjir_ai.retrieval.text import meaningful_tokens
 from finzanjir_ai.answer.local_composer import compose_local_grounded_answer
 from finzanjir_ai.orchestration.task_intent import classify_task_type
+from finzanjir_ai.knowledge.general_facts import answer_local_general_fact
 
 
 def _task_specific_guidance(task_type: str) -> str:
@@ -55,6 +56,7 @@ class AnswerResult:
     citations: tuple[str, ...]
     generation_mode: str = "deterministic_fallback"
     provider_status: str = "not_attempted"
+    provenance: tuple[str, ...] = ()
 
 
 def _semantic_groups(value: str) -> set[str]:
@@ -508,6 +510,20 @@ class GroundedAnswerGenerator:
 
     def generate_general_knowledge(self, query: str, *, conversation_context: str = "") -> AnswerResult:
         """Answer an explicitly general question without pretending it came from FINZANJIR docs."""
+        from finzanjir_ai.orchestration.intent import detect_query_language
+
+        local_fact = answer_local_general_fact(query, detect_query_language(query))
+        if local_fact is not None:
+            answer, citations, provenance = local_fact
+            return AnswerResult(
+                answer=answer,
+                confidence=0.96,
+                abstained=False,
+                citations=citations,
+                generation_mode="general_knowledge_local_facts",
+                provider_status="not_attempted",
+                provenance=provenance,
+            )
         if self.provider is None:
             return AnswerResult(
                 answer="Bu umumiy bilim savoliga FINZANJIR hujjatlari emas, alohida umumiy bilim manbasi kerak. "
