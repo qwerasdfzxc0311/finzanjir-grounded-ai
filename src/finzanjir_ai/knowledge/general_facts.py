@@ -130,7 +130,7 @@ def answer_local_general_fact(
             ("general_uzbekistan_geography_world_bank", "general_uzbekistan_geography_unfccc"),
             (
                 "https://documents1.worldbank.org/curated/en/620601593145818606/pdf/Uzbekistan-Building-Blocks-for-Integrated-Transport-and-Logistics-Development-Policy-Paper.pdf",
-                "https://unfccc.int/sites/default/files/resource/4NC_Uzbekistan_ENG_14%2010_SEC.pdf",
+                "https://documents1.worldbank.org/curated/en/099070724045016869/pdf/P176060-6a414312-9800-48bf-8108-1e1fb66cb331.pdf",
             ),
         )
     return (
