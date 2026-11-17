@@ -190,7 +190,7 @@ def compose_tavily_local_answer(
         )
 
     lines = [intro]
-    for index, (_, sentence, _url, _title, _domain) in enumerate(selected, start=1):
+    for index, (_, sentence, _url, _title, _source_domain) in enumerate(selected, start=1):
         source_lang = detect_query_language(sentence)
         prefix = f"[{source_lang}] " if source_lang != lang else ""
         lines.append(f"{index}. {prefix}{sentence}")
