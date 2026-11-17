@@ -106,7 +106,12 @@ def test_auto_general_knowledge_uses_tavily_and_local_composer_without_llm(monke
         return OfflineEngine()
 
     research_service.clear_research_state_for_tests()
+    class EmptyWiki:
+        def search(self, query, *, max_results):
+            return {"results": [], "status": "no_results"}
+
     monkeypatch.setattr(api_module, "ai_engine", fake_engine)
+    monkeypatch.setattr(research_service, "WikimediaSearchClient", EmptyWiki)
     monkeypatch.setattr(research_service, "TavilySearchClient", FakeSearch)
     response = client.post(
         "/api/ai/answer",
@@ -169,7 +174,7 @@ def test_auto_general_knowledge_uses_wikimedia_when_tavily_is_rate_limited(monke
 
     response = client.post(
         "/api/ai/answer",
-        json={"question": "What is photosynthesis?", "model_policy": "auto"},
+        json={"question": "What is the latest research on photosynthesis today?", "model_policy": "auto"},
     )
 
     assert response.status_code == 200
