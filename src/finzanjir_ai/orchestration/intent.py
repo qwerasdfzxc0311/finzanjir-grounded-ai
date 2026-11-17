@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 
-from finzanjir_ai.knowledge.general_facts import supports_local_general_fact
+from finzanjir_ai.knowledge.general_facts import supports_general_knowledge_intent
 
 _WORD_FIXES = {
     "toshvaqa": "toshbaqa",
@@ -219,7 +219,7 @@ def classify_query_intent(query: str) -> str:
         return "project_overview"
     if tokens & _PROJECT_MARKERS:
         return "project"
-    if supports_local_general_fact(query):
+    if supports_general_knowledge_intent(query):
         return "general_knowledge"
     if "toshbaqa" in tokens and tokens & _GENERAL_LIFESPAN_MARKERS:
         return "general_knowledge"
