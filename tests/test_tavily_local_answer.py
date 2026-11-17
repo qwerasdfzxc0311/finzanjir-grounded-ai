@@ -99,7 +99,7 @@ def test_local_composer_rejects_non_https_and_credentialed_source_urls():
 
 def test_local_composer_does_not_add_unreliable_language_tags_to_source_sentences():
     result = compose_tavily_local_answer(
-        "What is photosynthesis?",
+        "What is the latest research?",
         [{
             "title": "Research source",
             "url": "https://example.org/photosynthesis",
