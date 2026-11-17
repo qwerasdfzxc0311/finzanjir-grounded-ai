@@ -40,6 +40,7 @@ class AIAnswerRequest(BaseModel):
     runtime_refs: list[str] = Field(default_factory=list, max_length=64)
     working_memory_scope: str | None = Field(default=None, max_length=256)
     conversation_history: list[AIConversationTurn] = Field(default_factory=list, max_length=12)
+    model_policy: Literal["auto", "offline"] = "auto"
 
 
 class ExternalResearchRequest(BaseModel):
@@ -162,10 +163,11 @@ def knowledge_index() -> KnowledgeIndex:
     return build_system_flow().demo_knowledge_index()
 
 
-@lru_cache(maxsize=1)
-def ai_engine() -> FINZANJIRAI:
-    # Retrieval statistics are precomputed once for the canonical corpus.
-    return FINZANJIRAI(knowledge_index())
+@lru_cache(maxsize=2)
+def ai_engine(model_policy: str = "auto") -> FINZANJIRAI:
+    # Separate cached engines ensure an offline request can never borrow an
+    # automatic engine that has configured hosted credentials.
+    return get_finzanjir_ai(knowledge_index(), model_policy=model_policy)
 
 
 @app.get("/api/cloud/connectors")
@@ -234,7 +236,7 @@ def answer(request: AIAnswerRequest) -> dict[str, Any]:
         }
 
     scope = request.working_memory_scope or (request.runtime_refs[0] if request.runtime_refs else "conversation")
-    engine = get_finzanjir_ai(knowledge_index())
+    engine = ai_engine(request.model_policy)
     result = engine.answer(
         question,
         runtime_refs=tuple(request.runtime_refs),
