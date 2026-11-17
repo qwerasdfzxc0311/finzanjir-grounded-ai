@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "purpose": "Regression seed set for multilingual FINZANJIR intent and meaning evaluation. These are test prompts, not canonical facts or training data.",
+  "cases": [
+    {"id":"uz-general-turtle-typo","language":"uz","query":"toshvaqa qansha yil umir koradi","expected_intent":"general_knowledge","must_not":"project_document_clarification"},
+    {"id":"uz-ai-purpose","language":"uz","query":"Sening maqsading nima?","expected_intent":"assistant_identity"},
+    {"id":"uz-project-overview","language":"uz","query":"FINZANJIR nima?","expected_intent":"project_overview"},
+    {"id":"uz-project-protection-purpose","language":"uz","query":"FINZANJIR nima uchun pul boyitish emas, himoya haqida gapiradi?","expected_intent":"project","answer_requirements":["financial-risk detection","suspicious-case review","fraud/loss prevention","citizen financial security","authorized decision boundary"]},
+    {"id":"uz-author-opinion-critique","language":"uz","query":"Muallif FINZANJIRni ortiqcha maqtayaptimi?","expected_intent":"author_or_project_critique","answer_requirements":["distinguish source facts from author opinion","do not infer truth from author-name match","state limits of independent verification"]},
+    {"id":"uz-status-vs-plan","language":"uz","query":"Google Drive integratsiyasi hozir amalda ishlayaptimi yoki faqat reja va kod bormi?","expected_intent":"status_audit","answer_requirements":["distinguish code from deployed configuration","cite inspected status","do not infer live connection from code presence"]},
+    {"id":"uz-project-complement","language":"uz","query":"FINZANJIR mavjud bank xavfsizlik tizimlarini almashtiradimi yoki to'ldiradimi?","expected_intent":"project","answer_requirements":["complement not replace","no unsupported guarantee","no bank decision authority"]},
+    {"id":"uz-follow-up","language":"uz","query":"Unda bu qanday ishlaydi?","requires_context":true,"expected_intent":"contextual_follow_up"},
+    {"id":"uz-topic-switch","language":"uz","query":"Endi boshqa mavzu: Marsda bir kun qancha davom etadi?","expected_intent":"general_knowledge","must_not":"reuse_previous_project_topic"},
+    {"id":"kaa-purpose","language":"kaa","query":"FINZANJIR joybardıń maqseti ne?","expected_intent":"project_or_author_reason","answer_requirements":["detect intended purpose question","preserve source separation"]},
+    {"id":"kk-overview","language":"kk","query":"FINZANJIR деген не және не үшін керек?","expected_intent":"project_overview"},
+    {"id":"ru-status","language":"ru","query":"Что уже реально подключено к API, а что пока только предусмотрено?","expected_intent":"status_audit"},
+    {"id":"en-comparison","language":"en","query":"How is FINZANJIR different from existing bank fraud systems?","expected_intent":"comparison","answer_requirements":["only grounded comparisons","do not invent named systems or performance"]},
+    {"id":"en-signal-guilt","language":"en","query":"Does a suspicious signal prove that a customer is guilty?","expected_intent":"project","answer_requirements":["signal is not proof of guilt","human/legal review boundary"]},
+    {"id":"uz-author-fact-opinion","language":"uz","query":"Muallifning FINZANJIR haqidagi fikrlari qaysi, hujjat bilan tasdiqlangan faktlar qaysi?","expected_intent":"author_fact_vs_opinion"}
+  ]
+}
