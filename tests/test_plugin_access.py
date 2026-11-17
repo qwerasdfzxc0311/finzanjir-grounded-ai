@@ -65,7 +65,42 @@ def test_missing_action_or_scope_is_denied():
     assert no_scope.allowed is False
 
 
-def test_write_action_requires_explicit_user_approval():
+def test_missing_action_scope_declaration_fails_closed():
+    result = evaluate_plugin_access(
+        snapshot(actions={
+            "search_files": {
+                "enabled": True,
+                "risk": "read_only",
+                "preapproved": True,
+            }
+        }),
+        plugin_id="drive",
+        action_id="search_files",
+    )
+    assert result.allowed is False
+    assert "scope declaration is missing" in result.reason
+
+
+def test_explicit_empty_scope_declaration_is_distinct_from_missing():
+    result = evaluate_plugin_access(
+        snapshot(
+            granted_scopes=[],
+            actions={
+                "search_files": {
+                    "enabled": True,
+                    "required_scopes": [],
+                    "risk": "read_only",
+                    "preapproved": True,
+                }
+            },
+        ),
+        plugin_id="drive",
+        action_id="search_files",
+    )
+    assert result.allowed is True
+
+
+def test_write_action_requires_explicit_boolean_user_approval():
     denied = evaluate_plugin_access(
         snapshot(granted_scopes=["files.read", "files.write"]),
         plugin_id="drive",
@@ -74,6 +109,16 @@ def test_write_action_requires_explicit_user_approval():
     )
     assert denied.allowed is False
     assert denied.requires_confirmation is True
+
+    invalid_approval = evaluate_plugin_access(
+        snapshot(granted_scopes=["files.read", "files.write"]),
+        plugin_id="drive",
+        action_id="write_file",
+        required_scopes=["files.write"],
+        user_approved="true",
+    )
+    assert invalid_approval.allowed is False
+    assert invalid_approval.requires_confirmation is True
 
     approved = evaluate_plugin_access(
         snapshot(granted_scopes=["files.read", "files.write"]),
