@@ -9,6 +9,7 @@ from finzanjir_ai.retrieval.grounding import GroundedContext, is_grounded_eviden
 from finzanjir_ai.retrieval.text import meaningful_tokens
 from finzanjir_ai.answer.local_composer import compose_local_grounded_answer
 from finzanjir_ai.orchestration.task_intent import classify_task_type
+from finzanjir_ai.knowledge.general_facts import answer_local_general_fact
 
 
 def _task_specific_guidance(task_type: str) -> str:
@@ -55,6 +56,7 @@ class AnswerResult:
     citations: tuple[str, ...]
     generation_mode: str = "deterministic_fallback"
     provider_status: str = "not_attempted"
+    provenance: tuple[str, ...] = ()
 
 
 def _semantic_groups(value: str) -> set[str]:
@@ -508,10 +510,32 @@ class GroundedAnswerGenerator:
 
     def generate_general_knowledge(self, query: str, *, conversation_context: str = "") -> AnswerResult:
         """Answer an explicitly general question without pretending it came from FINZANJIR docs."""
+        from finzanjir_ai.orchestration.intent import detect_query_language
+
+        language = detect_query_language(query)
+        local_fact = answer_local_general_fact(query, language)
+        if local_fact is not None:
+            answer, citations, provenance = local_fact
+            return AnswerResult(
+                answer=answer,
+                confidence=0.96,
+                abstained=False,
+                citations=citations,
+                generation_mode="general_knowledge_local_facts",
+                provider_status="not_attempted",
+                provenance=provenance,
+            )
+        unavailable_messages = {
+            "uz": "Bu mavzu bo‘yicha mahalliy tekshirilgan bilim manbasi topilmadi, tashqi javob modeli ham hozir mavjud emas. Taxminni fakt sifatida bermayman.",
+            "kaa": "Bul tema boyınsha jergilikli tastıyıqlanǵan bilim deregi tabılmadı, sırtqı juwap modeli de házir joq. Boljamdı fakt sıpatında bermeymen.",
+            "kk": "Бұл тақырып бойынша жергілікті тексерілген білім көзі табылмады, сыртқы жауап моделі де қазір қолжетімсіз. Болжамды факт ретінде ұсынбаймын.",
+            "ru": "Для этой темы не найден локальный проверенный источник знаний, а внешняя модель ответа сейчас недоступна. Не буду выдавать предположение за факт.",
+            "en": "No verified local knowledge source is available for this topic, and the external answer model is currently unavailable. I will not present a guess as fact.",
+        }
+        unavailable_message = unavailable_messages.get(language, unavailable_messages["uz"])
         if self.provider is None:
             return AnswerResult(
-                answer="Bu umumiy bilim savoliga FINZANJIR hujjatlari emas, alohida umumiy bilim manbasi kerak. "
-                       "Hozir umumiy bilim modeli mavjud emas, shuning uchun taxminiy javob bermayman.",
+                answer=unavailable_message,
                 confidence=0.0, abstained=True, citations=(),
                 generation_mode="general_knowledge_unavailable",
                 provider_status="not_configured",
@@ -545,8 +569,7 @@ class GroundedAnswerGenerator:
         answer = result.get("answer") if isinstance(result, dict) else None
         if not isinstance(answer, str) or not answer.strip():
             return AnswerResult(
-                answer="Savol umumiy bilimga oid deb aniqlandi, lekin hozir javob modeli ishlamadi. "
-                       "Shu sababli FINZANJIR hujjatlaridan aloqasiz javob yasamadim.",
+                answer=unavailable_message,
                 confidence=0.0, abstained=True, citations=(),
                 generation_mode="general_knowledge_provider_failed",
                 provider_status=status,

@@ -44,6 +44,7 @@ def test_author_question_expansion_adds_author_search_hints_only():
 def test_finzanjir_overview_is_a_dedicated_intent_not_a_broad_retrieval():
     assert classify_query_intent("FINZANJIR nima?") == "project_overview"
     assert classify_query_intent("FINZANJIR haqida aytib ber") == "project_overview"
+    assert classify_query_intent("FINZANJIRning maqsadi") == "project_overview"
     assert classify_query_intent("What is FINZANJIR?") == "project_overview"
     assert classify_query_intent("Что такое FINZANJIR?") == "project_overview"
     assert classify_query_intent("ФИНЗАНЖИР нима?") == "project_overview"
@@ -158,3 +159,16 @@ def test_karakalpak_latin_comparison_routing_remains_supported():
     query = "FINZANJIR basqa mámleketlerdegi usas joybarlardan qanday parıqlanadı, qáwip qanday?"
     assert detect_query_language(query) == "kaa"
     assert classify_task_type(query) == "comparison"
+
+
+
+def test_finzanjir_possessive_queries_do_not_route_to_general_geography():
+    query = "FINZANJIRning O‘zbekistondagi va boshqa davlatlardagi o‘xshash loyihalardan farqi nimada?"
+    assert classify_query_intent(query) == "project"
+    assert normalize_query_for_intent(query).split()[0] == "finzanjir"
+
+
+def test_finzanjir_possessive_bank_authority_query_is_recognized():
+    from finzanjir_ai.orchestration.intent import is_bank_authority_query
+
+    assert is_bank_authority_query("FINZANJIRning bank kartasini bloklash vakolati bormi?")

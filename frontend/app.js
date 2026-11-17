@@ -777,6 +777,7 @@ function generationModeLabel(mode) {
     project_principle_deterministic_fallback: "Tasdiqlangan loyiha tamoyilidan tuzilgan javob · AI model ishlamadi",
     author_insufficient_evidence: "Muallif haqida mos tasdiqlangan dalil topilmadi",
     general_knowledge_model: "Umumiy bilim AI javobi · FINZANJIR hujjatlaridan tashqari",
+    general_knowledge_local_facts: "Tashqi modelsiz javob · tekshiriladigan mahalliy bilim manbasi",
     general_knowledge_unavailable: "Umumiy bilim modeli sozlanmagan",
     general_knowledge_provider_failed: "Umumiy bilim modeli javob bermadi",
     blocked_sensitive: "Maxfiylik sabab so'rov tashqi modelga yuborilmadi",
@@ -792,6 +793,7 @@ function providerStatusLabel(status) {
     provider_failed: "AI provayderidan javob olinmadi",
     blocked_sensitive: "Maxfiylik sabab so‘rov modelga yuborilmadi",
     not_attempted: "Modelga murojaat qilinmadi",
+    offline_mode: "Tashqi model o‘chirilgan · mahalliy imkoniyatlar ishlaydi",
   };
   return labels[status] || "";
 }
@@ -812,16 +814,50 @@ function providerDiagnosticLabel(item) {
   return provider + " — " + status;
 }
 
-function appendChatMessage(role, content, refs = [], mode = "", providerStatus = "", providerDiagnostics = [], confidence = null, abstained = null) {
+function citationDisplayName(ref) {
+  const labels = {
+    general_sky_blue_noaa: "NOAA",
+    general_sky_blue_nasa: "NASA",
+    general_uzbekistan_geography_world_bank: "World Bank (2020)",
+    general_uzbekistan_geography_world_bank_2024: "World Bank (2024)",
+    general_tortoise_lifespan_sandiego_zoo: "San Diego Zoo",
+    general_aldabra_tortoise_smithsonian: "Smithsonian National Zoo",
+  };
+  return labels[ref] || ref;
+}
+
+function appendProvenanceLinks(target, sources) {
+  if (!target || !Array.isArray(sources) || !sources.length) return;
+  const valid = sources.filter(source => typeof source === "string").slice(0, 8);
+  if (!valid.length) return;
+  const list = element("div", "chat-provenance");
+  list.appendChild(element("small", "chat-refs", "Tekshirish uchun manbalar: "));
+  valid.forEach((source, index) => {
+    try {
+      const url = new URL(source);
+      if (!["https:", "http:"].includes(url.protocol)) return;
+      if (index) list.appendChild(element("span", "chat-refs", " · "));
+      const link = element("a", "chat-source-link", url.hostname);
+      link.href = url.href;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      list.appendChild(link);
+    } catch (_) { /* Ignore malformed provenance URLs. */ }
+  });
+  target.appendChild(list);
+}
+
+function appendChatMessage(role, content, refs = [], mode = "", providerStatus = "", providerDiagnostics = [], confidence = null, abstained = null, provenance = []) {
   const log = document.querySelector("#aiChatLog");
   if (!log) return;
   const item = element("article", "chat-message " + (role === "user" ? "chat-user" : "chat-assistant"));
   item.append(element("span", "chat-role", role === "user" ? "Siz" : "FINZANJIR AI"));
   item.append(element("p", "", content));
   if (refs.length) {
-    const citationLine = element("small", "chat-refs", "Bilim manbalari: " + refs.join(", "));
+    const citationLine = element("small", "chat-refs", "Bilim manbalari: " + refs.map(citationDisplayName).join(", "));
     item.appendChild(citationLine);
   }
+  appendProvenanceLinks(item, provenance);
   const modeLabel = generationModeLabel(mode);
   if (modeLabel) item.appendChild(element("small", "chat-refs", "Javob rejimi: " + modeLabel));
   const providerLabel = providerStatusLabel(providerStatus);
@@ -887,6 +923,7 @@ function renderWindowInteractive(windowId) {
         const item = element("article", "chat-message " + (message.role === "user" ? "chat-user" : "chat-assistant"));
         item.append(element("span", "chat-role", message.role === "user" ? "Siz" : "FINZANJIR AI"), element("p", "", message.content));
         if (message.refs?.length) item.appendChild(element("small", "chat-refs", "Bilim manbalari: " + message.refs.join(", ")));
+        appendProvenanceLinks(item, message.provenance);
         if (message.externalSources?.length) appendExternalSources(message.externalSources);
         const modeLabel = generationModeLabel(message.mode);
         if (modeLabel) item.appendChild(element("small", "chat-refs", "Javob rejimi: " + modeLabel));
@@ -913,6 +950,15 @@ function renderWindowInteractive(windowId) {
       renderWindowInteractive("finzanjir_ai");
     });
     const form = element("form", "ai-chat-form");
+    const modelPolicyLabel = element("label", "muted", "Javob rejimi");
+    const modelPolicy = element("select", "ai-model-policy");
+    const autoOption = element("option", "", "Avtomatik — model mavjud bo‘lsa foydalanish");
+    autoOption.value = "auto";
+    const offlineOption = element("option", "", "Mahalliy — tashqi AI modelsiz (internet qidiruvi alohida)");
+    offlineOption.value = "offline";
+    modelPolicy.append(autoOption, offlineOption);
+    modelPolicy.name = "model_policy";
+    modelPolicyLabel.appendChild(modelPolicy);
     const input = element("textarea", "ai-question");
     input.id = "aiQuestion";
     input.name = "question";
@@ -923,8 +969,8 @@ function renderWindowInteractive(windowId) {
     input.setAttribute("aria-label", "FINZANJIR AI savoli");
     const submit = element("button", "primary-button", "Savol yuborish");
     submit.type = "submit";
-    const formHint = element("small", "muted", "Maksimal 4 000 belgi. Shaxsiy yoki haqiqiy bank ma’lumotlarini yubormang.");
-    form.append(input, submit, formHint);
+    const formHint = element("small", "muted", "Mahalliy rejim tashqi AI modeliga murojaat qilmaydi; internet qidiruvi alohida xizmat. Maksimal 4 000 belgi. Shaxsiy yoki haqiqiy bank ma’lumotlarini yubormang.");
+    form.append(modelPolicyLabel, input, submit, formHint);
     form.addEventListener("submit", async event => {
       event.preventDefault();
       const question = input.value.trim();
@@ -945,6 +991,7 @@ function renderWindowInteractive(windowId) {
           headers: {"Content-Type":"application/json"},
           body: JSON.stringify({
             question,
+            model_policy:modelPolicy.value,
             runtime_refs:runtimeRefs,
             working_memory_scope:"prototype-ui-session",
             conversation_history:aiConversation.slice(0, -1).filter(message =>
@@ -958,12 +1005,13 @@ function renderWindowInteractive(windowId) {
         const answer = body.answer || "Dalilga tayangan javob qaytmadi.";
         const refs = Array.isArray(body.knowledge_refs) ? body.knowledge_refs : [];
         const externalSources = Array.isArray(body.external_sources) ? body.external_sources : [];
+        const provenance = Array.isArray(body.provenance) ? body.provenance : [];
         const mode = body.generation_mode || "";
         const providerStatus = body.provider_status || "not_attempted";
         const providerDiagnostics = Array.isArray(body.provider_diagnostics) ? body.provider_diagnostics : [];
-        aiConversation.push({role:"assistant", content:answer, refs, mode, providerStatus, providerDiagnostics, confidence:body.confidence, abstained:body.abstained, externalSources});
+        aiConversation.push({role:"assistant", content:answer, refs, mode, providerStatus, providerDiagnostics, confidence:body.confidence, abstained:body.abstained, externalSources, provenance});
         if (aiConversation.length > 12) aiConversation.splice(0, aiConversation.length - 12);
-        appendChatMessage("assistant", answer, refs, mode, providerStatus, providerDiagnostics, body.confidence, body.abstained);
+        appendChatMessage("assistant", answer, refs, mode, providerStatus, providerDiagnostics, body.confidence, body.abstained, provenance);
         if (externalSources.length) appendExternalSources(externalSources);
         persistAIConversation();
         if (body.abstained) appendChatMessage("assistant", "Eslatma: mavjud dalillar yetarli bo‘lmagani uchun javob cheklangan.");

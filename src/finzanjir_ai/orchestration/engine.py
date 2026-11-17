@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import OrderedDict
+import os
 from dataclasses import dataclass
 from threading import RLock
 from typing import Any
@@ -141,13 +142,13 @@ class OrchestrationResult:
 
 
 class FINZANJIRAI:
-    def __init__(self, index: KnowledgeIndex) -> None:
+    def __init__(self, index: KnowledgeIndex, language_model: LLMGateway | None = None) -> None:
         self.index = index
         self.retriever = HybridRetriever(index)
         self.expander = QueryExpander(index)
         self.reranker = Reranker(index)
         self.grounder = GroundedContextAssembler(index)
-        self.language_model = LLMGateway()
+        self.language_model = language_model or LLMGateway()
         self.answer_generator = GroundedAnswerGenerator(self.language_model)
 
     def answer(
@@ -407,20 +408,29 @@ class FINZANJIRAI:
         )
 
 
-_ENGINE_CACHE: OrderedDict[int, tuple[KnowledgeIndex, FINZANJIRAI]] = OrderedDict()
+_ENGINE_CACHE: OrderedDict[tuple[int, str], tuple[KnowledgeIndex, FINZANJIRAI]] = OrderedDict()
 _ENGINE_CACHE_LOCK = RLock()
 _ENGINE_CACHE_MAXSIZE = 4
 
 
-def get_finzanjir_ai(index: KnowledgeIndex) -> FINZANJIRAI:
-    """Reuse the precomputed retrieval statistics for the same corpus index."""
-    key = id(index)
+def get_finzanjir_ai(index: KnowledgeIndex, model_policy: str = "auto") -> FINZANJIRAI:
+    """Reuse retrieval state while keeping automatic and explicit offline engines separate."""
+    policy = str(model_policy or "auto").strip().casefold()
+    if policy not in {"auto", "offline"}:
+        raise ValueError("model_policy must be 'auto' or 'offline'")
+    key = (id(index), policy)
     with _ENGINE_CACHE_LOCK:
         cached = _ENGINE_CACHE.get(key)
         if cached is not None and cached[0] is index:
             _ENGINE_CACHE.move_to_end(key)
             return cached[1]
-        engine = FINZANJIRAI(index)
+        if policy == "offline":
+            environ = dict(os.environ)
+            environ["FINZANJIR_LLM_PROVIDER"] = "offline"
+            gateway = LLMGateway(environ=environ)
+        else:
+            gateway = LLMGateway()
+        engine = FINZANJIRAI(index, language_model=gateway)
         _ENGINE_CACHE[key] = (index, engine)
         _ENGINE_CACHE.move_to_end(key)
         while len(_ENGINE_CACHE) > _ENGINE_CACHE_MAXSIZE:

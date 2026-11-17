@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import re
 
+from finzanjir_ai.knowledge.general_facts import supports_general_knowledge_intent
+
 _WORD_FIXES = {
     "toshvaqa": "toshbaqa",
     "qansha": "qancha",
@@ -26,7 +28,19 @@ _ASSISTANT_IDENTITY_PATTERNS = (
 def normalize_query_for_intent(query: str) -> str:
     value = query.casefold().replace("ʻ", "'").replace("’", "'")
     tokens = re.findall(r"[^\W\d_]+", value, flags=re.UNICODE)
-    return " ".join(_WORD_FIXES.get(token, token) for token in tokens)
+    normalized = []
+    for token in tokens:
+        fixed = _WORD_FIXES.get(token, token)
+        # Uzbek/Karakalpak possessive and case endings often attach directly
+        # to the project name (e.g. FINZANJIRning, FINZANJIRda).
+        if fixed.startswith("finzanjir"):
+            fixed = "finzanjir"
+        elif fixed.startswith("финзанжир"):
+            fixed = "финзанжир"
+        normalized.append(fixed)
+    if {"fin", "recovery"} <= set(normalized):
+        normalized.append("fin-recovery")
+    return " ".join(normalized)
 
 
 _LANGUAGE_MARKERS = {
@@ -86,7 +100,7 @@ def is_project_overview_query(query: str) -> bool:
     exact_forms = {
         "finzanjir nima", "finzanjir nima va nima uchun kerak",
         "finzanjir haqida", "finzanjir haqida aytib ber", "finzanjir haqida qisqacha aytib ber",
-        "finzanjirning maqsadi", "finzanjir qanday loyiha",
+        "finzanjirning maqsadi", "finzanjir maqsadi", "finzanjir qanday loyiha",
         "финзанжир нима", "финзанжир ҳақида", "финзанжир ҳақида айтып бер",
         "что такое finzanjir", "расскажи о finzanjir", "о finzanjir",
         "what is finzanjir", "tell me about finzanjir", "about finzanjir",
@@ -217,6 +231,8 @@ def classify_query_intent(query: str) -> str:
         return "project_overview"
     if tokens & _PROJECT_MARKERS:
         return "project"
+    if supports_general_knowledge_intent(query):
+        return "general_knowledge"
     if "toshbaqa" in tokens and tokens & _GENERAL_LIFESPAN_MARKERS:
         return "general_knowledge"
     return "project"
