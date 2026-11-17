@@ -89,6 +89,7 @@ def compose_tavily_local_answer(
     language: str | None = None,
     max_sentences: int = 5,
     max_sources: int = 6,
+    provider_name: str = "Tavily",
 ) -> LocalResearchAnswer:
     """Create a source-linked answer without calling any language model.
 
@@ -97,7 +98,8 @@ def compose_tavily_local_answer(
     approve facts, or write external content into FINZANJIR's canonical KB.
     """
     lang = language or detect_query_language(query)
-    intro = _INTROS.get(lang, _INTROS["uz"])
+    provider = str(provider_name or "external search").strip()[:40]
+    intro = _INTROS.get(lang, _INTROS["uz"]).replace("Tavily", provider)
     limitation = _LIMITS.get(lang, _LIMITS["uz"])
     query_terms = set(meaningful_tokens(query))
     candidates: list[tuple[float, str, str, str, str]] = []
@@ -167,19 +169,19 @@ def compose_tavily_local_answer(
     if not selected:
         if source_rows:
             message = {
-                "uz": "Tavily mos sahifalarni topdi, ammo mahalliy mexanizm ulardan savolga bevosita mos, yetarlicha aniq parcha ajrata olmadi. Manbalarni quyida ochib tekshirishingiz mumkin.",
-                "ru": "Tavily нашёл подходящие страницы, но локальный механизм не смог выделить из них достаточно точные фрагменты, непосредственно отвечающие на вопрос. Источники можно открыть ниже.",
-                "en": "Tavily found candidate pages, but the local composer could not extract sufficiently relevant passages to answer safely. You can inspect the sources below.",
-                "kk": "Tavily сәйкес беттерді тапты, бірақ жергілікті механизм сұраққа тікелей жауап беретін жеткілікті нақты үзінділерді бөле алмады. Дереккөздерді төменнен ашып тексеруге болады.",
-                "kaa": "Tavily sáykes betlerdi taptı, biraq jergilikli mexanizm sorawǵa tikkeley juwap beretuǵın jetkilikli anıq bóleklerdi ajırata almadı. Derekti tómennen ashıp tekseriwge boladı.",
+                "uz": f"{provider} mos sahifalarni topdi, ammo mahalliy mexanizm ulardan savolga bevosita mos, yetarlicha aniq parcha ajrata olmadi. Manbalarni quyida ochib tekshirishingiz mumkin.",
+                "ru": f"{provider} нашёл подходящие страницы, но локальный механизм не смог выделить из них достаточно точные фрагменты, непосредственно отвечающие на вопрос. Источники можно открыть ниже.",
+                "en": f"{provider} found candidate pages, but the local composer could not extract sufficiently relevant passages to answer safely. You can inspect the sources below.",
+                "kk": f"{provider} сәйкес беттерді тапты, бірақ жергілікті механизм сұраққа тікелей жауап беретін жеткілікті нақты үзінділерді бөле алмады. Дереккөздерді төменнен ашып тексеруге болады.",
+                "kaa": f"{provider} sáykes betlerdi taptı, biraq jergilikli mexanizm sorawǵa tikkeley juwap beretuǵın jetkilikli anıq bóleklerdi ajırata almadı. Derekti tómennen ashıp tekseriwge boladı.",
             }.get(lang, _INTROS["uz"])
         else:
             message = {
-                "uz": "Tavily qidiruvida mos ochiq manba topilmadi. Taxminiy javob tuzilmadi.",
-                "ru": "Поиск Tavily не нашёл подходящих открытых источников. Предположительный ответ не сформирован.",
-                "en": "Tavily search found no suitable public sources. No speculative answer was generated.",
-                "kk": "Tavily іздеуінен сәйкес ашық дереккөздер табылмады. Болжамды жауап жасалмады.",
-                "kaa": "Tavily izlewinde sáykes ashıq derek tabılmadı. Boljam juwap dúzilmedi.",
+                "uz": f"{provider} qidiruvida mos ochiq manba topilmadi. Taxminiy javob tuzilmadi.",
+                "ru": f"Поиск {provider} не нашёл подходящих открытых источников. Предположительный ответ не сформирован.",
+                "en": f"{provider} search found no suitable public sources. No speculative answer was generated.",
+                "kk": f"{provider} іздеуінен сәйкес ашық дереккөздер табылмады. Болжамды жауап жасалмады.",
+                "kaa": f"{provider} izlewinde sáykes ashıq derek tabılmadı. Boljam juwap dúzilmedi.",
             }.get(lang, _INTROS["uz"])
         return LocalResearchAnswer(
             answer=message,
@@ -199,10 +201,17 @@ def compose_tavily_local_answer(
     average_score = sum(row[0] for row in selected) / len(selected)
     # This is a retrieval-quality heuristic, not a calibrated probability.
     confidence = min(0.82, 0.35 + 0.08 * min(unique_domains, 3) + 0.15 * average_score)
+    generation_mode = {
+        "tavily": "tavily_local_extractive",
+        "wikimedia": "wikimedia_local_extractive",
+        "wikipedia": "wikimedia_local_extractive",
+        "cache": "cached_local_extractive",
+    }.get(provider.casefold(), "external_local_extractive")
     return LocalResearchAnswer(
         answer="\n\n".join(lines),
         confidence=round(confidence, 3),
         abstained=False,
         sources=selected_sources,
         provenance=selected_urls,
+        generation_mode=generation_mode,
     )
