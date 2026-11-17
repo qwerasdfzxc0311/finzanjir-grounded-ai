@@ -146,3 +146,68 @@ def test_stable_general_question_uses_wikimedia_before_tavily(monkeypatch):
     assert result["generation_mode"] == "wikimedia_local_extractive"
     assert result["research_provider"] == "wikimedia"
     assert calls == {"tavily": 0, "wikimedia": 1}
+
+
+def test_wikimedia_client_fetches_search_results_and_extracts(monkeypatch):
+    from finzanjir_ai.research.wikipedia import WikimediaSearchClient
+
+    calls = []
+
+    class FakeResponse:
+        def __init__(self, payload):
+            self.payload = payload
+
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return self.payload
+
+    def fake_get(url, *, params, headers, timeout, follow_redirects):
+        calls.append((url, params))
+        if params["list"] == "search":
+            return FakeResponse({
+                "query": {
+                    "search": [{
+                        "title": "Photosynthesis",
+                        "snippet": "Photosynthesis is <b>the process</b> used by plants.",
+                    }]
+                }
+            })
+        return FakeResponse({
+            "query": {
+                "pages": [{
+                    "title": "Photosynthesis",
+                    "extract": (
+                        "Photosynthesis is the process by which green plants use sunlight "
+                        "to make food from carbon dioxide and water. Oxygen is released "
+                        "as a byproduct of this process."
+                    ),
+                }]
+            }
+        })
+
+    monkeypatch.setattr("finzanjir_ai.research.wikipedia.httpx.get", fake_get)
+    result = WikimediaSearchClient().search("What is photosynthesis?")
+
+    assert len(calls) == 2
+    assert calls[0][1]["list"] == "search"
+    assert calls[1][1]["prop"] == "extracts"
+    assert result["language"] == "en"
+    assert result["results"][0]["url"] == "https://en.wikipedia.org/wiki/Photosynthesis"
+    assert "Photosynthesis is the process" in result["results"][0]["raw_content"]
+
+
+def test_wikimedia_client_blocks_sensitive_queries_before_network(monkeypatch):
+    from finzanjir_ai.research.wikipedia import WikimediaSearchClient
+
+    def forbidden_get(*args, **kwargs):
+        raise AssertionError("Sensitive search queries must not reach Wikimedia")
+
+    monkeypatch.setattr("finzanjir_ai.research.wikipedia.httpx.get", forbidden_get)
+    try:
+        WikimediaSearchClient().search("Contact +998 90 123 45 67")
+    except ValueError as exc:
+        assert "personal or payment identifier" in str(exc)
+    else:
+        raise AssertionError("Expected sensitive query rejection")
