@@ -21,6 +21,7 @@ from finzanjir_ai.orchestration.engine import FINZANJIRAI, get_finzanjir_ai
 from finzanjir_ai.orchestration.intent import classify_query_intent
 from finzanjir_ai.research.tavily import TavilySearchClient
 from finzanjir_ai.integrations.cloud_sources import cloud_connector_status
+from finzanjir_ai.integrations.google_cloud import router as google_cloud_router
 from finzanjir_ai.risk.shadow import evaluate_shadow_batch, evaluate_detector_shadow_batch
 from finzanjir_ai.risk.scenarios import build_synthetic_case_signal_events
 from finzanjir_ai.risk.detectors import synthetic_signal_detector
@@ -115,11 +116,14 @@ app = FastAPI(
     description="Shared runtime API for the connected FINZANJIR prototype.",
 )
 
+app.include_router(google_cloud_router)
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_ALLOWED_ORIGINS,
-    allow_credentials=False,
-    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
     allow_headers=["Content-Type"],
     max_age=600,
 )

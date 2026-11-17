@@ -46,3 +46,42 @@ No write, delete, move, upload, public-link, or share permission is included.
 ## Activation gate
 
 Cloud account linking is not production-ready until the identity and token-security design is implemented and independently reviewed. Provider application registrations and redirect URIs must then be configured as Render secrets/environment settings by the account owner. The first release should be read-only and user-selected-folder only.
+
+
+## Gmail read-only import
+
+An optional `gmail` service can be selected explicitly during account linking with the `gmail.readonly` scope. FINZANJIR can list message IDs using a bounded Gmail search query and import only a message the owner selects. The message body and limited headers are extracted, encrypted, and saved in the same private quarantine with provider provenance `google_gmail`. HTML-only bodies are converted to text while script/style content is excluded. Attachments are not downloaded by this first implementation.
+
+Gmail read access is a restricted Google OAuth scope and may require Google verification/security assessment before public use. It is never requested by the default Drive-only connection. No compose, send, modify, delete, label, or mailbox settings scopes are requested. See the official Gmail API documentation for read-only scope and message list/get methods: https://developers.google.com/workspace/gmail/api/auth/scopes and https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages.
+
+
+
+## Google Photos Picker
+
+Google Photos uses the current Picker API, not the legacy full-library read scopes removed in March 2025. The optional `photos` service requests only `https://www.googleapis.com/auth/photospicker.mediaitems.readonly`. FINZANJIR creates a Picker session, returns Google's `pickerUri` for the owner to open, polls the session using Google's polling configuration, lists only media explicitly selected in that session, and deletes the session after use. See Google's current [Picker API flow](https://developers.google.com/photos/picker/guides/get-started-picker), [sessions.create](https://developers.google.com/photos/picker/reference/rest/v1/sessions/create), and [mediaItems.list](https://developers.google.com/photos/picker/reference/rest/v1/mediaItems/list). The old Library API scopes `photoslibrary.readonly`, `photoslibrary.sharing`, and `photoslibrary` were removed from general-library access after March 31, 2025; FINZANJIR does not request them. [Google Photos API updates](https://developers.google.com/photos/support/updates).
+
+Selected photo and video bytes are downloaded only after explicit selection, with a 100 MiB cap, and encrypted in the owner's private media quarantine with a content hash and Picker session provenance. The returned media base URLs are short-lived and are not stored. The bytes are stored but not yet interpreted by a vision, speech, or video model; that is a separate local multimodal pipeline stage. Picker sessions are owner/account-bound and can be polled, listed, and deleted only from the owner's authenticated session.
+
+
+## Drive binary media import
+
+In addition to document extraction, an owner-selected Drive file can be imported as a binary image, audio or video item. The server validates the declared MIME type against supported container signatures (Pillow image verification, WAV/MP3/FLAC/OGG audio headers, MP4/MOV, Matroska/WebM and AVI signatures), applies a 100 MiB cap and a 40-megapixel image limit, then encrypts the bytes into the same owner-only media quarantine. Unsupported types and mismatched content are rejected. This stage preserves the media and provenance; it does not claim to transcribe audio or semantically understand images/video.
+
+
+## Browser session and CORS requirements
+
+Owner sessions use HttpOnly/Secure cookies. Browser calls from the static frontend must use `credentials: "include"`; the API permits credentialed CORS only for the exact origins listed in `FINZANJIR_ALLOWED_ORIGINS` (comma-separated, no wildcard). The same allowlist is also checked by the server-side Origin/CSRF guard on state-changing actions. Add the exact deployed frontend origin(s) to that setting before enabling Google login. No wildcard credentialed CORS is permitted.
+
+Additional browser OAuth settings:
+- `FINZANJIR_FRONTEND_URL`: exact HTTPS frontend origin (no path/query).
+- `FINZANJIR_ALLOWED_ORIGINS`: comma-separated exact origin allowlist containing `FINZANJIR_FRONTEND_URL`.
+The OAuth callback redirects to this configured frontend. Without both values, Google OAuth fails closed. Credentialed CORS and the CSRF Origin check use this allowlist.
+
+XLSX and DOCX archives are inspected before parsing: at most 2,000 ZIP entries, 100 MiB total expanded content, 50 MiB per entry, a 200:1 compression-ratio ceiling and no absolute or parent-traversal paths. Google Sheets are exported as XLSX so all worksheets can be read, subject to a 100-sheet and 100,000-cell cap.
+
+
+## Unified memory audit and frontend
+
+The private memory panel in the frontend supports owner Google sign-in, adding accounts/services, Drive document and media import, Gmail message import, Google Photos Picker selection, local encrypted-text search, source/media inventory, and recent import audit events. Browser requests include the owner session cookie; exact frontend CORS and CSRF allowlists are required. Import audit rows record action, provider, account ID, a hash of the remote object ID, content hash and safe file metadata; they never record the document body or search query.
+
+Gmail attachments are limited to 20 per message, 10 MiB each and 50 MiB total per import. Unsupported formats are reported as skipped; supported text documents are extracted and media is stored encrypted. Attachment IDs and source message IDs remain attached to provenance.

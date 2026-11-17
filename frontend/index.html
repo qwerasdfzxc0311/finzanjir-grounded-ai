@@ -14,7 +14,7 @@
     <div class="brand-mark" aria-hidden="true">F</div>
     <div><strong class="brand-name">FINZANJIR</strong><span class="brand-subtitle">Xavfsizlik · tahlil · ishonch</span></div>
   </div>
-  <div class="header-meta"><span class="badge badge-live">PROTOTYPE</span><span class="mode-chip">Ma’lumot rejimi: <strong id="mode">synthetic</strong></span></div>
+  <div class="header-meta"><a class="settings-nav-link" href="#googleCloudPanel">Sozlamalar</a><span class="badge badge-live">PROTOTYPE</span><span class="mode-chip">Ma’lumot rejimi: <strong id="mode">synthetic</strong></span></div>
 </header>
 <main>
 <section class="hero-section">
@@ -61,8 +61,52 @@
   <div id="runHistory" class="card" aria-live="polite"><p class="muted">Sinovlar tarixi yuklanmoqda...</p></div>
 </section>
 <section class="support-section"><div class="section-heading"><div><p class="eyebrow">NAZORAT ARXITEKTURASI</p><h2>16 qatlamli himoya modeli</h2></div></div><ol id="layers" class="layers"></ol></section>
+<section class="support-section cloud-memory-section" id="googleCloudPanel">
+  <div class="section-heading"><div><p class="eyebrow">SHAXSIY XOTIRA</p><h2>Sozlamalar</h2>
+    <p class="muted">FINZANJIR egasining Google akkauntlari, ulanish diagnostikasi va berilgan ruxsatlarni boshqarish.</p></div></div>
+  <div id="googleCloudStatus" class="card" aria-live="polite"><p class="muted">Ulanish holati tekshirilmoqda...</p></div>
+  <div class="cloud-settings-tabs" role="tablist" aria-label="FINZANJIR sozlamalari">
+    <button type="button" class="secondary-button" data-google-tab="accounts" role="tab" aria-selected="true">Akkauntlar</button>
+    <button type="button" class="secondary-button" data-google-tab="diagnostics" role="tab" aria-selected="false">Diagnostika</button>
+    <button type="button" class="secondary-button" data-google-tab="permissions" role="tab" aria-selected="false">Berilgan ruxsatlar</button>
+  </div>
+  <div id="googleCloudControls" class="card cloud-settings-panel" role="tabpanel">
+    <div id="googleSettingsAccounts">
+      <div class="cloud-toolbar">
+        <button id="googleOwnerLogin" type="button">Google bilan kirish</button>
+        <button id="googleAddAccount" type="button">Yangi Google akkaunt ulash</button>
+        <button id="googleOwnerLogout" type="button" class="secondary-button">Chiqish</button>
+      </div>
+      <div class="cloud-service-options">
+        <label><input type="checkbox" id="googleServiceDrive" checked> Google Drive</label>
+        <label><input type="checkbox" id="googleServiceGmail"> Gmail (faqat o‘qish)</label>
+        <label><input type="checkbox" id="googleServicePhotos"> Google Photos Picker</label>
+      </div>
+      <div id="googleAccounts" class="cloud-account-list"></div>
+    </div>
+    <div id="googleSettingsDiagnostics" hidden>
+      <p class="muted">Server sozlamalari, shifrlangan omborlar, ma’lumotlar bazasi yaxlitligi va disk holatini tekshiradi.</p>
+      <button id="googleRunDiagnostics" type="button">Diagnostikani ishga tushirish</button>
+      <div id="googleDiagnosticsResults" aria-live="polite"></div>
+    </div>
+    <div id="googleSettingsPermissions" hidden>
+      <p class="muted">Har bir Google akkaunt uchun alohida berilgan API ruxsatlari ko‘rsatiladi. Ruxsatni Google hisobingiz sozlamalaridan ham bekor qilishingiz mumkin.</p>
+      <div id="googlePermissionsResults" aria-live="polite"></div>
+    </div>
+  </div>
+  <div id="googleMemoryWorkspace" class="card" hidden>
+    <h3>Yagona shaxsiy xotira</h3>
+    <div class="cloud-toolbar">
+      <input id="googleMemoryQuery" type="search" maxlength="256" placeholder="Saqlangan hujjatlardan qidirish">
+      <button id="googleMemorySearch" type="button">Qidirish</button>
+      <button id="googleMemoryRefresh" type="button" class="secondary-button">Xotirani yangilash</button>
+    </div>
+    <div id="googleMemoryResults" aria-live="polite"></div>
+  </div>
+</section>
 <noscript><p>Synthetic data mode</p><p>JavaScript yoqilgan bo‘lsa, oynalar va yagona tizim oqimi ko‘rsatiladi.</p></noscript>
 </main>
 <footer class="app-footer"><strong>FINZANJIR</strong><span>Sintetik prototip · Real bank yoki mijoz ma’lumotlari ishlatilmaydi</span></footer>
 <script src="./app.js"></script>
+<script src="./google-cloud.js"></script>
 </body></html>
