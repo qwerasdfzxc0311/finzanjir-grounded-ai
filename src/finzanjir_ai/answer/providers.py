@@ -19,7 +19,7 @@ EE EG ES FI FO FR GB GE GI GL GQ GR GT GW HN HR HU IE IL IQ IR IS IT JO KW
 KZ LB LC LI LT LU LV LY MA MC MD ME MK ML MR MT MU MZ NE NI NL NO OM PK PL
 PS PT QA RO RS SA SC SD SE SI SK SM SN SO ST SV TD TG TL TN TR UA VA VG XK
 """.split())
-_IBAN_PREFIX_RE = re.compile(r"(?<![A-Z0-9])([A-Z]{2}\\d{2})", re.IGNORECASE)
+_IBAN_PREFIX_RE = re.compile(r"(?<![A-Z0-9])([A-Z]{2}\d{2})", re.IGNORECASE)
 
 
 def _has_valid_iban(text: str) -> bool:
