@@ -14,6 +14,24 @@ https://finzanjir-grounded-ai-api.onrender.com/api/google/oauth/callback
 
 Enable the Google Drive API and Gmail API. Enable Google Photos Picker API for the explicit selected-media flow. Request only the service scopes the owner intends to use.
 
+### Current scope disclosure and policy gate
+
+The current source code requests these exact scopes:
+
+- Drive: `https://www.googleapis.com/auth/drive.readonly` — Google defines this as permission to see and download **all** Drive files, and classifies it as a restricted scope. FINZANJIR's UI may import only a file the owner selects, but the OAuth token itself is not limited to that selected file.
+- Gmail: `https://www.googleapis.com/auth/gmail.readonly` — Google defines this as permission to view Gmail messages and settings, and classifies it as a restricted scope. Importing one selected message does not narrow the token to that message.
+- Photos: `https://www.googleapis.com/auth/photospicker.mediaitems.readonly` — access is limited to media selected by the owner in a Picker session.
+
+Google recommends requesting the narrowest scope possible. For Drive, Google recommends considering `drive.file` with Google Picker for per-file access. Changing to that scope may change which Drive files FINZANJIR can list/import, so it is a separate design decision and must be tested before any code change.
+
+Google's restricted-scope rules require app verification unless an exception applies. If restricted-scope data is stored or transmitted through the app's server, Google requires a security assessment by an approved assessor unless an applicable exception is confirmed. The Gmail-to-private-memory use case must also be checked against Google's approved Gmail API use cases. Do not enable public Google Drive/Gmail access until scope eligibility, verification, user notice, data retention and assessment requirements are confirmed.
+
+Official references:
+- Drive scopes and least privilege: https://developers.google.com/workspace/drive/api/guides/api-specific-auth
+- Gmail scopes: https://developers.google.com/workspace/gmail/api/auth/scopes
+- Restricted-scope verification and security assessment: https://developers.google.com/identity/protocols/oauth2/production-readiness/restricted-scope-verification
+- Photos Picker authorization: https://developers.google.com/photos/overview/authorization
+
 ## 2. Render environment
 
 Set these only in the private API service's environment settings, never in the static frontend:
