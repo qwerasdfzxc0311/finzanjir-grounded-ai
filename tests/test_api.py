@@ -636,7 +636,12 @@ def test_api_rejects_unknown_model_policy():
 
 def test_api_offline_policy_abstains_honestly_for_unsupported_general_topic(monkeypatch):
     from finzanjir_ai.answer.providers import LLMGateway
+    from finzanjir_ai.prototype.flow import build_system_flow
+    import finzanjir_api.app as api_module
 
+    monkeypatch.setattr(
+        api_module, "knowledge_index", lambda: build_system_flow().demo_knowledge_index()
+    )
     monkeypatch.setenv("GEMINI_API_KEY", "test-key-must-not-be-used")
     monkeypatch.setenv("OPENROUTER_API_KEY", "test-key-must-not-be-used")
     monkeypatch.setattr(
