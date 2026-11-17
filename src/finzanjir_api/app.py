@@ -21,6 +21,7 @@ from finzanjir_ai.orchestration.engine import FINZANJIRAI, get_finzanjir_ai
 from finzanjir_ai.orchestration.intent import classify_query_intent
 from finzanjir_ai.research.tavily import TavilySearchClient
 from finzanjir_ai.research.local_answer import compose_tavily_local_answer
+from finzanjir_ai.research.service import search_and_compose
 from finzanjir_ai.research.youtube import filter_youtube_video_results
 from finzanjir_ai.integrations.cloud_sources import cloud_connector_status
 from finzanjir_ai.integrations.google_cloud import router as google_cloud_router
@@ -249,30 +250,22 @@ def answer(request: AIAnswerRequest) -> dict[str, Any]:
                 detail="Offline rejimda internet qidiruvi o‘chiq. Auto rejimini tanlang.",
             )
         try:
-            research = TavilySearchClient().search(
+            research_payload = search_and_compose(
                 question,
-                max_results=6,
-                search_depth="advanced",
-                include_raw_content=True,
+                runtime_refs=request.runtime_refs,
+                explicit_search=True,
             )
         except ValueError as exc:
             raise HTTPException(
                 status_code=422,
                 detail="Qidiruv so‘rovida yuborish mumkin bo‘lmagan maxfiy identifikator bor.",
             ) from exc
-        except RuntimeError as exc:
+        if research_payload is None:
             raise HTTPException(
                 status_code=503,
-                detail="Internet qidiruvi hozir sozlanmagan yoki vaqtincha mavjud emas.",
-            ) from exc
-        except httpx.HTTPError as exc:
-            raise HTTPException(
-                status_code=502,
-                detail="Internet qidiruv xizmati vaqtincha javob bermadi.",
-            ) from exc
-        return _tavily_answer_payload(
-            question, research, runtime_refs=request.runtime_refs, explicit_search=True
-        )
+                detail="Tashqi qidiruv manbalari hozir javob bermayapti. Keyinroq qayta urinib ko‘ring.",
+            )
+        return research_payload
 
     # In Auto mode, local general facts take priority. If the local corpus does
     # not cover the question, Tavily searches public sources and a deterministic
@@ -292,24 +285,17 @@ def answer(request: AIAnswerRequest) -> dict[str, Any]:
             result = local_result
         else:
             try:
-                research = TavilySearchClient().search(
+                research_payload = search_and_compose(
                     question,
-                    max_results=6,
-                    search_depth="advanced",
-                    include_raw_content=True,
+                    runtime_refs=request.runtime_refs,
                 )
-                research_payload = _tavily_answer_payload(
-                    question, research, runtime_refs=request.runtime_refs
-                )
-                if not research_payload["abstained"]:
+                if research_payload is not None and not research_payload["abstained"]:
                     return research_payload
             except ValueError as exc:
                 raise HTTPException(
                     status_code=422,
                     detail="Qidiruv so‘rovida yuborish mumkin bo‘lmagan maxfiy identifikator bor.",
                 ) from exc
-            except (RuntimeError, httpx.HTTPError):
-                research_payload = None
 
             engine = ai_engine("auto")
             result = engine.answer(
@@ -351,6 +337,8 @@ def answer(request: AIAnswerRequest) -> dict[str, Any]:
         ],
         "runtime_refs": list(result.runtime_context.runtime_refs),
         "external_sources": [],
+        "research_provider": research_payload.get("research_provider") if research_payload else None,
+        "research_diagnostics": research_payload.get("research_diagnostics", []) if research_payload else [],
     }
 
 
