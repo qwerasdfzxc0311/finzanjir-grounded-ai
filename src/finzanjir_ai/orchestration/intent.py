@@ -28,7 +28,19 @@ _ASSISTANT_IDENTITY_PATTERNS = (
 def normalize_query_for_intent(query: str) -> str:
     value = query.casefold().replace("ʻ", "'").replace("’", "'")
     tokens = re.findall(r"[^\W\d_]+", value, flags=re.UNICODE)
-    return " ".join(_WORD_FIXES.get(token, token) for token in tokens)
+    normalized = []
+    for token in tokens:
+        fixed = _WORD_FIXES.get(token, token)
+        # Uzbek/Karakalpak possessive and case endings often attach directly
+        # to the project name (e.g. FINZANJIRning, FINZANJIRda).
+        if fixed.startswith("finzanjir"):
+            fixed = "finzanjir"
+        elif fixed.startswith("финзанжир"):
+            fixed = "финзанжир"
+        normalized.append(fixed)
+    if {"fin", "recovery"} <= set(normalized):
+        normalized.append("fin-recovery")
+    return " ".join(normalized)
 
 
 _LANGUAGE_MARKERS = {
