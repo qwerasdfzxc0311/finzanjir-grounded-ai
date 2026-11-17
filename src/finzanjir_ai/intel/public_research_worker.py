@@ -6,6 +6,8 @@ arbitrary result URLs from the worker host. Results are untrusted and quarantine
 from __future__ import annotations
 
 from datetime import datetime, timezone
+import ipaddress
+import re
 from hashlib import sha256
 from typing import Any
 from urllib.parse import urlsplit
@@ -47,11 +49,32 @@ def build_public_research_worker(
     if not source_id.strip() or not cleaned_query or len(cleaned_query) > 500:
         raise ValueError("source_id and a 1-500 character query are required")
     domains = tuple(sorted({
-        str(domain).strip().lower().strip(".")
+        str(domain).strip().lower().rstrip(".")
         for domain in allowed_domains if str(domain).strip()
     }))
-    if not domains or any("/" in domain or ":" in domain or "@" in domain for domain in domains):
-        raise ValueError("one or more exact public domains must be allowlisted")
+    common_public_suffixes = {
+        "com", "org", "net", "edu", "gov", "mil", "int", "io", "dev", "app",
+        "co.uk", "org.uk", "gov.uk", "ac.uk", "com.au", "net.au", "org.au",
+        "co.jp", "com.br", "com.cn", "com.in",
+    }
+    def valid_domain(domain: str) -> bool:
+        if domain in common_public_suffixes:
+            return False
+        if not re.fullmatch(
+            r"(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z]{2,63}",
+            domain,
+        ):
+            return False
+        try:
+            ipaddress.ip_address(domain)
+        except ValueError:
+            return True
+        return False
+
+    if not domains or any(not valid_domain(domain) for domain in domains):
+        raise ValueError(
+            "allowlist must contain exact DNS domains, not URLs, IPs, wildcards or public suffixes"
+        )
     search = search_client or TavilySearchClient()
 
     async def worker(checkpoint: dict[str, Any], remaining_seconds: float) -> WorkStep:
