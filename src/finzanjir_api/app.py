@@ -20,7 +20,7 @@ from finzanjir_ai.prototype.flow import build_system_flow
 from finzanjir_ai.orchestration.engine import FINZANJIRAI, get_finzanjir_ai
 from finzanjir_ai.orchestration.intent import classify_query_intent
 from finzanjir_ai.research.tavily import TavilySearchClient
-from finzanjir_ai.research.local_answer import compose_tavily_local_answer
+from finzanjir_ai.research.service import search_and_compose
 from finzanjir_ai.research.youtube import filter_youtube_video_results
 from finzanjir_ai.integrations.cloud_sources import cloud_connector_status
 from finzanjir_ai.integrations.google_cloud import router as google_cloud_router
@@ -170,37 +170,6 @@ def ai_engine(model_policy: str = "auto") -> FINZANJIRAI:
     return get_finzanjir_ai(knowledge_index(), model_policy=model_policy)
 
 
-def _tavily_answer_payload(
-    question: str,
-    research: dict[str, Any],
-    *,
-    runtime_refs: list[str],
-    explicit_search: bool = False,
-) -> dict[str, Any]:
-    """Compose a grounded answer locally; Tavily supplies sources, not an LLM."""
-    composed = compose_tavily_local_answer(
-        question,
-        research.get("results", []),
-        max_sentences=5,
-        max_sources=6,
-    )
-    return {
-        "answer": composed.answer,
-        "confidence": composed.confidence,
-        "abstained": composed.abstained,
-        "generation_mode": "web_search" if explicit_search else composed.generation_mode,
-        "composition_mode": composed.generation_mode,
-        "confidence_basis": composed.confidence_basis,
-        "provider_status": "not_attempted",
-        "provider_diagnostics": [],
-        "knowledge_refs": [],
-        "provenance": list(composed.provenance),
-        "runtime_refs": list(runtime_refs),
-        "external_sources": list(composed.sources),
-        "research_status": "completed" if not composed.abstained else "insufficient_extractable_evidence",
-    }
-
-
 @app.get("/api/cloud/connectors")
 def cloud_connectors() -> dict[str, Any]:
     """Expose safe connector readiness only; never expose credentials or files."""
@@ -249,35 +218,28 @@ def answer(request: AIAnswerRequest) -> dict[str, Any]:
                 detail="Offline rejimda internet qidiruvi o‘chiq. Auto rejimini tanlang.",
             )
         try:
-            research = TavilySearchClient().search(
+            research_payload = search_and_compose(
                 question,
-                max_results=6,
-                search_depth="advanced",
-                include_raw_content=True,
+                runtime_refs=request.runtime_refs,
+                explicit_search=True,
             )
         except ValueError as exc:
             raise HTTPException(
                 status_code=422,
                 detail="Qidiruv so‘rovida yuborish mumkin bo‘lmagan maxfiy identifikator bor.",
             ) from exc
-        except RuntimeError as exc:
+        if research_payload is None:
             raise HTTPException(
                 status_code=503,
-                detail="Internet qidiruvi hozir sozlanmagan yoki vaqtincha mavjud emas.",
-            ) from exc
-        except httpx.HTTPError as exc:
-            raise HTTPException(
-                status_code=502,
-                detail="Internet qidiruv xizmati vaqtincha javob bermadi.",
-            ) from exc
-        return _tavily_answer_payload(
-            question, research, runtime_refs=request.runtime_refs, explicit_search=True
-        )
+                detail="Tashqi qidiruv manbalari hozir javob bermayapti. Keyinroq qayta urinib ko‘ring.",
+            )
+        return research_payload
 
     # In Auto mode, local general facts take priority. If the local corpus does
-    # not cover the question, Tavily searches public sources and a deterministic
-    # local composer builds a source-linked answer. Gemini/OpenRouter are not
-    # required for this path. Explicit Offline mode never makes network calls.
+    # not cover the question, the research service checks its public-source cache,
+    # then Tavily, then Wikimedia when Tavily is unavailable or insufficient.
+    # A deterministic local composer builds source-linked answers; hosted LLMs
+    # remain optional. Explicit Offline mode never makes network calls.
     research_payload: dict[str, Any] | None = None
     if query_intent == "general_knowledge" and request.model_policy == "auto":
         offline_engine = ai_engine("offline")
@@ -292,24 +254,17 @@ def answer(request: AIAnswerRequest) -> dict[str, Any]:
             result = local_result
         else:
             try:
-                research = TavilySearchClient().search(
+                research_payload = search_and_compose(
                     question,
-                    max_results=6,
-                    search_depth="advanced",
-                    include_raw_content=True,
+                    runtime_refs=request.runtime_refs,
                 )
-                research_payload = _tavily_answer_payload(
-                    question, research, runtime_refs=request.runtime_refs
-                )
-                if not research_payload["abstained"]:
+                if research_payload is not None and not research_payload["abstained"]:
                     return research_payload
             except ValueError as exc:
                 raise HTTPException(
                     status_code=422,
                     detail="Qidiruv so‘rovida yuborish mumkin bo‘lmagan maxfiy identifikator bor.",
                 ) from exc
-            except (RuntimeError, httpx.HTTPError):
-                research_payload = None
 
             engine = ai_engine("auto")
             result = engine.answer(
@@ -351,6 +306,8 @@ def answer(request: AIAnswerRequest) -> dict[str, Any]:
         ],
         "runtime_refs": list(result.runtime_context.runtime_refs),
         "external_sources": [],
+        "research_provider": research_payload.get("research_provider") if research_payload else None,
+        "research_diagnostics": research_payload.get("research_diagnostics", []) if research_payload else [],
     }
 
 

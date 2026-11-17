@@ -3,6 +3,7 @@ from fastapi.testclient import TestClient
 from finzanjir_api import app as api_module
 from finzanjir_api.app import app
 from finzanjir_ai.orchestration.intent import classify_query_intent
+from finzanjir_ai.research import service as research_service
 
 
 client = TestClient(app)
@@ -31,7 +32,8 @@ def test_ai_answer_uses_external_search_for_youtube_discovery(monkeypatch):
                 }]
             }
 
-    monkeypatch.setattr(api_module, "TavilySearchClient", FakeSearch)
+    research_service.clear_research_state_for_tests()
+    monkeypatch.setattr(research_service, "TavilySearchClient", FakeSearch)
     response = client.post(
         "/api/ai/answer",
         json={"question": "Finzanjir YouTube kanalini top"},
@@ -51,13 +53,19 @@ def test_web_search_does_not_fall_back_to_project_knowledge_when_unconfigured(mo
         def search(self, query, *, max_results, search_depth="advanced", include_raw_content=False):
             raise RuntimeError("not configured")
 
-    monkeypatch.setattr(api_module, "TavilySearchClient", MissingSearch)
+    research_service.clear_research_state_for_tests()
+    class EmptyWiki:
+        def search(self, query, *, max_results):
+            return {"results": [], "status": "no_results"}
+
+    monkeypatch.setattr(research_service, "TavilySearchClient", MissingSearch)
+    monkeypatch.setattr(research_service, "WikimediaSearchClient", EmptyWiki)
     response = client.post(
         "/api/ai/answer",
         json={"question": "Finzanjir YouTube kanalini top"},
     )
     assert response.status_code == 503
-    assert "Internet qidiruvi" in response.json()["detail"]
+    assert "Tashqi qidiruv manbalari" in response.json()["detail"]
 
 
 def test_auto_general_knowledge_uses_tavily_and_local_composer_without_llm(monkeypatch):
@@ -97,8 +105,14 @@ def test_auto_general_knowledge_uses_tavily_and_local_composer_without_llm(monke
         assert policy == "offline"
         return OfflineEngine()
 
+    research_service.clear_research_state_for_tests()
+    class EmptyWiki:
+        def search(self, query, *, max_results):
+            return {"results": [], "status": "no_results"}
+
     monkeypatch.setattr(api_module, "ai_engine", fake_engine)
-    monkeypatch.setattr(api_module, "TavilySearchClient", FakeSearch)
+    monkeypatch.setattr(research_service, "WikimediaSearchClient", EmptyWiki)
+    monkeypatch.setattr(research_service, "TavilySearchClient", FakeSearch)
     response = client.post(
         "/api/ai/answer",
         json={"question": "What is photosynthesis?", "model_policy": "auto"},
@@ -115,12 +129,71 @@ def test_auto_general_knowledge_uses_tavily_and_local_composer_without_llm(monke
     assert calls == {"engines": ["offline"], "searches": 1}
 
 
+def test_auto_general_knowledge_uses_wikimedia_when_tavily_is_rate_limited(monkeypatch):
+    import httpx
+    from types import SimpleNamespace
+
+    calls = {"engine": [], "tavily": 0, "wikimedia": 0}
+
+    class OfflineEngine:
+        def answer(self, *args, **kwargs):
+            return SimpleNamespace(answer=SimpleNamespace(abstained=True))
+
+    class QuotaTavily:
+        def search(self, *args, **kwargs):
+            calls["tavily"] += 1
+            request = httpx.Request("POST", "https://api.tavily.com/search")
+            response = httpx.Response(429, request=request)
+            raise httpx.HTTPStatusError("rate limited", request=request, response=response)
+
+    class BackupWiki:
+        def search(self, query, *, max_results):
+            calls["wikimedia"] += 1
+            return {
+                "results": [{
+                    "title": "Photosynthesis",
+                    "url": "https://en.wikipedia.org/wiki/Photosynthesis",
+                    "snippet": "Photosynthesis is the process by which plants use light energy.",
+                    "raw_content": (
+                        "Photosynthesis is the process by which green plants use sunlight "
+                        "to make food from carbon dioxide and water. Oxygen is released "
+                        "as a byproduct of this process."
+                    ),
+                    "score": 0.9,
+                }]
+            }
+
+    def fake_engine(policy="auto"):
+        calls["engine"].append(policy)
+        return OfflineEngine()
+
+    research_service.clear_research_state_for_tests()
+    monkeypatch.setattr(api_module, "ai_engine", fake_engine)
+    monkeypatch.setattr(research_service, "TavilySearchClient", QuotaTavily)
+    monkeypatch.setattr(research_service, "WikimediaSearchClient", BackupWiki)
+
+    response = client.post(
+        "/api/ai/answer",
+        json={"question": "What is the latest research on photosynthesis today?", "model_policy": "auto"},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["abstained"] is False
+    assert body["generation_mode"] == "wikimedia_local_extractive"
+    assert body["research_provider"] == "wikimedia"
+    assert body["provider_status"] == "not_attempted"
+    assert body["research_diagnostics"][0]["status"] == "rate_limited"
+    assert body["external_sources"][0]["url"] == "https://en.wikipedia.org/wiki/Photosynthesis"
+    assert calls == {"engine": ["offline"], "tavily": 1, "wikimedia": 1}
+
+
 def test_offline_explicit_web_search_never_calls_tavily(monkeypatch):
     class ForbiddenSearch:
         def search(self, *args, **kwargs):
             raise AssertionError("offline mode must not make a Tavily request")
 
-    monkeypatch.setattr(api_module, "TavilySearchClient", ForbiddenSearch)
+    monkeypatch.setattr(research_service, "TavilySearchClient", ForbiddenSearch)
     response = client.post(
         "/api/ai/answer",
         json={
