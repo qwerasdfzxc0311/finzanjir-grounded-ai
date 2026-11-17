@@ -6,6 +6,8 @@ original token when no safe suffix rule applies.
 """
 from __future__ import annotations
 
+from functools import lru_cache
+
 _UZBEK_KARAKALPAK_SUFFIXES = (
     "larining", "larning", "lariga", "laridan", "larida", "larini",
     "larimiz", "laringiz", "lari", "ları", "leri", "lardı", "lerdi",
@@ -30,6 +32,7 @@ _RUSSIAN_SUFFIXES = (
 )
 
 
+@lru_cache(maxsize=65536)
 def morphological_stem(token: str) -> str:
     """Return a conservative stem; do not strip one-letter endings."""
     value = str(token).casefold().strip()
