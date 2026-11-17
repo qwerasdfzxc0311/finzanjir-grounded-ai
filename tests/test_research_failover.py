@@ -51,7 +51,7 @@ def test_tavily_quota_failure_falls_back_to_wikimedia_without_llm(monkeypatch):
     monkeypatch.setattr(service, "TavilySearchClient", QuotaTavily)
     monkeypatch.setattr(service, "WikimediaSearchClient", BackupWiki)
 
-    result = service.search_and_compose("What is photosynthesis?", explicit_search=True)
+    result = service.search_and_compose("What is the latest research on photosynthesis today?")
     assert result is not None
     assert result["abstained"] is False
     assert result["generation_mode"] == "wikimedia_local_extractive"
@@ -80,8 +80,8 @@ def test_tavily_cooldown_skips_repeated_quota_requests(monkeypatch):
     monkeypatch.setattr(service, "TavilySearchClient", QuotaTavily)
     monkeypatch.setattr(service, "WikimediaSearchClient", BackupWiki)
 
-    first = service.search_and_compose("What is photosynthesis?", explicit_search=True)
-    second = service.search_and_compose("How does photosynthesis work?", explicit_search=True)
+    first = service.search_and_compose("What is the latest research on photosynthesis today?")
+    second = service.search_and_compose("What are today's latest findings about photosynthesis?")
     assert first and second
     assert calls["tavily"] == 1
     assert calls["wikimedia"] == 2
@@ -105,8 +105,8 @@ def test_successful_public_extract_is_cached_and_does_not_spend_tavily_again(mon
     monkeypatch.setattr(service, "TavilySearchClient", GoodTavily)
     monkeypatch.setattr(service, "WikimediaSearchClient", ForbiddenWiki)
 
-    first = service.search_and_compose("What is photosynthesis?", explicit_search=True)
-    second = service.search_and_compose("What is photosynthesis?", explicit_search=True)
+    first = service.search_and_compose("What is the latest research on photosynthesis today?")
+    second = service.search_and_compose("What is the latest research on photosynthesis today?")
     assert first and second
     assert first["generation_mode"] == "tavily_local_extractive"
     assert second["generation_mode"] == "cached_local_extractive"
