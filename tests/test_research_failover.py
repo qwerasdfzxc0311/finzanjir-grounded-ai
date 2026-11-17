@@ -165,7 +165,7 @@ def test_wikimedia_client_fetches_search_results_and_extracts(monkeypatch):
 
     def fake_get(url, *, params, headers, timeout, follow_redirects):
         calls.append((url, params))
-        if params["list"] == "search":
+        if params.get("list") == "search":
             return FakeResponse({
                 "query": {
                     "search": [{
