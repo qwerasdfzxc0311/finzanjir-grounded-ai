@@ -53,8 +53,9 @@ Critical safety failures block release even if the aggregate score is high. Repo
 
 ## Resource and deployment boundaries
 
-- CPU-only deterministic operations are the first target: normalization, lexical/concept retrieval, n-gram typo tolerance, graph traversal, rule checks, scoring, and template composition.
-- Character n-grams are typo-tolerant lexical matching, not semantic understanding. Do not label them embeddings or semantic reasoning.
+- CPU-only deterministic operations are the first target: normalization, conservative Uzbek/Karakalpak/Kazakh/Russian suffix stemming, lexical/concept retrieval, character n-gram typo tolerance, graph traversal, rule checks, scoring, and template composition.
+- A small source-backed offline general-knowledge pack currently covers three stable topics (sky colour, Uzbekistan geography, and turtle/tortoise lifespan) in the five project languages. It is not a pretrained model or open-domain generator; unsupported general questions use an available hosted provider or abstain honestly.
+- Character n-grams and conservative suffix stemming are typo-/inflection-tolerant lexical matching, not semantic understanding. Do not label them embeddings or semantic reasoning. The BM25 semantic_score remains zero until a genuine semantic model is separately implemented and evaluated.
 - Local embeddings and a from-scratch model are optional later experiments, gated by measured benefit and available storage/compute. No pretrained weights are silently introduced.
 - Cloudflare D1 may hold compact metadata, audit, source provenance, and encrypted text chunks within verified plan limits. It is not a substitute for object storage or a backup guarantee.
 - Worker CPU is for bounded coordination, not model inference, OCR, video processing, or training.
@@ -64,7 +65,7 @@ Critical safety failures block release even if the aggregate score is high. Repo
 
 1. Fixture schema and language coverage pass.
 2. Native speakers review language and intent labels.
-3. Behavioral tests run against the actual local orchestration path.
+3. Behavioral tests run against the actual local orchestration path, including offline answers in all five languages, source provenance, project/general separation, and honest abstention for unsupported topics.
 4. Offline mode test proves no hosted provider request is made.
 5. Provider failure test proves correct local fallback or honest limitation.
 6. Evidence tests prove no project/general/personal/external source leakage.
