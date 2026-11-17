@@ -45,21 +45,41 @@ def evaluate_plugin_access(
         return PluginAccessDecision(False, False, "action is not exposed by this plugin")
     if action.get("enabled") is not True:
         return PluginAccessDecision(False, False, "action is not enabled")
+
     granted = plugin.get("granted_scopes")
-    if not isinstance(granted, (list, tuple, set, frozenset)) or any(not isinstance(x, str) for x in granted):
+    if not isinstance(granted, (list, tuple, set, frozenset)) or any(
+        not isinstance(scope, str) or not scope.strip() for scope in granted
+    ):
         return PluginAccessDecision(False, False, "granted scopes are not verifiable")
-    needed = frozenset(required_scopes)
-    if not needed.issubset(frozenset(granted)):
+
+    if isinstance(required_scopes, (str, bytes)):
+        return PluginAccessDecision(False, False, "caller required scopes are invalid")
+    try:
+        requested_scopes = tuple(required_scopes)
+    except TypeError:
+        return PluginAccessDecision(False, False, "caller required scopes are invalid")
+    if any(not isinstance(scope, str) or not scope.strip() for scope in requested_scopes):
+        return PluginAccessDecision(False, False, "caller required scopes are invalid")
+
+    needed = frozenset(requested_scopes)
+    granted_set = frozenset(granted)
+    if not needed.issubset(granted_set):
         return PluginAccessDecision(False, False, "required permission scopes are not granted")
     if data_classification not in {"public", "project_internal"}:
         return PluginAccessDecision(False, False, "data classification requires a separate privacy and legal gate")
 
-    action_scopes = action.get("required_scopes", [])
-    if not isinstance(action_scopes, (list, tuple)) or any(not isinstance(x, str) for x in action_scopes):
+    # A missing declaration is not equivalent to an explicit no-scope action.
+    if "required_scopes" not in action:
+        return PluginAccessDecision(False, False, "action scope declaration is missing")
+    action_scopes = action["required_scopes"]
+    if not isinstance(action_scopes, (list, tuple)) or any(
+        not isinstance(scope, str) or not scope.strip() for scope in action_scopes
+    ):
         return PluginAccessDecision(False, False, "action scope declaration is invalid")
-    if not frozenset(action_scopes).issubset(frozenset(granted)):
+    action_scope_set = frozenset(action_scopes)
+    if not action_scope_set.issubset(granted_set):
         return PluginAccessDecision(False, False, "plugin has not granted all action scopes")
-    if not needed.issubset(frozenset(action_scopes)):
+    if not needed.issubset(action_scope_set):
         return PluginAccessDecision(False, False, "caller requested scopes do not match the declared action")
 
     risk = action.get("risk")
@@ -68,6 +88,6 @@ def evaluate_plugin_access(
     preapproved = action.get("preapproved") is True
     if risk == "read_only" and preapproved:
         return PluginAccessDecision(True, False, "connected, enabled, scoped read-only action is preapproved")
-    if not user_approved:
+    if user_approved is not True:
         return PluginAccessDecision(False, True, "explicit user confirmation is required for this action")
     return PluginAccessDecision(True, False, "action permissions verified and user confirmation supplied")
