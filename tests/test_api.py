@@ -632,3 +632,17 @@ def test_api_rejects_unknown_model_policy():
         json={"question": "Nega osmon ko‘k?", "model_policy": "unrestricted"},
     )
     assert response.status_code == 422
+
+
+def test_api_offline_policy_abstains_honestly_for_unsupported_general_topic():
+    response = client.post(
+        "/api/ai/answer",
+        json={"question": "What is photosynthesis?", "model_policy": "offline"},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["abstained"] is True
+    assert body["provider_status"] == "offline_mode"
+    assert body["generation_mode"] == "general_knowledge_provider_failed"
+    assert body["knowledge_refs"] == []
+    assert body["provenance"] == []
