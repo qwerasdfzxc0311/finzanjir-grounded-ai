@@ -26,3 +26,36 @@ def test_bm25_lexical_score_is_not_reported_as_semantic_similarity():
     assert results
     assert all(item.semantic_score == 0.0 for item in results)
     assert any(item.lexical_score > 0 for item in results)
+
+
+def test_hybrid_retrieval_matches_uzbek_inflections_by_conservative_stem():
+    records = [
+        {"id": "morph-1", "concept_id": "morph-1", "canonical_concept_id": "morph-1",
+         "statement": "Fuqarolarning qonuniy mablag'larini himoya qilish muhim.",
+         "aliases": [], "evidence": {}, "provenance": [], "reconciliation": {}},
+        {"id": "morph-2", "concept_id": "morph-2", "canonical_concept_id": "morph-2",
+         "statement": "Astronomiya sayyoralarni o'rganadi.",
+         "aliases": [], "evidence": {}, "provenance": [], "reconciliation": {}},
+    ]
+    results = HybridRetriever(build_knowledge_index(records)).search(
+        "Fuqarolar qonuniy mablag'ni himoyalash", top_k=2
+    )
+    assert results
+    assert results[0].record_id == "morph-1"
+
+
+def test_hybrid_retrieval_recovers_a_clear_single_character_typo_with_ngrams():
+    records = [
+        {"id": "typo-1", "concept_id": "typo-1", "canonical_concept_id": "typo-1",
+         "statement": "Firibgarlik xavfini aniqlash uchun dalillar tekshiriladi.",
+         "aliases": [], "evidence": {}, "provenance": [], "reconciliation": {}},
+        {"id": "typo-2", "concept_id": "typo-2", "canonical_concept_id": "typo-2",
+         "statement": "Astronomiya sayyoralarni o'rganadi.",
+         "aliases": [], "evidence": {}, "provenance": [], "reconciliation": {}},
+    ]
+    results = HybridRetriever(build_knowledge_index(records)).search(
+        "firibgarlk xavfini aniqlash", top_k=2
+    )
+    assert results
+    assert results[0].record_id == "typo-1"
+    assert all(item.semantic_score == 0.0 for item in results)
