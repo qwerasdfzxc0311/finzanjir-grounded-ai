@@ -215,9 +215,9 @@ def compose_tavily_local_answer(
 
     lines = [intro]
     for index, (_, sentence, _url, _title, _source_domain) in enumerate(selected, start=1):
-        source_lang = detect_query_language(sentence)
-        prefix = f"[{source_lang}] " if source_lang != lang else ""
-        lines.append(f"{index}. {prefix}{sentence}")
+        # Keep the extracted source wording intact; automatic per-sentence
+        # language labels can misclassify technical English as Uzbek.
+        lines.append(f"{index}. {sentence}")
     lines.append(limitation)
     unique_domains = len({row[4] for row in selected})
     average_score = sum(row[0] for row in selected) / len(selected)
