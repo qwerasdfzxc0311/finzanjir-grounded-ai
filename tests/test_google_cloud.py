@@ -244,15 +244,17 @@ def test_legacy_plaintext_oauth_verifier_and_nonce_are_migrated(tmp_path):
              "owner_login", None, 100, 700),
         )
     store = GoogleAccountStore(str(path), Fernet.generate_key().decode())
+    # The migration encrypts the stored verifier and nonce before they are consumed.
+    with sqlite3.connect(path) as db:
+        row = db.execute("SELECT verifier, nonce FROM google_oauth_flows").fetchone()
+    assert row is not None
+    assert row[0] != "legacy-pkce-verifier"
+    assert row[1] != "legacy-oidc-nonce"
     flow = store.consume_flow("state-value", now=200)
     assert flow["verifier"] == "legacy-pkce-verifier"
     assert flow["nonce"] == "legacy-oidc-nonce"
     # OAuth flow records are one-time use; the second consume must fail.
     assert store.consume_flow("state-value", now=200) is None
-    with sqlite3.connect(path) as db:
-        row = db.execute("SELECT verifier, nonce FROM google_oauth_flows").fetchone()
-    assert row[0] != "legacy-pkce-verifier"
-    assert row[1] != "legacy-oidc-nonce"
 
 def test_cloud_diagnostics_reports_missing_configuration_without_secrets(monkeypatch):
     for key in (
