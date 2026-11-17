@@ -27,6 +27,14 @@ class PersonalMemoryStore:
         Path(path).parent.mkdir(parents=True, exist_ok=True)
         self.path = path
         self.cipher = Fernet(encryption_key.encode())
+        # Keep search-term indexes private without storing plaintext terms. Derive a
+        # domain-separated HMAC key from the same owner-only encryption secret.
+        # This fixes the previous missing-attribute failure in quarantine/search.
+        self.index_key = hmac.new(
+            encryption_key.encode("ascii"),
+            b"FINZANJIR:personal-memory:search-index:v1",
+            hashlib.sha256,
+        ).digest()
         with self._db() as db:
             db.executescript("""
                 CREATE TABLE IF NOT EXISTS personal_memory_sources (

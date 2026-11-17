@@ -45,3 +45,16 @@ The API currently has two historical static frontend service names in Render. Co
 - Google Photos Picker grants access to items the owner explicitly selects in each Picker session. It is not an API for silently reading the entire Google Photos library. For a full archive, use Google Takeout and a separately reviewed archive-import pipeline.
 - Imported media bytes are encrypted and retained, but local image understanding, speech transcription and video summarization are not implemented until FINZANJIR has its own reviewed local multimodal models.
 - Imported text remains quarantined and searchable by the owner; it is not yet injected into the FINZANJIR project-answer knowledge base.
+
+## 5. Current Render persistence gate (reviewed 2026-11-17)
+
+The current `finzanjir-grounded-ai-api` Render service is on the **Free** compute plan. Free web services have an ephemeral filesystem and cannot attach persistent disks. A directory such as `/var/data` does not make SQLite durable; its contents can be lost on restart, spin-down or redeploy.
+
+Therefore:
+- Do not enable real Google OAuth imports or unattended research on the current Free API service.
+- Before importing personal files, select a durable storage design: a paid single-instance API with a persistent disk for SQLite, or a managed durable database plus private object storage for encrypted media. A Render Free Postgres instance is not a long-term substitute because it expires after 30 days.
+- The 100 MiB media import ceiling is a per-file safety bound, not a storage capacity promise. For a large Photos/Drive archive, move encrypted media blobs out of SQLite into private object storage and keep only metadata, hashes, provenance and search indexes in the database.
+- The autonomous research daemon also needs its own supported Background Worker compute and durable state store. It is not running merely because the Python entrypoint exists.
+- Re-run the Settings diagnostics after storage is configured. It must report the actual mounted disk or datastore readiness, not merely the presence of a directory.
+
+No Render plan, disk, database, service, or environment variable is changed by this PR. Obtain explicit owner approval before making any cost-bearing infrastructure change.

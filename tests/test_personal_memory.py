@@ -264,3 +264,15 @@ def test_legacy_plaintext_picker_url_is_migrated_to_encrypted_column(tmp_path):
     store = PersonalMemoryStore(str(path), Fernet.generate_key().decode())
     assert store.get_picker_session("owner@example.com", "account-1", "old-session")["picker_uri"] == "https://photos.google.com/picker/old"
     assert b"https://photos.google.com/picker/old" not in path.read_bytes()
+
+def test_personal_memory_search_index_key_is_derived_and_stable(tmp_path):
+    key = Fernet.generate_key().decode()
+    first = PersonalMemoryStore(str(tmp_path / "first.sqlite"), key)
+    second = PersonalMemoryStore(str(tmp_path / "second.sqlite"), key)
+    other = PersonalMemoryStore(
+        str(tmp_path / "other.sqlite"), Fernet.generate_key().decode()
+    )
+    assert isinstance(first.index_key, bytes)
+    assert len(first.index_key) == 32
+    assert first.index_key == second.index_key
+    assert first.index_key != other.index_key
