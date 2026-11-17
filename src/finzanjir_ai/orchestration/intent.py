@@ -84,7 +84,7 @@ def is_project_overview_query(query: str) -> bool:
     if not ({"finzanjir", "финзанжир"} & tokens):
         return False
     exact_forms = {
-        "finzanjir nima", "finzanjir nima va nima uchun kerak", "finzanjir nima uchun kerak",
+        "finzanjir nima", "finzanjir nima va nima uchun kerak",
         "finzanjir haqida", "finzanjir haqida aytib ber", "finzanjir haqida qisqacha aytib ber",
         "finzanjirning maqsadi", "finzanjir qanday loyiha",
         "финзанжир нима", "финзанжир ҳақида", "финзанжир ҳақида айтып бер",
