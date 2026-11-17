@@ -97,7 +97,7 @@ class HybridRetriever:
                     record_id=record.record_id,
                     score=min(1.0, score),
                     lexical_score=min(1.0, lexical),
-                    semantic_score=min(1.0, bm25_normalized),
+                    semantic_score=0.0,
                 )
             )
 
