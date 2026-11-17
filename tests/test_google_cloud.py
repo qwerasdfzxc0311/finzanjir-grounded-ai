@@ -252,3 +252,54 @@ def test_legacy_plaintext_oauth_verifier_and_nonce_are_migrated(tmp_path):
         row = db.execute("SELECT verifier, nonce FROM google_oauth_flows").fetchone()
     assert row[0] != "legacy-pkce-verifier"
     assert row[1] != "legacy-oidc-nonce"
+
+def test_cloud_diagnostics_reports_missing_configuration_without_secrets(monkeypatch):
+    for key in (
+        "FINZANJIR_GOOGLE_CLIENT_ID",
+        "FINZANJIR_GOOGLE_CLIENT_SECRET",
+        "FINZANJIR_GOOGLE_REDIRECT_URI",
+        "FINZANJIR_OWNER_EMAIL",
+        "FINZANJIR_SESSION_SECRET",
+        "FINZANJIR_TOKEN_ENCRYPTION_KEY",
+        "FINZANJIR_GOOGLE_STATE_DB_PATH",
+        "FINZANJIR_PERSONAL_MEMORY_DB_PATH",
+        "FINZANJIR_FRONTEND_URL",
+    ):
+        monkeypatch.delenv(key, raising=False)
+    response = TestClient(app).get("/api/google/diagnostics")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["configured"] is False
+    assert payload["checks"][0]["status"] == "not_configured"
+    assert "client_secret" not in response.text.lower()
+
+
+def test_cloud_diagnostics_checks_owner_databases_and_permissions(monkeypatch, tmp_path):
+    key = Fernet.generate_key().decode()
+    monkeypatch.setenv("FINZANJIR_GOOGLE_CLIENT_ID", "client-id")
+    monkeypatch.setenv("FINZANJIR_GOOGLE_CLIENT_SECRET", "client-secret")
+    monkeypatch.setenv("FINZANJIR_GOOGLE_REDIRECT_URI", "https://api.example.com/api/google/oauth/callback")
+    monkeypatch.setenv("FINZANJIR_OWNER_EMAIL", "owner@example.com")
+    monkeypatch.setenv("FINZANJIR_SESSION_SECRET", "s" * 40)
+    monkeypatch.setenv("FINZANJIR_TOKEN_ENCRYPTION_KEY", key)
+    monkeypatch.setenv("FINZANJIR_GOOGLE_STATE_DB_PATH", str(tmp_path / "state.sqlite"))
+    monkeypatch.setenv("FINZANJIR_PERSONAL_MEMORY_DB_PATH", str(tmp_path / "memory.sqlite"))
+    monkeypatch.setenv("FINZANJIR_FRONTEND_URL", "https://frontend.example.com")
+    monkeypatch.setenv("FINZANJIR_ALLOWED_ORIGINS", "https://frontend.example.com")
+    store = GoogleAccountStore(str(tmp_path / "state.sqlite"), key)
+    session_id = store.create_session("owner@example.com")
+    client = TestClient(app)
+    client.cookies.set(
+        "finzanjir_owner_session",
+        _session_cookie(session_id, "s" * 40),
+    )
+    response = client.get("/api/google/diagnostics")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["configured"] is True
+    assert payload["authenticated"] is True
+    assert {item["id"] for item in payload["checks"]} >= {
+        "oauth_config", "token_encryption", "owner_session",
+        "google_state_db", "personal_memory_db", "storage_capacity",
+    }
+    assert payload["summary"]["error"] == 0
