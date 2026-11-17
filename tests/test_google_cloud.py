@@ -247,7 +247,8 @@ def test_legacy_plaintext_oauth_verifier_and_nonce_are_migrated(tmp_path):
     flow = store.consume_flow("state-value", now=200)
     assert flow["verifier"] == "legacy-pkce-verifier"
     assert flow["nonce"] == "legacy-oidc-nonce"
-    assert flow is None
+    # OAuth flow records are one-time use; the second consume must fail.
+    assert store.consume_flow("state-value", now=200) is None
     with sqlite3.connect(path) as db:
         row = db.execute("SELECT verifier, nonce FROM google_oauth_flows").fetchone()
     assert row[0] != "legacy-pkce-verifier"
