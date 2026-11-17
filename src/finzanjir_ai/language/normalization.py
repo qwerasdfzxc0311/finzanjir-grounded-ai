@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import re
 import unicodedata
+from functools import lru_cache
 from collections.abc import Mapping
 
 
@@ -52,6 +53,7 @@ def normalize_multilingual_text(
     return " ".join(tokens)
 
 
+@lru_cache(maxsize=32768)
 def character_ngrams(text: str, *, min_n: int = 2, max_n: int = 4) -> tuple[str, ...]:
     """Create deterministic character n-grams for typo-tolerant local matching."""
     if min_n < 1 or max_n < min_n or max_n > 8:
