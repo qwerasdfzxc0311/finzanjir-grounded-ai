@@ -241,3 +241,22 @@ def test_time_sensitive_research_queries_use_year_filter():
     assert _tavily_time_range("What is the latest research on photosynthesis today?") == "year"
     assert _tavily_time_range("What happened in the news today?") == "day"
     assert _tavily_time_range("What is photosynthesis?") is None
+
+
+def test_tavily_plan_and_paygo_limit_codes_trigger_quota_cooldown():
+    from finzanjir_ai.research.resilience import ProviderCooldown
+
+    for status_code in (432, 433):
+        request = httpx.Request("POST", "https://api.tavily.com/search")
+        response = httpx.Response(status_code, request=request)
+        error = httpx.HTTPStatusError(
+            "Tavily plan or pay-as-you-go limit exceeded",
+            request=request,
+            response=response,
+        )
+        status = service._failure_status(error)
+        assert status == "quota_exhausted"
+
+        cooldown = ProviderCooldown()
+        assert cooldown.record_failure(status) == 30 * 60
+        assert cooldown.is_open() is True
