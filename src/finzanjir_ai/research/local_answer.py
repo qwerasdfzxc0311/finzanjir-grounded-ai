@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from difflib import SequenceMatcher
 import re
 from urllib.parse import urlsplit
 from typing import Any
@@ -80,6 +81,26 @@ def _sentences(value: str) -> tuple[str, ...]:
         if 35 <= len(sentence) <= 520:
             cleaned.append(sentence)
     return tuple(cleaned)
+
+def _near_duplicate(left: str, right: str) -> bool:
+    """Conservatively reject near-identical source claims without an LLM.
+
+    This phrase-overlap heuristic is a quality filter, not semantic fact
+    verification. It requires both ordered phrase similarity and substantial
+    overlap among meaningful terms to avoid dropping merely related claims.
+    """
+    left_tokens = meaningful_tokens(left)
+    right_tokens = meaningful_tokens(right)
+    if not left_tokens or not right_tokens:
+        return False
+    left_set = set(left_tokens)
+    right_set = set(right_tokens)
+    overlap = len(left_set & right_set) / max(1, min(len(left_set), len(right_set)))
+    sequence_similarity = SequenceMatcher(
+        None, " ".join(left_tokens), " ".join(right_tokens)
+    ).ratio()
+    return overlap >= 0.42 and sequence_similarity >= 0.60
+
 
 def _is_definition_question(query: str) -> bool:
     text = " ".join(str(query or "").casefold().split())
@@ -179,6 +200,8 @@ def compose_tavily_local_answer(
     domain_counts: dict[str, int] = {}
     for candidate in candidates:
         if domain_counts.get(candidate[4], 0) >= 2:
+            continue
+        if any(_near_duplicate(candidate[1], row[1]) for row in selected):
             continue
         selected.append(candidate)
         domain_counts[candidate[4]] = domain_counts.get(candidate[4], 0) + 1
