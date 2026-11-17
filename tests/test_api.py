@@ -634,7 +634,16 @@ def test_api_rejects_unknown_model_policy():
     assert response.status_code == 422
 
 
-def test_api_offline_policy_abstains_honestly_for_unsupported_general_topic():
+def test_api_offline_policy_abstains_honestly_for_unsupported_general_topic(monkeypatch):
+    from finzanjir_ai.answer.providers import LLMGateway
+
+    monkeypatch.setenv("GEMINI_API_KEY", "test-key-must-not-be-used")
+    monkeypatch.setenv("OPENROUTER_API_KEY", "test-key-must-not-be-used")
+    monkeypatch.setattr(
+        LLMGateway,
+        "_generate_with",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(AssertionError("offline API attempted hosted call")),
+    )
     response = client.post(
         "/api/ai/answer",
         json={"question": "What is photosynthesis?", "model_policy": "offline"},
