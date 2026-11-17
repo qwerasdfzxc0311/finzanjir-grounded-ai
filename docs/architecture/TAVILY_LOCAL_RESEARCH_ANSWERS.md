@@ -17,7 +17,7 @@ FINZANJIR should not depend on a single search provider or hosted answer model. 
 ## Provider resilience
 
 - Tavily is a primary broad public-web search provider, not the required answer-generating LLM. It is not called first for stable encyclopedic questions when Wikimedia is a better low-cost fit.
-- HTTP 429 opens a 15-minute Tavily cooldown; quota exhaustion opens a 30-minute cooldown; authentication/permission failures also open a 30-minute cooldown. Temporary network/provider failures open a short 60-second cooldown.
+- HTTP 429 opens a 15-minute Tavily cooldown. Tavily HTTP 432 (plan usage limit) and 433 (pay-as-you-go limit) are classified as quota exhaustion and open a 30-minute cooldown. HTTP 401/403 authentication or permission failures also open a 30-minute cooldown. Temporary network/provider failures open a short 60-second cooldown.
 - During cooldown, new questions skip Tavily and proceed directly to Wikimedia when the topic is suitable. This avoids repeatedly spending requests against a provider that has already reported a limit or outage.
 - Wikimedia is an independent, keyless encyclopedia fallback, not a full replacement for broad web search. It is suitable for stable encyclopedic topics; it may not find current events, niche pages, or all Karakalpak-language material.
 - Successful public extracts are cached in memory for up to six hours, with a maximum of 128 query entries. The cache is process-local and may be cleared by a service restart or deployment.
@@ -37,7 +37,7 @@ FINZANJIR should not depend on a single search provider or hosted answer model. 
 
 - A local fact card answers without Tavily, Wikimedia, or hosted LLM calls.
 - An unsupported general question can be answered from Tavily extracts without Gemini/OpenRouter.
-- Tavily HTTP 429/quota failures skip repeat Tavily calls during cooldown and use Wikimedia where relevant.
+- Tavily HTTP 429, 432, and 433 failures skip repeat Tavily calls during cooldown and use Wikimedia where relevant.
 - If Tavily is not configured, Wikimedia can still provide a locally composed answer for a supported encyclopedic query.
 - A successful extract is reused from the process cache without another Tavily call.
 - Explicit Offline mode makes no external search request.
