@@ -95,3 +95,25 @@ def test_local_composer_rejects_non_https_and_credentialed_source_urls():
     assert result.abstained is True
     assert result.sources == ()
     assert result.provenance == ()
+
+
+def test_local_composer_does_not_add_unreliable_language_tags_to_source_sentences():
+    result = compose_tavily_local_answer(
+        "What is the latest research?",
+        [{
+            "title": "Research source",
+            "url": "https://example.org/photosynthesis",
+            "snippet": "Photosynthesis is a process that uses sunlight.",
+            "raw_content": (
+                "This latest research follows lab experiments on purple photosynthetic "
+                "bacteria, which reveal a unique energy-splitting process happening "
+                "inside their solar-collecting systems."
+            ),
+            "score": 0.9,
+        }],
+    )
+
+    assert result.abstained is False
+    assert "[uz]" not in result.answer
+    assert "[en]" not in result.answer
+    assert "This latest research follows lab experiments" in result.answer
