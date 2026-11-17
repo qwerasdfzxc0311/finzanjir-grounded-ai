@@ -11,7 +11,7 @@ from finzanjir_ai.answer.providers import LLMGateway
 
 
 class PublicResearchCache:
-    """Small bounded in-process cache containing only public-source extracts."""
+    """Small bounded in-process cache containing only capped public extracts."""
 
     def __init__(self, *, ttl_seconds: int = 6 * 60 * 60, max_entries: int = 128) -> None:
         self.ttl_seconds = max(60, int(ttl_seconds))
@@ -44,10 +44,24 @@ class PublicResearchCache:
         if not results or not LLMGateway.can_send_text(query):
             return
         key = self._key(query)
-        payload = {
-            "provider": str(provider),
-            "results": deepcopy(results[:8]),
-        }
+        capped_results: list[dict[str, Any]] = []
+        for item in results[:6]:
+            if not isinstance(item, dict):
+                continue
+            url = str(item.get("url") or "")[:2000]
+            if not url.startswith("https://"):
+                continue
+            capped_results.append({
+                "title": str(item.get("title") or "Untitled source")[:300],
+                "url": url,
+                "snippet": str(item.get("snippet") or item.get("content") or "")[:1200],
+                "raw_content": str(item.get("raw_content") or "")[:18000],
+                "published_date": str(item.get("published_date") or "")[:80] or None,
+                "score": item.get("score") if isinstance(item.get("score"), (int, float)) else 0.0,
+            })
+        if not capped_results:
+            return
+        payload = {"provider": str(provider)[:40], "results": capped_results}
         with self._lock:
             self._items[key] = (time.monotonic() + self.ttl_seconds, payload)
             self._items.move_to_end(key)
