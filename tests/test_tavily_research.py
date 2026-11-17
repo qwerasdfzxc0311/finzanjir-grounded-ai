@@ -124,3 +124,40 @@ def test_search_rejects_unsupported_filters(monkeypatch):
         client.search("public information", topic="invalid")
     with pytest.raises(ValueError, match="time range"):
         client.search("public information", time_range="decade")
+
+
+def test_sensitive_text_guard_validates_iban_checksum_and_allows_bm25_term():
+    from finzanjir_ai.answer.providers import LLMGateway
+
+    assert LLMGateway.can_send_text(
+        "multilingual hybrid retrieval BM25 reciprocal rank fusion reranking evaluation"
+    )
+    assert not LLMGateway.can_send_text("Please review IBAN GB82 WEST 1234 5698 7654 32")
+    assert not LLMGateway.can_send_text("Card 8600 1234 5678 9012")
+
+
+def test_tavily_accepts_bm25_research_query_without_disabling_identifier_guard(monkeypatch):
+    import httpx
+
+    calls = []
+
+    def fake_post(url, **kwargs):
+        calls.append(kwargs["json"]["query"])
+        return httpx.Response(
+            200,
+            request=httpx.Request("POST", url),
+            json={"results": [{
+                "title": "Hybrid retrieval overview",
+                "url": "https://example.org/hybrid-retrieval",
+                "content": "BM25 and reciprocal-rank fusion overview",
+                "score": 0.9,
+            }]},
+        )
+
+    monkeypatch.setattr("finzanjir_ai.research.tavily.httpx.post", fake_post)
+    result = TavilySearchClient(api_key="test-only").search(
+        "multilingual hybrid retrieval BM25 reciprocal rank fusion reranking evaluation"
+    )
+
+    assert calls == ["multilingual hybrid retrieval BM25 reciprocal rank fusion reranking evaluation"]
+    assert result["results"][0]["title"] == "Hybrid retrieval overview"
