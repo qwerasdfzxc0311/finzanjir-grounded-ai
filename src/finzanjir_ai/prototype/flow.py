@@ -6,7 +6,7 @@ from typing import Any, Callable
 from finzanjir_ai.architecture.layers import build_layer_trace, get_layer_status_summary
 from finzanjir_ai.audit.service import AuditLog, calculate_kpis
 from finzanjir_ai.case.manager import CaseManager
-from finzanjir_ai.cross_bank.matcher import CrossBankMatcher
+from finzanjir_ai.cross_bank.matcher import CrossBankMatchResult, CrossBankMatcher
 from finzanjir_ai.knowledge.index import KnowledgeIndex, build_index_from_document, build_knowledge_index
 from finzanjir_ai.knowledge.loader import load_author_profile_records, load_canonical_knowledge, load_project_principle_records
 from finzanjir_ai.orchestration.engine import FINZANJIRAI, get_finzanjir_ai
@@ -98,7 +98,9 @@ class SystemFlow:
 
         if pipeline.signal is None or pipeline.risk is None or pipeline.case is None:
             emit("cross_bank_fraud", "RUNNING", "Cross-Bank ruxsat chegarasi tekshirilmoqda.")
-            shadow_cross_bank = CrossBankMatcher().match([], scope="cross_bank", authorized_exchange=True)
+            # This unified prototype accepts synthetic transactions only; without explicit
+            # authorization it must not invoke the cross-bank matcher at all.
+            shadow_cross_bank = CrossBankMatchResult(matches=[], graph_edges=[])
             emit("cross_bank_fraud", "DISABLED", "Banklararo almashinuv o‘chiq; bu moslik topilmadi degani emas.")
             shadow_case_refs = tuple(
                 ref
@@ -251,24 +253,28 @@ class SystemFlow:
             }
 
         emit("cross_bank_fraud", "RUNNING", "Cross-Bank ruxsat chegarasi va moslik tekshirilmoqda.")
-        cross_bank = CrossBankMatcher().match(
-            [
-                {
-                    "transaction_id": transaction["transaction_id"],
-                    "bank_id": transaction["bank_id"],
-                    "device_id": transaction.get("device_id", ""),
-                    "network_id": transaction.get("network_id", ""),
-                },
-                {
-                    "transaction_id": f"{transaction['transaction_id']}-peer",
-                    "bank_id": "bank-b",
-                    "device_id": transaction.get("device_id", ""),
-                    "network_id": transaction.get("network_id", ""),
-                },
-            ],
-            scope="cross_bank",
-            authorized_exchange=cross_bank_authorized or not has_cross_bank_keys,
-        )
+        if cross_bank_authorized:
+            cross_bank = CrossBankMatcher().match(
+                [
+                    {
+                        "transaction_id": transaction["transaction_id"],
+                        "bank_id": transaction["bank_id"],
+                        "device_id": transaction.get("device_id", ""),
+                        "network_id": transaction.get("network_id", ""),
+                    },
+                    {
+                        "transaction_id": f"{transaction['transaction_id']}-peer",
+                        "bank_id": "bank-b",
+                        "device_id": transaction.get("device_id", ""),
+                        "network_id": transaction.get("network_id", ""),
+                    },
+                ],
+                scope="cross_bank",
+                authorized_exchange=True,
+            )
+        else:
+            # Fail closed: a missing key is not authorization to exchange data.
+            cross_bank = CrossBankMatchResult(matches=[], graph_edges=[])
         emit(
             "cross_bank_fraud",
             "COMPLETED" if cross_bank_authorized else "DISABLED",

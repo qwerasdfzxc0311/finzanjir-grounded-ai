@@ -115,11 +115,11 @@ def test_stream_threshold_manager_failure_marks_signal_risk_failed_and_later_win
     _assert_stopped_at(response, "signal_risk")
 
 
-def test_stream_cross_bank_matcher_exception_fails_closed_and_stops_later_windows(monkeypatch):
-    def fail_match(*_args, **_kwargs):
-        raise RuntimeError("synthetic cross-bank matcher failure")
+def test_stream_cross_bank_disabled_result_failure_marks_window_failed_and_stops_later_windows(monkeypatch):
+    def fail_disabled_result(*_args, **_kwargs):
+        raise RuntimeError("synthetic disabled cross-bank result failure")
 
-    monkeypatch.setattr("finzanjir_ai.prototype.flow.CrossBankMatcher.match", fail_match)
+    monkeypatch.setattr("finzanjir_ai.prototype.flow.CrossBankMatchResult", fail_disabled_result)
     response = client.post("/api/prototype/run/stream", json=_payload("TX-FAIL-CROSS-BANK-001"))
     _assert_stopped_at(response, "cross_bank_fraud")
 
