@@ -291,6 +291,21 @@ def test_flow_emits_real_ordered_stage_callbacks_for_synthetic_review():
     assert all(event["transaction_id"] == transaction_id for event in events)
     assert all(event["data_mode"] == "synthetic" for event in events)
 
+    ai_events = [event for event in events if event["window_id"] == "finzanjir_ai"]
+    assert len(ai_events) == 2
+    assert ai_events[0]["status"] == "RUNNING"
+    assert ai_events[1]["status"] in {"COMPLETED", "ABSTAINED"}
+    assert ai_events[0]["input_refs"]
+    assert ai_events[0]["input_refs"] == ai_events[1]["input_refs"]
+
+    prior_terminal_outputs = {
+        ref
+        for event in events
+        if event["sequence"] < ai_events[0]["sequence"] and event["status"] != "RUNNING"
+        for ref in event["output_refs"]
+    }
+    assert set(ai_events[0]["input_refs"]) <= prior_terminal_outputs
+
 
 def test_progress_callback_failure_does_not_change_flow_result():
     flow = build_system_flow()
