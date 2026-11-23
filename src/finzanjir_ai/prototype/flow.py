@@ -339,7 +339,6 @@ class SystemFlow:
                 ref for ref in (audit_event.get("event_id"), audit_event.get("audit_id")) if ref
             )))
 
-        emit("finzanjir_ai", "RUNNING", "Canonical knowledge va runtime dalillari bilan izoh tayyorlanmoqda.")
         runtime_refs = tuple(
             value
             for value in (
@@ -355,6 +354,7 @@ class SystemFlow:
             )
             if value
         )
+        emit("finzanjir_ai", "RUNNING", "Canonical knowledge va runtime dalillari bilan izoh tayyorlanmoqda.", input_refs=runtime_refs)
         ai = get_finzanjir_ai(knowledge_index).answer(
             "Why does case escalation require evidence?",
             runtime_refs=runtime_refs,
