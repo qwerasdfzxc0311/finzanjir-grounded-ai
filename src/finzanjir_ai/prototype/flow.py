@@ -529,7 +529,10 @@ class SystemFlow:
                     else "Case ochilmadi · mezonlar bajarilmadi"
                 ),
                 "summary": "Case va inson ko‘rigi faqat sintetik namuna; rasmiy bank qarori emas.",
-                "input_refs": [risk["id"]] if risk.get("id") else [],
+                "input_refs": (
+                    [risk["id"]] if case and risk.get("id")
+                    else [ref for ref in (transaction_id, risk.get("id")) if ref]
+                ),
                 "output_refs": [
                     item for item in (
                         case.get("case_id") if case else None,
@@ -571,7 +574,11 @@ class SystemFlow:
                     if citizen_status else "Fuqaro statusi mavjud emas"
                 ),
                 "summary": citizen_status.get("message", "Fuqaro statusi mavjud emas."),
-                "input_refs": [human_decision["decision_id"]] if human_decision.get("decision_id") else [],
+                "input_refs": (
+                    [human_decision["decision_id"]]
+                    if human_decision.get("decision_id")
+                    else [ref for ref in (transaction_id, risk.get("id"), risk.get("threshold_id")) if ref]
+                ),
                 "output_refs": [
                     item for item in (
                         citizen_status.get("status_id"),
