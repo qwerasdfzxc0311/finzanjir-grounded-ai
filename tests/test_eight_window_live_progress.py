@@ -4,6 +4,8 @@ import asyncio
 import json
 import threading
 
+import pytest
+
 import finzanjir_api.app as api_module
 from finzanjir_api.app import app
 from finzanjir_ai.risk.scenarios import build_synthetic_case_signal_events
@@ -23,7 +25,7 @@ TERMINAL_STATUS = {
     "synthetic_bank": {"COMPLETED"},
     "signal_risk": {"COMPLETED"},
     "cross_bank_fraud": {"DISABLED"},
-    "human_case": {"SYNTHETIC_REVIEW_ONLY"},
+    "human_case": {"SYNTHETIC_REVIEW_ONLY", "SHADOW_ONLY", "NOT_ELIGIBLE"},
     "audit_kpi": {"COMPLETED"},
     "finzanjir_ai": {"COMPLETED", "ABSTAINED"},
     "citizen": {"SYNTHETIC_STATUS_ONLY"},
@@ -31,7 +33,8 @@ TERMINAL_STATUS = {
 }
 
 
-def test_sse_delivers_all_eight_window_updates_progressively(monkeypatch):
+@pytest.mark.parametrize("shadow_mode", [False, True], ids=["normal-case", "shadow-mode"])
+def test_sse_delivers_all_eight_window_updates_progressively(monkeypatch, shadow_mode):
     # Hold the worker after each window's terminal event. The ASGI send callback
     # releases it only after that event has reached the response stream.
     gates = {window_id: threading.Event() for window_id in WINDOWS}
@@ -64,7 +67,7 @@ def test_sse_delivers_all_eight_window_updates_progressively(monkeypatch):
     monkeypatch.setattr(api_module, "_execute_prototype", gated_execute)
 
     async def exercise_stream():
-        transaction_id = "TX-EIGHT-WINDOW-LIVE-SSE-001"
+        transaction_id = f"TX-EIGHT-WINDOW-LIVE-SSE-{'SHADOW' if shadow_mode else 'CASE'}-001"
         occurred_at = "2026-11-18T09:00:00Z"
         payload = {
             "transaction_id": transaction_id,
@@ -77,7 +80,7 @@ def test_sse_delivers_all_eight_window_updates_progressively(monkeypatch):
                 transaction_id=transaction_id,
                 observed_at=occurred_at,
             ),
-            "shadow_mode": False,
+            "shadow_mode": shadow_mode,
         }
         body = json.dumps(payload).encode()
         request_sent = False
@@ -159,13 +162,31 @@ def test_sse_delivers_all_eight_window_updates_progressively(monkeypatch):
             window_id for window_id in WINDOWS for _ in range(2)
         ]
         assert [event["status"] for event in stage_events[::2]] == ["RUNNING"] * 8
+        expected_terminal_statuses = dict(TERMINAL_STATUS)
+        expected_terminal_statuses["human_case"] = (
+            {"SHADOW_ONLY"} if shadow_mode else {"SYNTHETIC_REVIEW_ONLY"}
+        )
         for window_id, event in zip(WINDOWS, stage_events[1::2]):
             assert event["window_id"] == window_id
-            assert event["status"] in TERMINAL_STATUS[window_id]
+            assert event["status"] in expected_terminal_statuses[window_id]
         assert not gate_timeouts
         assert not late_terminal_events
         assert not error_events
         assert len(result_events) == 1
         assert persisted.is_set()
+        trace = result_events[0]["window_trace"]
+        assert len(trace) == len(WINDOWS) == 8
+        available_refs = set()
+        for index, window_id in enumerate(WINDOWS):
+            running, terminal = stage_events[index * 2:index * 2 + 2]
+            trace_stage = trace[index]
+            assert running["window_id"] == terminal["window_id"] == trace_stage["window_id"] == window_id
+            assert running["sequence"] == terminal["sequence"] == trace_stage["sequence"] == index + 1
+            assert running["input_refs"] == terminal["input_refs"] == trace_stage["input_refs"]
+            assert terminal["output_refs"] == trace_stage["output_refs"]
+            assert set(running["input_refs"]) <= available_refs
+            assert set(terminal["input_refs"]) <= available_refs
+            assert all(isinstance(ref, str) and ref for ref in running["input_refs"] + terminal["output_refs"])
+            available_refs.update(terminal["output_refs"])
 
     asyncio.run(exercise_stream())
