@@ -33,8 +33,17 @@ TERMINAL_STATUS = {
 }
 
 
-@pytest.mark.parametrize("shadow_mode", [False, True], ids=["normal-case", "shadow-mode"])
-def test_sse_delivers_all_eight_window_updates_progressively(monkeypatch, shadow_mode):
+@pytest.mark.parametrize(
+    ("scenario", "shadow_mode", "expected_human_status"),
+    [
+        ("normal-case", False, "SYNTHETIC_REVIEW_ONLY"),
+        ("shadow-mode", True, "SHADOW_ONLY"),
+        ("not-eligible", False, "NOT_ELIGIBLE"),
+    ],
+)
+def test_sse_delivers_all_eight_window_updates_progressively(
+    monkeypatch, scenario, shadow_mode, expected_human_status
+):
     # Hold the worker after each window's terminal event. The ASGI send callback
     # releases it only after that event has reached the response stream.
     gates = {window_id: threading.Event() for window_id in WINDOWS}
@@ -67,7 +76,7 @@ def test_sse_delivers_all_eight_window_updates_progressively(monkeypatch, shadow
     monkeypatch.setattr(api_module, "_execute_prototype", gated_execute)
 
     async def exercise_stream():
-        transaction_id = f"TX-EIGHT-WINDOW-LIVE-SSE-{'SHADOW' if shadow_mode else 'CASE'}-001"
+        transaction_id = f"TX-EIGHT-WINDOW-LIVE-SSE-{scenario.upper()}-001"
         occurred_at = "2026-11-18T09:00:00Z"
         payload = {
             "transaction_id": transaction_id,
@@ -76,9 +85,16 @@ def test_sse_delivers_all_eight_window_updates_progressively(monkeypatch, shadow
             "amount": 2500,
             "occurred_at": occurred_at,
             "synthetic": True,
-            "signal_events": build_synthetic_case_signal_events(
-                transaction_id=transaction_id,
-                observed_at=occurred_at,
+            "signal_events": (
+                build_synthetic_case_signal_events(
+                    transaction_id=transaction_id,
+                    observed_at=occurred_at,
+                )[:1]
+                if scenario == "not-eligible"
+                else build_synthetic_case_signal_events(
+                    transaction_id=transaction_id,
+                    observed_at=occurred_at,
+                )
             ),
             "shadow_mode": shadow_mode,
         }
@@ -163,9 +179,7 @@ def test_sse_delivers_all_eight_window_updates_progressively(monkeypatch, shadow
         ]
         assert [event["status"] for event in stage_events[::2]] == ["RUNNING"] * 8
         expected_terminal_statuses = dict(TERMINAL_STATUS)
-        expected_terminal_statuses["human_case"] = (
-            {"SHADOW_ONLY"} if shadow_mode else {"SYNTHETIC_REVIEW_ONLY"}
-        )
+        expected_terminal_statuses["human_case"] = {expected_human_status}
         for window_id, event in zip(WINDOWS, stage_events[1::2]):
             assert event["window_id"] == window_id
             assert event["status"] in expected_terminal_statuses[window_id]
