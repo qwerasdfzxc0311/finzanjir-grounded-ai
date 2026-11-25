@@ -263,18 +263,18 @@
       "status": "PARTIAL",
       "evidence_refs": [
         "tests/",
-        "GitHub Actions main run #1177 (commit 50279764131257ea58015cfd794ec70352e4ecce; 1,477 passed, 0 failed, 1 StarletteDeprecationWarning; 2026-11-21)",
+        "GitHub Actions verified code-bearing main baseline #1185 (commit 79e558a21ac0df7b217360d2ad1b2bfcdff2d474; 1,479 passed, 0 failed, 1 StarletteDeprecationWarning; 2026-11-25)",
         "src/finzanjir_ai/risk/shadow.py"
       ],
       "acceptance_criteria": [
-        "Current main-branch CI suite passes; latest recorded post-merge run #1177 completed with 1,477 tests passed, 0 failed and 1 StarletteDeprecationWarning on 2026-11-21.",
+        "Verified code-bearing main baseline: Actions #1185 on commit 79e558a21ac0df7b217360d2ad1b2bfcdff2d474 completed with 1,479 passed, 0 failed and 1 StarletteDeprecationWarning on 2026-11-25. This is synthetic software-test evidence only, not independent evaluation or real-bank validation.",
         "Synthetic Shadow metrics are calculated; this does not constitute independent evaluation or real-bank validation."
       ],
       "remaining_work": [
         "Independent evaluator va external review.",
         "Real labeled data bilan precision/recall va subgroup harm assessment."
       ],
-      "reviewed_at": "2026-11-22"
+      "reviewed_at": "2026-11-25"
     },
     {
       "id": "layer_14",
